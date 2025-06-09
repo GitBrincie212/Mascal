@@ -1,6 +1,6 @@
 use crate::defs::errors::{MascalErrorType, MascalError};
+use crate::defs::token::{Token, TokenType};
 use crate::lexer;
-use crate::lexer::{Token, TokenType};
 
 pub fn trigger_pipeline(contents: String) {
     let tokens: Vec<Token> = lexer::tokenize(&*contents);
