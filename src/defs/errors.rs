@@ -16,7 +16,7 @@ impl fmt::Display for MascalError {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt.write_str(
             format!("\x1b[1;31m{:?}: {}\nAT LINE: {}; STARTING IN CHARACTER POSITION: {}\x1b[0m", 
-                    self.error_type, self.source, self.line, self.character
+                    self.error_type, self.source, self.line + 1, self.character + 1
             ).as_str()
         )
     }
