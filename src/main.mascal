@@ -1,7 +1,40 @@
-Variables:
-    Integers: a, b, c, l[200]
-    Floats: x, y, z, l2{}, l3{100}
-    Strings: name1, name2
-    Booleans: isA, isB
-    Dynamics: d1
+VARIABLES {
+    INTEGERS: (
+        a,
+        b,
+        const c,
+        l[5] = [1, 2, 3, 4, 5]
+    );
+    FLOATS: (
+        x,
+        y,
+        z,
+        l2{} = {1.2, 1.3, 1.5},
+        l3{100} = {1.2, 1.5, 2.37, 3.14}
+    );
+    
+    STRINGS: (
+        name1 = "Bob",
+        name2
+    );
 
+    BOOLEANS: (
+        isA,
+        isB = True
+    );
+
+    DYNAMICS: (
+        myVar1 = "Hello World",
+        myVar2 = 1234,
+        myVar3{10} = {},
+        myVar4[4] = [1, 2, 3, 4]
+        coolVar = NULL
+    );
+}
+
+PROGRAM {
+    READ(a, b);
+    c <- a + b;
+    WRITE("Here are the results of the addition:");
+    WRITE(c);
+}
