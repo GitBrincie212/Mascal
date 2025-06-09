@@ -1,0 +1,7 @@
+Variables:
+    Integers: a, b, c, l[200]
+    Floats: x, y, z, l2{}, l3{100}
+    Strings: name1, name2
+    Booleans: isA, isB
+    Dynamics: d1
+
