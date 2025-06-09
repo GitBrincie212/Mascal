@@ -29,6 +29,7 @@ pub enum TokenType {
     Dot,
     Colon,
     ReturnIndicator,
+    QuestionMark,
 
     Comment,
 
@@ -48,6 +49,7 @@ pub static TOKEN_REGEX_MAP: Lazy<TokenRegexMap> = Lazy::new(|| {
     map.push((Regex::new(r"\+").unwrap(), TokenType::Plus));
     map.push((Regex::new(r"-").unwrap(), TokenType::Minus));
     map.push((Regex::new(r"\*").unwrap(), TokenType::Asterisk));
+    map.push((Regex::new(r"\?").unwrap(), TokenType::QuestionMark));
     map.push((Regex::new(r"/").unwrap(), TokenType::Slash));
     map.push((Regex::new(r"/").unwrap(), TokenType::Equals));
     map.push((Regex::new(r";").unwrap(), TokenType::Semicolon));
