@@ -2,6 +2,7 @@ mod parser;
 mod lexer;
 mod language_pipeline;
 mod defs;
+mod ast;
 
 use std::{env, fs};
 use std::ffi::OsStr;
