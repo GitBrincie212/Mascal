@@ -26,19 +26,19 @@ pub enum TokenType {
     And,
     Not,
     Semicolon,
-    LParen,
-    RParen,
-    LBrace,
-    RBrace,
-    LBracket,
-    RBracket,
+    OpenParen,
+    CloseParen,
+    OpenBrace,
+    CloseBrace,
+    OpenBracket,
+    CloseBracket,
     Comma,
     Dot,
     Colon,
     ReturnIndicator,
     QuestionMark,
-    ArrowOpen,
-    ArrowClose,
+    OpenArrow,
+    CloseArrow,
 
     Comment,
 
@@ -113,12 +113,12 @@ pub static TOKEN_REGEX_MAP: Lazy<TokenRegexMap> = Lazy::new(|| {
     map.push((Regex::new(r"/").unwrap(), TokenType::Slash));
     map.push((Regex::new(r"/").unwrap(), TokenType::Equals));
     map.push((Regex::new(r";").unwrap(), TokenType::Semicolon));
-    map.push((Regex::new(r"\(").unwrap(), TokenType::LParen));
-    map.push((Regex::new(r"\)").unwrap(), TokenType::RParen));
-    map.push((Regex::new(r"\{").unwrap(), TokenType::LBrace));
-    map.push((Regex::new(r"}").unwrap(), TokenType::RBrace));
-    map.push((Regex::new(r"\[").unwrap(), TokenType::LBracket));
-    map.push((Regex::new(r"]").unwrap(), TokenType::RBracket));
+    map.push((Regex::new(r"\(").unwrap(), TokenType::OpenParen));
+    map.push((Regex::new(r"\)").unwrap(), TokenType::CloseParen));
+    map.push((Regex::new(r"\{").unwrap(), TokenType::OpenBrace));
+    map.push((Regex::new(r"}").unwrap(), TokenType::CloseBrace));
+    map.push((Regex::new(r"\[").unwrap(), TokenType::OpenBracket));
+    map.push((Regex::new(r"]").unwrap(), TokenType::CloseBracket));
     map.push((Regex::new(r"\.").unwrap(), TokenType::Dot));
     map.push((Regex::new(r",").unwrap(), TokenType::Comma));
     map.push((Regex::new(r":").unwrap(), TokenType::Colon));
@@ -127,8 +127,8 @@ pub static TOKEN_REGEX_MAP: Lazy<TokenRegexMap> = Lazy::new(|| {
     map.push((Regex::new(r"<-").unwrap(), TokenType::VariableInitializer));
     map.push((Regex::new(r">=").unwrap(), TokenType::GreaterThanEqual));
     map.push((Regex::new(r"<=").unwrap(), TokenType::LesserThanEqual));
-    map.push((Regex::new(r"<").unwrap(), TokenType::ArrowOpen));
-    map.push((Regex::new(r">").unwrap(), TokenType::ArrowClose));
+    map.push((Regex::new(r"<").unwrap(), TokenType::OpenArrow));
+    map.push((Regex::new(r">").unwrap(), TokenType::CloseArrow));
     map.push((Regex::new(r"^[a-zA-Z_][a-zA-Z0-9_]*").unwrap(), TokenType::Identifier));
 
     map
