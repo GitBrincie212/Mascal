@@ -1,56 +1,74 @@
-VARIABLES {
-    INTEGER: (
-        a,
-        b,
-        const c,
-        l[5] = [1, 2, 3, 4, 5]
-    );
-
-    FLOAT: (
-        x,
-        y,
-        z,
-        l2{} = {1.2, 1.3, 1.5},
-        l3{100} = {1.2, 1.5, 2.37, 3.14}
-    );
-
-    STRING: (
-        name1 = "Bob",
-        name2
-    );
-
-    BOOLEAN: (
-        isA?,
-        isB = True
-    );
-
-    DYNAMIC: (
-        myVar1 = "Hello World",
-        myVar2 = 1234,
-        myVar3{10} = {},
-        myVar4[4] = [1, 2, 3, 4]
-        coolVar? = NULL
-    );
-}
-
-PROGRAM {
-    READ(a, b);
-    c <- a + b;
-    WRITE("Here are the results of the addition:");
-    WRITE(c);
-    c <- A(a, b, c)
-}
-
-DEFINE_FUNCTION A(a, mut b, c) -> FLOAT[]  {
+DEFINE_PROGRAM {
     VARIABLES {
-        INTEGER: (
-            a,
-            b,
-            c
+        INTEGER: {
+            a;
+            b;
+            const c;
+            l[5] <- [1, 2, 3, 4, 5];
+        };
+
+        FLOAT: (
+            x;
+            y;
+            z;
+            l2<> <- <1.2, 1.3, 1.5>;
+            l3<100> <- <1.2, 1.5, 2.37, 3.14)>
         );
+
+        STRING: {
+            name1 <- "Bob";
+            name2;
+        };
+
+        BOOLEAN: {
+            isA?;
+            isB <- True;
+        };
+
+        DYNAMIC: {
+            myVar1 <- "Hello World";
+            myVar2 <- 1234;
+            myVar3<10> <- <>;
+            myVar4[4] <- [1, 2, 3, 4];
+            coolVar? <- NULL;
+        };
+
+        TYPE: {};
+    }
+
+    PROGRAM {
+        READ(a, b);
+        c <- a + b;
+        WRITE("Here are the results of the addition:", c);
+        IF (TYPEOF a == INTEGER AND NOT (c != a + b OR c >= a)) {
+            WRITE("Test101");
+        }
+        FOR a FROM 5 TO 10 {
+            
+        }
+        myTestFunc();
+        c <- myFunc(a, b, c);
+    }
+}
+
+DEFINE_FUNCTION myTestFunc()  {
+    FUNCTION {
+        WRITE("COOL");
+    }
+}
+
+DEFINE_FUNCTION MyFunc(a, mut b, c) -> FLOAT[]  {
+    VARIABLES {
+        INTEGER: {
+            a;
+            b;
+            c;
+        };
+
+        TYPE: {};
     }
 
     FUNCTION {
-        A <- 3 + -3 + 9
+        A <- 3 + -3 + 9;
     }
 }
