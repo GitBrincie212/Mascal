@@ -1,9 +1,9 @@
 pub mod errors;
 pub mod token;
-mod types;
-mod operators;
-mod literal;
-mod blocks;
-mod statements;
-mod expressions;
-mod declerations;
+pub mod types;
+pub mod operators;
+pub mod literal;
+pub mod blocks;
+pub mod statements;
+pub mod expressions;
+pub mod declerations;
