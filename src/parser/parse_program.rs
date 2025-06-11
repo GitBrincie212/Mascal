@@ -11,7 +11,7 @@ pub fn parse_program(parser: Parser) -> Result<ScopedBlocks, MascalError> {
         parser,
         "DEFINE_PROGRAM",
         &[TokenType::Variables],
-        &[TokenType::Program],
+        &[TokenType::Implementation],
     )?;
     let variable_block = parse_variable_block(&inner_parser)?;
     let program_body = parse_executable(inner_parser)?;

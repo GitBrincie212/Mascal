@@ -48,7 +48,6 @@ pub enum TokenType {
     Else,
     ElseIf,
     Const,
-    Program,
     Variables,
     String,
     Integer,
@@ -57,7 +56,7 @@ pub enum TokenType {
     Boolean,
     DefineFunction,
     DefineProgram,
-    Function,
+    Implementation,
     While,
     From,
     To,
@@ -75,8 +74,8 @@ pub static SCOPABLE_TOKEN_TYPES: Lazy<[TokenType; 11]> = Lazy::new(|| {
     [
         TokenType::Integer, TokenType::Float, TokenType::String,
         TokenType::Dynamic, TokenType::Type, TokenType::Boolean,
-        TokenType::DefineProgram, TokenType::Program, TokenType::Variables,
-        TokenType::DefineFunction, TokenType::Function,
+        TokenType::DefineProgram, TokenType::Implementation, TokenType::Variables,
+        TokenType::DefineFunction, TokenType::Implementation,
     ]
 });
 
@@ -89,7 +88,7 @@ pub static TOKEN_REGEX_MAP: Lazy<TokenRegexMap> = Lazy::new(|| {
     map.push((Regex::new(r"Else|else|ELSE").unwrap(), TokenType::Else));
     map.push((Regex::new(r"Elif|elif|ELIF").unwrap(), TokenType::ElseIf));
     map.push((Regex::new(r"Const|const|CONST").unwrap(), TokenType::Const));
-    map.push((Regex::new(r"PROGRAM|program|Program").unwrap(), TokenType::Program));
+    map.push((Regex::new(r"IMPLEMENTATION|implemenentation|Implementation").unwrap(), TokenType::Implementation));
     map.push((Regex::new(r"VARIABLES|variables|Variables").unwrap(), TokenType::Variables));
     map.push((Regex::new(r"String|string|STRING").unwrap(), TokenType::String));
     map.push((Regex::new(r"INTEGER|integer|Integer").unwrap(), TokenType::Integer));
@@ -98,7 +97,6 @@ pub static TOKEN_REGEX_MAP: Lazy<TokenRegexMap> = Lazy::new(|| {
     map.push((Regex::new(r"Boolean|BOOLEAN|boolean").unwrap(), TokenType::Boolean));
     map.push((Regex::new(r"DEFINE_FUNCTION|define_function|Define_Function").unwrap(), TokenType::DefineFunction));
     map.push((Regex::new(r"DEFINE_PROGRAM|define_program|Define_Program").unwrap(), TokenType::DefineProgram));
-    map.push((Regex::new(r"FUNCTION|Function|function").unwrap(), TokenType::Function));
     map.push((Regex::new(r"While|while|WHILE").unwrap(), TokenType::While));
     map.push((Regex::new(r"From|from|FROM").unwrap(), TokenType::From));
     map.push((Regex::new(r"To|to|TO").unwrap(), TokenType::To));

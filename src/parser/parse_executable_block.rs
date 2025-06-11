@@ -9,8 +9,8 @@ pub fn parse_executable(inner_parser: Parser) -> Result<Vec<MascalStatement>, Ma
     let mut statements: Vec<MascalStatement> = Vec::new();
     let program_parser = locate_block(
         inner_parser,
-        TokenType::Program,
-        "PROGRAM",
+        TokenType::Implementation,
+        "IMPLEMENTATION",
         &[],
         &[],
     )?.unwrap();
