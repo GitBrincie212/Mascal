@@ -2,9 +2,11 @@ use std::fmt;
 
 #[derive(Debug)]
 pub enum MascalErrorType {
-    LexerError
+    LexerError,
+    ParserError
 }
 
+#[derive(Debug)]
 pub struct MascalError {
     pub character: usize,
     pub line: usize,
