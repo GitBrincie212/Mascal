@@ -1,74 +1,83 @@
 DEFINE_PROGRAM {
     VARIABLES {
-        INTEGER: {
+        INTEGER {
             a;
-            b;
+            b?;
             const c;
             l[5] <- [1, 2, 3, 4, 5];
-        };
+            d <- 3;
+            const e? <- 3;
+            const z[1]<2>[3]? <- [<1, 2>, <[1, [1, 2, 3]]>];
+        }
 
-        FLOAT: (
+        FLOAT {
             x;
             y;
             z;
-            l2<> <- <1.2, 1.3, 1.5>;
-            l3<100> <- <1.2, 1.5, 2.37, 3.14)>
-        );
+            // l2<> <- <1.2, 1.3, 1.5>;
+            // l3<100> <- <1.2, 1.5, 2.37, 3.14)>;
+        }
 
-        STRING: {
+        STRING {
             name1 <- "Bob";
             name2;
-        };
+        }
 
-        BOOLEAN: {
+        BOOLEAN {
             isA?;
             isB <- True;
-        };
+        }
 
-        DYNAMIC: {
+        DYNAMIC {
             myVar1 <- "Hello World";
             myVar2 <- 1234;
-            myVar3<10> <- <>;
+            // myVar3<10> <- <>;
             myVar4[4] <- [1, 2, 3, 4];
             coolVar? <- NULL;
-        };
+        }
 
-        TYPE: {};
+        TYPE {}
     }
 
-    PROGRAM {
+    IMPLEMENTATION {
         READ(a, b);
         c <- a + b;
         WRITE("Here are the results of the addition:", c);
         IF (TYPEOF a == INTEGER AND NOT (c != a + b OR c >= a)) {
             WRITE("Test101");
-        }
+        } ELIF a = b {
+            a <- 1;
+            b <- 1;
+            c <- a + b;
+        } ELSE {
+
+        };
         FOR a FROM 5 TO 10 {
             
-        }
+        };
         myTestFunc();
         c <- myFunc(a, b, c);
     }
 }
 
 DEFINE_FUNCTION myTestFunc()  {
-    FUNCTION {
+    IMPLEMENTATION {
         WRITE("COOL");
     }
 }
 
 DEFINE_FUNCTION MyFunc(a, mut b, c) -> FLOAT[]  {
     VARIABLES {
-        INTEGER: {
+        INTEGER {
             a;
             b;
             c;
         };
 
-        TYPE: {};
+        TYPE {};
     }
 
-    FUNCTION {
+    IMPLEMENTATION {
         A <- 3 + -3 + 9;
     }
 }
