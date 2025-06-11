@@ -14,26 +14,13 @@ use crate::defs::token::{Token, TokenType};
 use crate::parser::parse_function::parse_function;
 use crate::parser::parse_program::parse_program;
 
-pub struct Parser<'a> {
-    tokens: Vec<Token<'a>>,
-    current: usize,
+pub struct TokenSequence<'a> {
+    pub tokens: Vec<Token<'a>>,
 }
 
-impl<'a> Parser<'a> {
-    pub fn new(tokens: Vec<Token<'a>>) -> Parser<'a> {
-        Parser { tokens, current: 0 }
-    }
-
-    pub fn all_tokens(&self) -> &[Token<'a>] {
-        &self.tokens
-    }
-
-    pub fn current_token(&self) -> &Token {
-        &self.tokens[self.current]
-    }
-
-    pub fn current_index(&self) -> usize {
-        self.current
+impl<'a> TokenSequence<'a> {
+    pub fn new(tokens: Vec<Token<'a>>) -> TokenSequence<'a> {
+        TokenSequence { tokens }
     }
 
     pub fn get_token(&self, index: usize) -> Option<&Token> {
@@ -52,49 +39,45 @@ impl<'a> Parser<'a> {
         matches!(self.tokens.get(index).map(|t| &t.token_type), Some(t) if t == &target)
     }
 
-    pub fn advance(&mut self) {
-        self.current += 1;
+    pub fn subsection_range(&self, bounds: Range<usize>) -> TokenSequence<'a> {
+        TokenSequence::new(self.tokens[bounds].to_vec())
     }
 
-    pub fn subsection_range(&self, bounds: Range<usize>) -> Parser<'a> {
-        Parser::new(self.tokens[bounds].to_vec())
+    pub fn subsection_from(&self, bounds: RangeFrom<usize>) -> TokenSequence<'a> {
+        TokenSequence::new(self.tokens[bounds].to_vec())
     }
+}
 
-    pub fn subsection_from(&self, bounds: RangeFrom<usize>) -> Parser<'a> {
-        Parser::new(self.tokens[bounds].to_vec())
-    }
-
-    pub fn parse(&self) -> Result<Vec<ScopedBlocks>, MascalError> {
-        let mut scoped_blocks: Vec<ScopedBlocks> = Vec::new();
-        for (index, token) in self.tokens.iter().enumerate() {
-            match token.token_type {
-                TokenType::DefineFunction => {
-                    let func = parse_function(&token, self.subsection_from(index + 1..))?;
-                    /*
-                    scoped_blocks.push(ScopedBlocks::FUNCTION {
-                        name: ,
-                        return_type: ,
-                        parameters: ,
-                        execution_block: ExecutionBlock {
-                            variables:,
-                            body:
-                        }
-                    });
-                     */
-                }
-                TokenType::DefineProgram => {
-                    let program = parse_program(self.subsection_from(index + 1..))?;
-                    dbg!(program);
-                    /*
-                    scoped_blocks.push(ScopedBlocks::PROGRAM(ExecutionBlock {
+pub fn parse(token_sequence: TokenSequence) -> Result<Vec<ScopedBlocks>, MascalError> {
+    let mut scoped_blocks: Vec<ScopedBlocks> = Vec::new();
+    for (index, token) in token_sequence.tokens.iter().enumerate() {
+        match token.token_type {
+            TokenType::DefineFunction => {
+                let func = parse_function(&token, token_sequence.subsection_from(index + 1..))?;
+                /*
+                scoped_blocks.push(ScopedBlocks::FUNCTION {
+                    name: ,
+                    return_type: ,
+                    parameters: ,
+                    execution_block: ExecutionBlock {
                         variables:,
                         body:
-                    }));
-                     */
-                }
-                _ => {continue}
+                    }
+                });
+                 */
             }
+            TokenType::DefineProgram => {
+                let program = parse_program(token_sequence.subsection_from(index + 1..))?;
+                dbg!(program);
+                /*
+                scoped_blocks.push(ScopedBlocks::PROGRAM(ExecutionBlock {
+                    variables:,
+                    body:
+                }));
+                 */
+            }
+            _ => {continue}
         }
-        Ok(scoped_blocks)
     }
+    Ok(scoped_blocks)
 }
