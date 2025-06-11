@@ -3,6 +3,7 @@ use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
 use crate::defs::literal::MascalLiteral;
 use crate::defs::token::{Token, TokenType};
+use crate::parser::parse_expression::parse_expression;
 
 pub fn parse_variable_decl<'a>(
     tokens: &'a Vec<Token<'a>>
@@ -36,29 +37,48 @@ pub fn parse_variable_decl<'a>(
     let mut arrow_depth: usize = 0;
     let mut last_token: &Token = &tokens[curr_index];
     let first_token: &Token = &tokens[curr_index];
-    while curr_index < tokens.len() && first_token.token_type == TokenType::OpenBracket {
+
+    let mut open_index: usize = 0;
+    let mut is_curr_array_dynamic: Option<bool> = None;
+    let is_array_open: bool = first_token.token_type == TokenType::OpenBracket
+        || first_token.token_type == TokenType::OpenArrow;
+    while curr_index < tokens.len() && is_array_open {
         let mut token_sequence: Vec<&Token> = Vec::new();
         let token: &Token = &tokens[curr_index];
         match tokens[curr_index].token_type {
             TokenType::OpenBracket => {
+                if bracket_depth == 0 && is_curr_array_dynamic.is_none() {
+                    open_index = curr_index + 1;
+                    is_curr_array_dynamic = Some(false);
+                }
                 bracket_depth += 1;
             }
-            
+
             TokenType::CloseBracket => {
-                // TODO: Parse expression
-                dimensions.push(MascalExpression::LiteralExpression(MascalLiteral::NULL));
-                is_dynamic_array.push(false);
+                if bracket_depth == 1 && !is_curr_array_dynamic.unwrap_or(true) {
+                    let tokens_inside = &tokens[open_index..curr_index];
+                    dimensions.push(parse_expression(&tokens_inside.to_vec())?);
+                    is_dynamic_array.push(false);
+                    is_curr_array_dynamic = None;
+                }
                 bracket_depth -= 1;
             }
 
             TokenType::OpenArrow => {
+                if bracket_depth == 0 && is_curr_array_dynamic.is_none() {
+                    open_index = curr_index + 1;
+                    is_curr_array_dynamic = Some(true);
+                }
                 arrow_depth += 1;
             }
 
             TokenType::CloseArrow => {
-                // TODO: Parse expression
-                dimensions.push(MascalExpression::LiteralExpression(MascalLiteral::NULL));
-                is_dynamic_array.push(true);
+                if arrow_depth == 1 && is_curr_array_dynamic.unwrap_or(false) {
+                    let tokens_inside = &tokens[open_index..curr_index];
+                    dimensions.push(parse_expression(&tokens_inside.to_vec())?);
+                    is_dynamic_array.push(true);
+                    is_curr_array_dynamic = None;
+                }
                 arrow_depth -= 1;
             }
 
@@ -99,9 +119,8 @@ pub fn parse_variable_decl<'a>(
     }
 
     if tokens[curr_index].token_type == TokenType::VariableInitializer {
-        // TODO: Parse the expression provided
-        // let initial_value_tokens: &[&Token] = &tokens[curr_index + 1..];
-        initial_value = Some(MascalExpression::LiteralExpression(MascalLiteral::NULL));
+        let initial_value_tokens: &[Token] = &tokens[curr_index + 1..];
+        initial_value = Some(parse_expression(&initial_value_tokens.to_vec())?);
         curr_index += tokens.len() - curr_index - 1;
     }
 
