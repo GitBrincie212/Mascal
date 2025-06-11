@@ -26,8 +26,8 @@ pub fn tokenize(input: &str) -> Vec<Token> {
                 value = Some(Token {
                     value: m.as_str(),
                     token_type: token_type.clone(),
-                    start: m.start(),
-                    end: m.end(),
+                    start: current_index,
+                    end: current_index + m.end(),
                     line: line_counter
                 });
                 current_index += m.len();
