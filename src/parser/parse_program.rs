@@ -3,10 +3,10 @@ use crate::defs::errors::{MascalError};
 use crate::defs::token::{TokenType};
 use crate::parser::parse_executable_block::parse_executable;
 use crate::parser::parse_variables::parse_variable_block;
-use crate::parser::Parser;
+use crate::parser::TokenSequence;
 use crate::parser::utils::{extract_braced_block};
 
-pub fn parse_program(parser: Parser) -> Result<ScopedBlocks, MascalError> {
+pub fn parse_program(parser: TokenSequence) -> Result<ScopedBlocks, MascalError> {
     let inner_parser = extract_braced_block(
         parser,
         "DEFINE_PROGRAM",

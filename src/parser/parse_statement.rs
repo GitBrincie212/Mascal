@@ -3,7 +3,7 @@ use crate::defs::expressions::MascalExpression;
 use crate::defs::statements::{MascalConditionalBranch, MascalDeclarationStatement, MascalStatement};
 use crate::defs::token::{Token, TokenType};
 use crate::parser::parse_expression::parse_expression;
-use crate::parser::Parser;
+use crate::parser::TokenSequence;
 use crate::parser::utils::{extract_braced_block_from_tokens, run_per_statement};
 
 fn parse_branch(token_sequence: &[Token], is_else: bool) -> Result<MascalConditionalBranch, MascalError> {
@@ -31,7 +31,7 @@ fn parse_branch(token_sequence: &[Token], is_else: bool) -> Result<MascalConditi
         })
     }
 
-    let statements_parser: Parser = extract_braced_block_from_tokens(
+    let statements_parser: TokenSequence = extract_braced_block_from_tokens(
         &token_sequence[open_brace_index..],
         "Conditional",
         &[],

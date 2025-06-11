@@ -2,7 +2,7 @@ use crate::defs::blocks::ScopedBlocks;
 use crate::defs::errors::{MascalErrorType, MascalError};
 use crate::defs::token::{Token, TokenType};
 use crate::lexer;
-use crate::parser::Parser;
+use crate::parser::{parse, TokenSequence};
 
 pub fn trigger_pipeline(contents: String) {
     let tokens: Vec<Token> = lexer::tokenize(&*contents);
@@ -17,8 +17,8 @@ pub fn trigger_pipeline(contents: String) {
         });
         return;
     }
-    let lang_parser: Parser = Parser::new(tokens);
-    let resulted_blocks: Result<Vec<ScopedBlocks>, MascalError> = lang_parser.parse();
+    let token_sequence: TokenSequence = TokenSequence::new(tokens);
+    let resulted_blocks: Result<Vec<ScopedBlocks>, MascalError> = parse(token_sequence);
     if resulted_blocks.is_err() {
         println!("{}", resulted_blocks.err().unwrap());
         return;
