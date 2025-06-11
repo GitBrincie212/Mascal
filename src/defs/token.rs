@@ -71,6 +71,15 @@ pub enum TokenType {
     NULL
 }
 
+pub static SCOPABLE_TOKEN_TYPES: Lazy<[TokenType; 11]> = Lazy::new(|| {
+    [
+        TokenType::Integer, TokenType::Float, TokenType::String,
+        TokenType::Dynamic, TokenType::Type, TokenType::Boolean,
+        TokenType::DefineProgram, TokenType::Program, TokenType::Variables,
+        TokenType::DefineFunction, TokenType::Function,
+    ]
+});
+
 pub static TOKEN_REGEX_MAP: Lazy<TokenRegexMap> = Lazy::new(|| {
     let mut map: TokenRegexMap = Vec::new();
     map.push((Regex::new(r"//.*").unwrap(), TokenType::Comment));
@@ -134,7 +143,7 @@ pub static TOKEN_REGEX_MAP: Lazy<TokenRegexMap> = Lazy::new(|| {
     map
 });
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[allow(dead_code)]
 pub struct Token<'a> {
     pub token_type: TokenType,
