@@ -1,11 +1,13 @@
 use crate::defs::literal::MascalLiteral;
 use crate::defs::operators::MascalBinaryOperators;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum MascalExpression {
     // === Simple Expressions ===
     LiteralExpression(MascalLiteral),
     SymbolicExpression(MascalLiteral),
+    DynamicArrayExpression(Vec<MascalExpression>),
+    StaticArrayExpression(Vec<MascalExpression>),
 
 
     // === Complex Expressions ===
@@ -15,7 +17,7 @@ pub enum MascalExpression {
         right: Box<MascalExpression>,
     },
 
-    InnerMemberExpression {
+    InnerMemberAccessExpression {
         member: Box<MascalExpression>,
         operator: String,
     },
