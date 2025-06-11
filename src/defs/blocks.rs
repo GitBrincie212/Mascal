@@ -2,32 +2,35 @@ use crate::defs::declerations::MascalVariableInitialDeclaration;
 use crate::defs::statements::MascalStatement;
 use crate::defs::types::MascalType;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct VariableBlock {
-    integers: Vec<MascalVariableInitialDeclaration>,
-    floats: Vec<MascalVariableInitialDeclaration>,
-    strings: Vec<MascalVariableInitialDeclaration>,
-    booleans: Vec<MascalVariableInitialDeclaration>,
-    dynamics: Vec<MascalVariableInitialDeclaration>,
-    types: Vec<MascalVariableInitialDeclaration>,
+    pub integers: Vec<MascalVariableInitialDeclaration>,
+    pub floats: Vec<MascalVariableInitialDeclaration>,
+    pub strings: Vec<MascalVariableInitialDeclaration>,
+    pub booleans: Vec<MascalVariableInitialDeclaration>,
+    pub dynamics: Vec<MascalVariableInitialDeclaration>,
+    pub types: Vec<MascalVariableInitialDeclaration>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct ExecutionBlock {
-    variables: VariableBlock,
-    body: Vec<MascalStatement>
+    pub variables: VariableBlock,
+    pub body: Vec<MascalStatement>
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct MascalParameter {
-    name: String,
-    mascal_type: MascalType,
+    pub name: String,
+    pub mascal_type: MascalType,
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct FunctionBlock {
-    parameters: Vec<MascalParameter>,
-    name: Option<String>,
-    return_type: Option<MascalType>,
-    execution_block: ExecutionBlock,
+#[derive(Debug, Clone)]
+pub enum ScopedBlocks {
+    PROGRAM(ExecutionBlock),
+    FUNCTION {
+        parameters: Vec<MascalParameter>,
+        name: Option<String>,
+        return_type: Option<MascalType>,
+        execution_block: ExecutionBlock,
+    }
 }
