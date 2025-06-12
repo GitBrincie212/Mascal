@@ -8,6 +8,7 @@ mod parse_executable_block;
 mod parse_statement;
 
 use std::ops::{Range, RangeFrom};
+use crate::ast::AbstractSyntaxTree;
 use crate::defs::blocks::{ScopedBlocks};
 use crate::defs::errors::MascalError;
 use crate::defs::token::{Token, TokenType};
@@ -31,6 +32,10 @@ impl<'a> TokenSequence<'a> {
         self.acquire_token(self.tokens.len() - 1)
     }
 
+    pub fn first_token(&self) -> &Token {
+        self.acquire_token(0)
+    }
+
     pub fn acquire_token(&self, index: usize) -> &Token {
         &self.tokens[index]
     }
@@ -48,36 +53,20 @@ impl<'a> TokenSequence<'a> {
     }
 }
 
-pub fn parse(token_sequence: TokenSequence) -> Result<Vec<ScopedBlocks>, MascalError> {
+pub fn parse(token_sequence: TokenSequence) -> Result<AbstractSyntaxTree, MascalError> {
     let mut scoped_blocks: Vec<ScopedBlocks> = Vec::new();
     for (index, token) in token_sequence.tokens.iter().enumerate() {
         match token.token_type {
             TokenType::DefineFunction => {
-                let func = parse_function(&token, token_sequence.subsection_from(index + 1..))?;
-                /*
-                scoped_blocks.push(ScopedBlocks::FUNCTION {
-                    name: ,
-                    return_type: ,
-                    parameters: ,
-                    execution_block: ExecutionBlock {
-                        variables:,
-                        body:
-                    }
-                });
-                 */
+                let func = parse_function(token_sequence.subsection_from(index + 1..))?;
+                scoped_blocks.push(func);
             }
             TokenType::DefineProgram => {
                 let program = parse_program(token_sequence.subsection_from(index + 1..))?;
-                dbg!(program);
-                /*
-                scoped_blocks.push(ScopedBlocks::PROGRAM(ExecutionBlock {
-                    variables:,
-                    body:
-                }));
-                 */
+                scoped_blocks.push(program);
             }
             _ => {continue}
         }
     }
-    Ok(scoped_blocks)
+    Ok(AbstractSyntaxTree {blocks: scoped_blocks})
 }
