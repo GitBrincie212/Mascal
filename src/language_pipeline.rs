@@ -1,4 +1,4 @@
-use crate::defs::blocks::ScopedBlocks;
+use crate::ast::AbstractSyntaxTree;
 use crate::defs::errors::{MascalErrorType, MascalError};
 use crate::defs::token::{Token, TokenType};
 use crate::lexer;
@@ -18,11 +18,11 @@ pub fn trigger_pipeline(contents: String) {
         return;
     }
     let token_sequence: TokenSequence = TokenSequence::new(tokens);
-    let resulted_blocks: Result<Vec<ScopedBlocks>, MascalError> = parse(token_sequence);
+    let resulted_blocks: Result<AbstractSyntaxTree, MascalError> = parse(token_sequence);
     if resulted_blocks.is_err() {
         println!("{}", resulted_blocks.err().unwrap());
         return;
     }
-    let blocks: Vec<ScopedBlocks> = resulted_blocks.unwrap();
-    // dbg!(tokens);
+    let blocks: AbstractSyntaxTree = resulted_blocks.unwrap();
+    dbg!(blocks);
 }
