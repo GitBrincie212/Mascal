@@ -4,19 +4,21 @@ pub fn tokenize(input: &str) -> Vec<Token> {
     let mut tokens: Vec<Token> = Vec::new();
     let mut current_index: usize = 0;
     let mut line_counter: usize = 0;
+
     while current_index < input.len() {
         let remainder: &str = &input[current_index..];
         let mut value: Option<Token> = None;
-
-        if remainder.starts_with("\n") {
-            line_counter += 1;
-            current_index += "\n".len();
-            continue;
-        } else if remainder.starts_with(" ") {
-            current_index += remainder
-                .bytes()
-                .take_while(|b| b.is_ascii_whitespace() && *b != b'\n')
-                .count();
+        if remainder.starts_with("\n") || remainder.chars().nth(0).unwrap().is_ascii_whitespace() {
+            for char in remainder.chars() {
+                if char == '\n' {
+                    line_counter += 1;
+                    current_index += "\n".len();
+                    continue;
+                } else if char.is_ascii_whitespace() {
+                    current_index += 1
+                }
+                break;
+            }
             continue;
         }
 
