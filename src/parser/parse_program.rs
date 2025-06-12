@@ -6,15 +6,15 @@ use crate::parser::parse_variables::parse_variable_block;
 use crate::parser::TokenSequence;
 use crate::parser::utils::{extract_braced_block};
 
-pub fn parse_program(parser: TokenSequence) -> Result<ScopedBlocks, MascalError> {
-    let inner_parser = extract_braced_block(
-        parser,
+pub fn parse_program(token_sequence: TokenSequence) -> Result<ScopedBlocks, MascalError> {
+    let inner_token_sequence = extract_braced_block(
+        token_sequence,
         "DEFINE_PROGRAM",
         &[TokenType::Variables],
         &[TokenType::Implementation],
     )?;
-    let variable_block = parse_variable_block(&inner_parser)?;
-    let program_body = parse_executable(inner_parser)?;
+    let variable_block = parse_variable_block(&inner_token_sequence)?;
+    let program_body = parse_executable(inner_token_sequence)?;
     
     Ok(ScopedBlocks::PROGRAM(ExecutionBlock {
         variables: variable_block,
