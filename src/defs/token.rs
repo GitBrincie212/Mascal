@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use once_cell::sync::Lazy;
 use regex::Regex;
 
@@ -16,8 +17,9 @@ pub enum TokenType {
     Plus,
     Minus,
     Asterisk,
-    Slash,
+    Division,
     Modulo,
+    Exponentiation,
     Equals,
     NotEquals,
     GreaterThanEqual,
@@ -70,13 +72,22 @@ pub enum TokenType {
     NULL
 }
 
-pub static SCOPABLE_TOKEN_TYPES: Lazy<[TokenType; 11]> = Lazy::new(|| {
-    [
+pub static SCOPABLE_TOKEN_TYPES: Lazy<HashSet<TokenType>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
         TokenType::Integer, TokenType::Float, TokenType::String,
         TokenType::Dynamic, TokenType::Type, TokenType::Boolean,
         TokenType::DefineProgram, TokenType::Implementation, TokenType::Variables,
         TokenType::DefineFunction, TokenType::Implementation,
-    ]
+    ].iter().cloned())
+});
+
+pub static OPERAND_TOKEN_TYPES: Lazy<HashSet<TokenType>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        TokenType::Exponentiation, TokenType::Plus, TokenType::Minus, TokenType::Asterisk,
+        TokenType::OpenArrow, TokenType::CloseArrow, TokenType::LesserThanEqual, TokenType::Equals,
+        TokenType::GreaterThanEqual, TokenType::NotEquals, TokenType::And, TokenType::Or, TokenType::Division,
+        TokenType::Modulo
+    ].iter().cloned())
 });
 
 pub static TOKEN_REGEX_MAP: Lazy<TokenRegexMap> = Lazy::new(|| {
@@ -108,6 +119,7 @@ pub static TOKEN_REGEX_MAP: Lazy<TokenRegexMap> = Lazy::new(|| {
     map.push((Regex::new(r"and|AND|And").unwrap(), TokenType::And));
     map.push((Regex::new(r"or|OR|Or").unwrap(), TokenType::Or));
     map.push((Regex::new(r"not|NOT|Not").unwrap(), TokenType::Not));
+    map.push((Regex::new(r"\^").unwrap(), TokenType::Exponentiation));
     map.push((Regex::new(r"(?:^|[^0-9.])(\d+\.\d*|\d*\.\d+)").unwrap(), TokenType::FloatLiteral));
     map.push((Regex::new(r"(\d+)").unwrap(), TokenType::IntegerLiteral));
     map.push((Regex::new("\"[^\"]*\"").unwrap(), TokenType::StringLiteral));
@@ -117,8 +129,7 @@ pub static TOKEN_REGEX_MAP: Lazy<TokenRegexMap> = Lazy::new(|| {
     map.push((Regex::new(r"%").unwrap(), TokenType::Modulo));
     map.push((Regex::new(r"\*").unwrap(), TokenType::Asterisk));
     map.push((Regex::new(r"\?").unwrap(), TokenType::QuestionMark));
-    map.push((Regex::new(r"/").unwrap(), TokenType::Slash));
-    map.push((Regex::new(r"/").unwrap(), TokenType::Equals));
+    map.push((Regex::new(r"/").unwrap(), TokenType::Division));
     map.push((Regex::new(r";").unwrap(), TokenType::Semicolon));
     map.push((Regex::new(r"\(").unwrap(), TokenType::OpenParen));
     map.push((Regex::new(r"\)").unwrap(), TokenType::CloseParen));
