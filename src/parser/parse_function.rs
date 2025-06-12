@@ -75,8 +75,6 @@ fn get_parameters_of_func(
     Ok((parameters, curr_index + 1))
 }
 
-// TODO: Find the bug that causes the tokens list to be empty
-
 pub fn parse_function(token_sequence: TokenSequence) -> Result<ScopedBlocks, MascalError> {
     let mut curr_index: usize = 0;
     let name: String;
