@@ -21,7 +21,7 @@ pub struct ExecutionBlock {
 #[derive(Debug, Clone, PartialEq)]
 pub struct MascalParameter {
     pub name: String,
-    pub mascal_type: MascalType,
+    pub is_mutable: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -29,7 +29,7 @@ pub enum ScopedBlocks {
     PROGRAM(ExecutionBlock),
     FUNCTION {
         parameters: Vec<MascalParameter>,
-        name: Option<String>,
+        name: String,
         return_type: Option<MascalType>,
         execution_block: ExecutionBlock,
     }
