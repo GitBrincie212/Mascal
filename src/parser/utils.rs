@@ -152,3 +152,89 @@ pub fn run_per_statement<'a, F>(
     
     Ok(statement_token_seq)
 }
+
+pub fn parse_array_type<F>(
+    tokens: &Vec<Token>, mut curr_index: usize, 
+    mut on_creation: F,
+    terminator_types: Vec<TokenType>
+) -> Result<usize, MascalError> where F: (FnMut(&[Token], bool) -> Result<(), MascalError>),{
+    let mut bracket_depth: usize = 0;
+    let mut arrow_depth: usize = 0;
+    let mut last_token: &Token = &tokens[curr_index];
+    let first_token: &Token = &tokens[curr_index];
+
+    let mut open_index: usize = 0;
+    let mut is_curr_array_dynamic: Option<bool> = None;
+    let is_array_open: bool = first_token.token_type == TokenType::OpenBracket
+        || first_token.token_type == TokenType::OpenArrow;
+    while curr_index < tokens.len() && is_array_open {
+        let mut token_sequence: Vec<&Token> = Vec::new();
+        let token: &Token = &tokens[curr_index];
+        match tokens[curr_index].token_type {
+            TokenType::OpenBracket => {
+                if bracket_depth == 0 && is_curr_array_dynamic.is_none() {
+                    open_index = curr_index + 1;
+                    is_curr_array_dynamic = Some(false);
+                }
+                bracket_depth += 1;
+            }
+
+            TokenType::CloseBracket => {
+                if bracket_depth == 1 && !is_curr_array_dynamic.unwrap_or(true) {
+                    let tokens_inside = &tokens[open_index..curr_index];
+                    on_creation(tokens_inside, false)?;
+                    is_curr_array_dynamic = None;
+                }
+                bracket_depth -= 1;
+            }
+
+            TokenType::OpenArrow => {
+                if bracket_depth == 0 && is_curr_array_dynamic.is_none() {
+                    open_index = curr_index + 1;
+                    is_curr_array_dynamic = Some(true);
+                }
+                arrow_depth += 1;
+            }
+
+            TokenType::CloseArrow => {
+                if arrow_depth == 1 && is_curr_array_dynamic.unwrap_or(false) {
+                    let tokens_inside = &tokens[open_index..curr_index];
+                    on_creation(tokens_inside, true)?;
+                    is_curr_array_dynamic = None;
+                }
+                arrow_depth -= 1;
+            }
+
+            ref tt if terminator_types.contains(tt) => {
+                last_token = token;
+                break;
+            }
+
+            _ => {
+                if bracket_depth > 0 || arrow_depth > 0 {
+                    token_sequence.push(token);
+                }
+            }
+        }
+        last_token = token;
+        curr_index += 1;
+    }
+
+    if bracket_depth != 0 {
+        return Err(MascalError {
+            error_type: MascalErrorType::ParserError,
+            line: last_token.line,
+            character: last_token.start,
+            source: String::from("Bracket has not been closed for array type")
+        })
+    } else if arrow_depth != 0 {
+        return Err(MascalError {
+            error_type: MascalErrorType::ParserError,
+            line: last_token.line,
+            character: last_token.start,
+            source: String::from("Arrow has not been closed for dynamic array type")
+        })
+    }
+    
+    Ok(curr_index)
+}
