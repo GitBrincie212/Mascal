@@ -77,6 +77,20 @@ fn parse_conditional_statement(token_sequence: &[Token]) -> Result<MascalStateme
     Ok(MascalStatement::ConditionalStatement(branches))
 }
 
+fn locate_semicolon(tokens: &[Token]) -> Result<usize, MascalError> {
+    for (index, token) in tokens.iter().enumerate() {
+        if token.token_type == TokenType::Semicolon {
+            return Ok(index);
+        }
+    }
+    Err(MascalError {
+        error_type: MascalErrorType::ParserError,
+        line: tokens.last().unwrap().line,
+        character: tokens.last().unwrap().start,
+        source: String::from("Expected an ending semicolon to finish the statement")
+    })
+}
+
 pub fn parse_statement(token_sequence: &Vec<Token>) -> Result<MascalStatement, MascalError> {
     let last_token = token_sequence.last().unwrap();
     let first_token = token_sequence.first().unwrap();
@@ -119,15 +133,17 @@ pub fn parse_statement(token_sequence: &Vec<Token>) -> Result<MascalStatement, M
 
         TokenType::Identifier if token_sequence.len() >= 3
             && token_sequence[1].token_type == TokenType::VariableInitializer => {
+            let index: usize = locate_semicolon(token_sequence)?;
             let name: String = first_token.value.to_string();
             Ok(MascalStatement::Declaration(MascalDeclarationStatement {
                 variable: name,
-                value: parse_expression(&token_sequence[2..].to_vec())?
+                value: parse_expression(&token_sequence[2..index].to_vec())?
             }))
         }
 
         _ => {
-            let expression_statement: MascalExpression = parse_expression(token_sequence)?;
+            let index: usize = locate_semicolon(token_sequence)?;
+            let expression_statement: MascalExpression = parse_expression(&token_sequence[..index].to_vec())?;
             Ok(MascalStatement::Expression(expression_statement))
         }
     }
