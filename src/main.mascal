@@ -67,7 +67,7 @@ DEFINE_FUNCTION myTestFunc()  {
     }
 }
 
-DEFINE_FUNCTION MyFunc(a, mut b, c) -> FLOAT[]  {
+DEFINE_FUNCTION MyFunc(a, mut b, c) -> FLOAT[2]  {
     VARIABLES {
         INTEGER {
             a;
