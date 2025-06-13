@@ -7,3 +7,4 @@ pub mod blocks;
 pub mod statements;
 pub mod expressions;
 pub mod declerations;
+pub mod binding_power;
