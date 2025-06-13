@@ -124,7 +124,7 @@ pub static TOKEN_REGEX_MAP: Lazy<TokenRegexMap> = Lazy::new(|| {
     map.push((Regex::new(r"or|OR|Or").unwrap(), TokenType::Or));
     map.push((Regex::new(r"not|NOT|Not").unwrap(), TokenType::Not));
     map.push((Regex::new(r"\^").unwrap(), TokenType::Exponentiation));
-    map.push((Regex::new(r"(?:^|[^0-9.])(\d+\.\d*|\d*\.\d+)").unwrap(), TokenType::FloatLiteral));
+    map.push((Regex::new(r"(\d+\.\d*)|(\d*\.\d+)").unwrap(), TokenType::FloatLiteral));
     map.push((Regex::new(r"(\d+)").unwrap(), TokenType::IntegerLiteral));
     map.push((Regex::new("\"[^\"]*\"").unwrap(), TokenType::StringLiteral));
     map.push((Regex::new(r"->").unwrap(), TokenType::ReturnIndicator));
