@@ -40,7 +40,7 @@ fn parse_delimited_array(
         )?;
         elems.push(e);
     }
-    
+
     let closing: &Token = tokens.get(*pos)
         .ok_or_else(|| MascalError {
             error_type: MascalErrorType::ParserError,
@@ -97,18 +97,18 @@ pub fn parse_primary(tokens: &[Token], pos: &mut usize) -> Result<MascalExpressi
                 MascalLiteral::Boolean(false),
             ))
         }
-        
+
         TokenType::NULL => {
             *pos += 1;
             Ok(MascalExpression::LiteralExpression(
                 MascalLiteral::NULL,
             ))
         }
-        
+
         tt if tt == &TokenType::Integer ||
-            tt ==  &TokenType::String || 
+            tt ==  &TokenType::String ||
             tt ==  &TokenType::Float ||
-            tt == &TokenType::Boolean || 
+            tt == &TokenType::Boolean ||
             tt == &TokenType::Type ||
             tt == &TokenType::Dynamic => {
             *pos += 1;
