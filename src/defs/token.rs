@@ -66,6 +66,8 @@ pub enum TokenType {
     Mutable,
     Type,
     Typeof,
+    True,
+    False,
 
     // Special Stuff Regarding Mascal
     Unknown,
@@ -93,6 +95,8 @@ pub static OPERAND_TOKEN_TYPES: Lazy<HashSet<TokenType>> = Lazy::new(|| {
 pub static TOKEN_REGEX_MAP: Lazy<TokenRegexMap> = Lazy::new(|| {
     let mut map: TokenRegexMap = Vec::new();
     map.push((Regex::new(r"//.*").unwrap(), TokenType::Comment));
+    map.push((Regex::new(r"TRUE|true|True").unwrap(), TokenType::True));
+    map.push((Regex::new(r"FALSE|false|False").unwrap(), TokenType::False));
     map.push((Regex::new(r"NULL").unwrap(), TokenType::NULL));
     map.push((Regex::new(r"FOR|for|For").unwrap(), TokenType::For));
     map.push((Regex::new(r"If|if|IF").unwrap(), TokenType::If));
