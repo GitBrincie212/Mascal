@@ -25,7 +25,7 @@ pub enum MascalExpression {
 
     InnerMemberAccessExpression {
         member: Box<MascalExpression>,
-        operator: String,
+        value: Box<MascalExpression>,
     },
 
     CallExpression {
