@@ -1,16 +1,22 @@
 use crate::defs::literal::MascalLiteral;
-use crate::defs::operators::MascalBinaryOperators;
+use crate::defs::operators::{MascalBinaryOperators, MascalUnaryOperators};
+use crate::defs::types::MascalType;
 
 #[derive(Debug, Clone)]
 pub enum MascalExpression {
     // === Simple Expressions ===
     LiteralExpression(MascalLiteral),
-    SymbolicExpression(MascalLiteral),
+    SymbolicExpression(String),
     DynamicArrayExpression(Vec<MascalExpression>),
     StaticArrayExpression(Vec<MascalExpression>),
-
+    TypeExpression(Box<MascalType>),
 
     // === Complex Expressions ===
+    UnaryExpression {
+        operator: MascalUnaryOperators,
+        value: Box<MascalExpression>,
+    },
+    
     BinaryExpression {
         left: Box<MascalExpression>,
         operator: MascalBinaryOperators,
