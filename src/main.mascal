@@ -4,10 +4,11 @@ DEFINE_PROGRAM {
             a;
             b?;
             const c;
+            l<5> <- <1, 2, 3, 4, 5>;
             l[5] <- [1, 2, 3, 4, 5];
             d <- 3;
             const e? <- 3;
-            const z[1]<2>[3]? <- [<1, 2>, <[1, [1, 2, 3]]>];
+            const z[1]<2>[3][4]? <- [<1, 2>, <[1, [1, 2, 3]]>];
         }
 
         FLOAT {
@@ -43,7 +44,7 @@ DEFINE_PROGRAM {
         READ(a, b);
         c <- a + b;
         WRITE("Here are the results of the addition:", c);
-        IF (TYPEOF a == INTEGER AND NOT (c != a + b OR c >= a)) {
+        IF (TYPEOF a = INTEGER AND NOT (c != a + b OR c >= a)) {
             WRITE("Test101");
         } ELIF a = b {
             a <- 1;
