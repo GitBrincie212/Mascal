@@ -38,7 +38,7 @@ pub fn extract_braced_block<'a>(
                             .filter(|r| !found_required.contains(r))
                             .map(|r| format!("{:?}", r))
                             .collect();
-                        
+
                         return Err(MascalError {
                             error_type: MascalErrorType::ParserError,
                             line: token.line,
@@ -149,12 +149,12 @@ pub fn run_per_statement<'a, F>(
             _ => {}
         }
     }
-    
+
     Ok(statement_token_seq)
 }
 
 pub fn parse_array_type<F>(
-    tokens: &Vec<Token>, mut curr_index: usize, 
+    tokens: &Vec<Token>, mut curr_index: usize,
     mut on_creation: F,
     terminator_types: Vec<TokenType>
 ) -> Result<usize, MascalError> where F: (FnMut(&[Token], bool) -> Result<(), MascalError>),{
@@ -235,6 +235,6 @@ pub fn parse_array_type<F>(
             source: String::from("Arrow has not been closed for dynamic array type")
         })
     }
-    
+
     Ok(curr_index)
 }
