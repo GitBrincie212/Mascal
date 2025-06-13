@@ -2,7 +2,7 @@ use crate::defs::expressions::MascalExpression;
 use crate::defs::literal::MascalLiteral;
 use crate::defs::operators::{MascalBinaryOperators, MascalUnaryOperators};
 
-#[derive(Hash)]
+#[derive(Hash, Clone)]
 pub struct BindingPower {
     pub left_binding_power: usize,
     pub right_binding_power: usize,
