@@ -33,7 +33,7 @@ pub fn parse_variable_decl<'a>(
             source: String::from("Expected a variable name"),
         });
     }
-    
+
     curr_index = parse_array_type(tokens, curr_index, |token_sequence, is_dynamic | {
         if is_dynamic {
             dimensions.push(parse_expression(&token_sequence.to_vec())?);
@@ -51,7 +51,7 @@ pub fn parse_variable_decl<'a>(
     }
 
     if tokens[curr_index].token_type == TokenType::VariableInitializer {
-        let initial_value_tokens: &[Token] = &tokens[curr_index + 1..];
+        let initial_value_tokens: &[Token] = &tokens[curr_index + 1..&tokens.len() - 1];
         initial_value = Some(parse_expression(&initial_value_tokens.to_vec())?);
         curr_index += tokens.len() - curr_index - 1;
     }
