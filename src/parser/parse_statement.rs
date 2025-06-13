@@ -1,5 +1,6 @@
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
+use crate::defs::literal::MascalLiteral;
 use crate::defs::statements::{MascalConditionalBranch, MascalDeclarationStatement, MascalStatement};
 use crate::defs::token::{Token, TokenType};
 use crate::parser::parse_expression::parse_expression;
@@ -7,8 +8,9 @@ use crate::parser::TokenSequence;
 use crate::parser::utils::{extract_braced_block_from_tokens, run_per_statement};
 
 fn parse_branch(token_sequence: &[Token], is_else: bool) -> Result<MascalConditionalBranch, MascalError> {
-    let mut open_brace_index: usize = 1;
+    let mut open_brace_index: usize = 0;
     let condition_expression: Option<MascalExpression> = if !is_else {
+        open_brace_index = 1;
         let mut condition_tokens: Vec<Token> =  Vec::new();
         for (index, token) in token_sequence.iter().enumerate() {
             if token.token_type == TokenType::OpenBrace {
@@ -57,15 +59,15 @@ fn parse_conditional_statement(token_sequence: &[Token]) -> Result<MascalStateme
     for (index, token) in token_sequence.iter().enumerate() {
         match token.token_type {
             TokenType::If => {
-                branches.push(parse_branch(&token_sequence[index..], false)?);
+                branches.push(parse_branch(&token_sequence[index + 1..], false)?);
             }
 
             TokenType::ElseIf => {
-                branches.push(parse_branch(&token_sequence[index..], false)?);
+                branches.push(parse_branch(&token_sequence[index + 1..], false)?);
             }
 
             TokenType::Else => {
-                branches.push(parse_branch(&token_sequence[index..], true)?);
+                branches.push(parse_branch(&token_sequence[index + 1..], true)?);
             }
 
             _ => {}
@@ -91,6 +93,10 @@ pub fn parse_statement(token_sequence: &Vec<Token>) -> Result<MascalStatement, M
         TokenType::If => {
             let if_statement: MascalStatement = parse_conditional_statement(&token_sequence)?;
             Ok(if_statement)
+        }
+        
+        TokenType::For => {
+            Ok(MascalStatement::Expression(MascalExpression::LiteralExpression(MascalLiteral::NULL)))
         }
 
         TokenType::ElseIf => {
