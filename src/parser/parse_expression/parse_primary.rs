@@ -69,6 +69,21 @@ pub fn parse_primary(tokens: &[Token], pos: &mut usize) -> Result<MascalExpressi
         source: String::from("Abrupt ending in a primary expression")
     })?;
 
+    if let Some(next_tok) = tokens.get(*pos + 1) {
+        match (&tok.token_type, &next_tok.token_type) {
+            (TokenType::IntegerLiteral | TokenType::FloatLiteral, TokenType::Identifier) => {
+                return Err(MascalError {
+                    error_type: MascalErrorType::ParserError,
+                    character: tok.start,
+                    line: tok.line,
+                    source: format!("Numbers cannot be directly followed by identifiers (found '{} {}')",
+                                    tok.value, next_tok.value),
+                });
+            }
+            _ => {}
+        }
+    }
+
     match &tok.token_type {
         TokenType::IntegerLiteral => {
             *pos += 1;
@@ -129,10 +144,10 @@ pub fn parse_primary(tokens: &[Token], pos: &mut usize) -> Result<MascalExpressi
 
         TokenType::OpenParen => {
             *pos += 1;
-            let expr = parse_expression_internal(tokens, pos, BindingPower {
+            let expr: MascalExpression = parse_expression_internal(tokens, pos, BindingPower {
                 left_binding_power: 0, right_binding_power: 0
             })?;
-            let closing = tokens.get(*pos).ok_or_else(|| MascalError {
+            let closing: &Token = tokens.get(*pos).ok_or_else(|| MascalError {
                 error_type: MascalErrorType::ParserError,
                 character: tok.start,
                 line:      tok.line,
