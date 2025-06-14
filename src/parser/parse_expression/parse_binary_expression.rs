@@ -17,7 +17,7 @@ pub fn parse_binary_expression(
         return Ok((LoopFlags::BREAK, lhs));
     };
 
-    if bp.left_binding_power < min_bp.left_binding_power {
+    if bp.left_binding_power <= min_bp.left_binding_power {
         return Ok((LoopFlags::BREAK, lhs));
     }
 
@@ -27,8 +27,8 @@ pub fn parse_binary_expression(
         tokens,
         pos,
         BindingPower {
-            left_binding_power: 0,
-            right_binding_power: bp.right_binding_power,
+            right_binding_power: 0,
+            left_binding_power: bp.right_binding_power,
         },
     )?;
 
