@@ -7,11 +7,14 @@ mod parse_expression;
 mod parse_executable_block;
 mod parse_statement;
 
+mod error_checking;
+
 use std::ops::{Range, RangeFrom};
 use crate::ast::AbstractSyntaxTree;
 use crate::defs::blocks::{ScopedBlocks};
 use crate::defs::errors::MascalError;
 use crate::defs::token::{Token, TokenType};
+use crate::parser::error_checking::verify_ast_structure;
 use crate::parser::parse_function::parse_function;
 use crate::parser::parse_program::parse_program;
 
@@ -68,5 +71,7 @@ pub fn parse(token_sequence: TokenSequence) -> Result<AbstractSyntaxTree, Mascal
             _ => {continue}
         }
     }
-    Ok(AbstractSyntaxTree {blocks: scoped_blocks})
+    let abstract_syntax_tree = AbstractSyntaxTree {blocks: scoped_blocks};
+    verify_ast_structure(&abstract_syntax_tree)?;
+    Ok(abstract_syntax_tree)
 }
