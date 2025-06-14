@@ -238,3 +238,27 @@ pub fn parse_array_type<F>(
 
     Ok(curr_index)
 }
+
+#[macro_export]
+macro_rules! define_statement_checkup {
+    ( $index: expr, $tokens: expr, $curr: expr, $target: expr, $message_for_nothing: expr, $message_for_wrong: expr) => {{
+        if $index >= $tokens.len() {
+            let first_token: &Token = $tokens.first().unwrap();
+            return Err(MascalError {
+                error_type: MascalErrorType::ParserError,
+                character: first_token.start,
+                line: first_token.line,
+                source: $message_for_nothing
+            })
+        }
+        $curr = &$tokens[$index];
+        if $curr.token_type != $target {
+            return Err(MascalError {
+                error_type: MascalErrorType::ParserError,
+                character: $curr.start,
+                line: $curr.line,
+                source: $message_for_wrong($curr)
+            })
+        }
+    }};
+}
