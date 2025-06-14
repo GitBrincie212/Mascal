@@ -79,22 +79,22 @@ pub fn parse_variable_block(token_sequence: &TokenSequence) -> Result<VariableBl
             &subset_parser.tokens, TokenType::Type, "TYPE"
         )?;
 
-        return Ok(VariableBlock {
-            integers: integer_tokens,
-            floats: float_tokens,
-            strings: string_tokens,
-            booleans: boolean_tokens,
-            dynamics: dynamic_tokens,
-            types: type_tokens,
-        });
+        return Ok(VariableBlock::new(
+            integer_tokens,
+            float_tokens,
+            string_tokens,
+            boolean_tokens,
+            dynamic_tokens,
+            type_tokens,
+        ));
     }
 
-    Ok(VariableBlock {
-        integers: vec![],
-        floats: vec![],
-        strings: vec![],
-        booleans: vec![],
-        dynamics: vec![],
-        types: vec![],
-    })
+    Ok(VariableBlock::new(
+        vec![],
+        vec![],
+        vec![],
+        vec![], 
+        vec![],
+        vec![],
+    ))
 }
