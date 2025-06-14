@@ -1,4 +1,5 @@
 use crate::defs::binding_power::BindingPower;
+use crate::defs::dynamic_int::IntegerNum;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
 use crate::defs::literal::MascalLiteral;
@@ -91,7 +92,7 @@ pub fn parse_primary(tokens: &[Token], pos: &mut usize) -> Result<MascalExpressi
         TokenType::IntegerLiteral => {
             *pos += 1;
             Ok(MascalExpression::LiteralExpression(
-                MascalLiteral::Integer(tok.value.parse::<i64>().unwrap()),
+                MascalLiteral::Integer(IntegerNum::new(tok.value.parse::<i128>().unwrap())),
             ))
         }
 
