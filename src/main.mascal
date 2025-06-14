@@ -2,7 +2,7 @@ DEFINE_PROGRAM {
     VARIABLES {
         INTEGER {
             a;
-            b?;
+            #INF b?;
             const c;
             l0<5> <- <1, 2, 3, 4, 5>;
             l1[5] <- [1, 2, 3, 4, 5];
@@ -32,7 +32,7 @@ DEFINE_PROGRAM {
         DYNAMIC {
             myVar1 <- "Hello World";
             myVar2 <- 1234;
-            // myVar3<10> <- <>;
+            myVar3<10> <- <>;
             myVar4[4] <- [1, 2, 3, 4];
             coolVar? <- NULL;
         }
@@ -45,7 +45,7 @@ DEFINE_PROGRAM {
         c <- a + b;
         WRITE("Here are the results of the addition:", c);
         IF (TYPEOF a = INTEGER AND NOT (c != a + b OR c >= a)) {
-            WRITE("Test101");
+            THROW RuntimeError: "Boi what da hell";
         } ELIF a = b {
             a <- 1;
             b <- 1;
@@ -54,7 +54,7 @@ DEFINE_PROGRAM {
 
         };
         FOR a FROM 5 TO 10 {
-            
+
         };
         myTestFunc();
         c <- myFunc(a, b, c);
