@@ -3,7 +3,7 @@ use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
 use crate::defs::literal::MascalLiteral;
 use crate::defs::token::{Token, TokenType};
-use crate::defs::types::{token_type_to_atom_mascal_type, MascalType};
+use crate::defs::types::{token_type_to_atom_mascal_type};
 use crate::parser::parse_expression::{parse_expression_internal};
 
 fn parse_delimited_array(
