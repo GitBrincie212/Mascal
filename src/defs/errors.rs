@@ -3,7 +3,8 @@ use std::fmt;
 #[derive(Debug)]
 pub enum MascalErrorType {
     LexerError,
-    ParserError
+    ParserError,
+    RuntimeError
 }
 
 #[derive(Debug)]
