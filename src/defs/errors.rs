@@ -4,7 +4,11 @@ use std::fmt;
 pub enum MascalErrorType {
     LexerError,
     ParserError,
-    RuntimeError
+    RuntimeError,
+    OverflowError,
+    UndefinedOperation,
+    UnallowedInfinityOperationError,
+    NonExplicitInfiniteDeclarationError
 }
 
 #[derive(Debug)]
