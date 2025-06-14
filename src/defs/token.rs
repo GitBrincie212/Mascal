@@ -68,6 +68,10 @@ pub enum TokenType {
     Typeof,
     True,
     False,
+    Infinity,
+    InfinityExplicitDeclare,
+    InfinityExplicitDeclarePlus,
+    Throw,
 
     // Special Stuff Regarding Mascal
     Unknown,
@@ -95,6 +99,9 @@ pub static OPERAND_TOKEN_TYPES: Lazy<HashSet<TokenType>> = Lazy::new(|| {
 pub static TOKEN_REGEX_MAP: Lazy<TokenRegexMap> = Lazy::new(|| {
     let mut map: TokenRegexMap = Vec::new();
     map.push((Regex::new(r"//.*").unwrap(), TokenType::Comment));
+    map.push((Regex::new(r"#(?:Inf!|inf!|INF!)").unwrap(), TokenType::InfinityExplicitDeclarePlus));
+    map.push((Regex::new(r"#(?:Inf|inf|INF)").unwrap(), TokenType::InfinityExplicitDeclare));
+    map.push((Regex::new(r"Inf|inf|INF|∞").unwrap(), TokenType::Infinity));
     map.push((Regex::new(r"TRUE|true|True").unwrap(), TokenType::True));
     map.push((Regex::new(r"FALSE|false|False").unwrap(), TokenType::False));
     map.push((Regex::new(r"NULL").unwrap(), TokenType::NULL));
@@ -123,6 +130,7 @@ pub static TOKEN_REGEX_MAP: Lazy<TokenRegexMap> = Lazy::new(|| {
     map.push((Regex::new(r"and|AND|And").unwrap(), TokenType::And));
     map.push((Regex::new(r"or|OR|Or").unwrap(), TokenType::Or));
     map.push((Regex::new(r"not|NOT|Not").unwrap(), TokenType::Not));
+    map.push((Regex::new(r"throw|THROW|thro").unwrap(), TokenType::Throw));
     map.push((Regex::new(r"\^").unwrap(), TokenType::Exponentiation));
     map.push((Regex::new(r"(\d+\.\d*)|(\d*\.\d+)").unwrap(), TokenType::FloatLiteral));
     map.push((Regex::new(r"(\d+)").unwrap(), TokenType::IntegerLiteral));
