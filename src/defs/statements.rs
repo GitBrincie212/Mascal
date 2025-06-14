@@ -7,21 +7,6 @@ pub struct MascalConditionalBranch {
 }
 
 #[derive(Debug, Clone)]
-pub struct MascalForLoopStatement {
-    pub variable: String,
-    pub from: MascalExpression,
-    pub to: MascalExpression,
-    pub step: MascalExpression,
-    pub statements: Vec<MascalStatement>,
-}
-
-#[derive(Debug, Clone)]
-pub struct MascalDeclarationStatement {
-    pub variable: String,
-    pub value: MascalExpression,
-}
-
-#[derive(Debug, Clone)]
 pub enum MascalStatement {
     /*
     IF a = b {
@@ -42,15 +27,29 @@ pub enum MascalStatement {
       // ...
     };
     */
-    For(MascalForLoopStatement),
+    For {
+        variable: String,
+        from: MascalExpression,
+        to: MascalExpression,
+        step: MascalExpression,
+        statements: Vec<MascalStatement>,
+    },
 
     /*
     (10 + 5) / 3;
     */
-    Expression(MascalExpression),
+    ExpressionStatement(MascalExpression),
     
     /*
     a <- 3;
      */
-    Declaration(MascalDeclarationStatement),
+    Declaration {
+        variable: String,
+        value: MascalExpression,
+    },
+    
+    Throw {
+        error_type: String,
+        message: String,
+    }
 }
