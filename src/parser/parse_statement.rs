@@ -1,7 +1,8 @@
+use crate::define_statement_checkup;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
 use crate::defs::literal::MascalLiteral;
-use crate::defs::statements::{MascalConditionalBranch, MascalDeclarationStatement, MascalStatement};
+use crate::defs::statements::{MascalConditionalBranch, MascalStatement};
 use crate::defs::token::{Token, TokenType};
 use crate::parser::parse_expression::parse_expression;
 use crate::parser::TokenSequence;
@@ -91,9 +92,46 @@ fn locate_semicolon(tokens: &[Token]) -> Result<usize, MascalError> {
     })
 }
 
+fn parse_throw_statement(tokens: &[Token]) -> Result<MascalStatement, MascalError> {
+    let mut index: usize = 0;
+    let mut curr: &Token;
+    define_statement_checkup!(
+        index, tokens, curr, TokenType::Identifier, String::from("Expected a error type to throw but got nothing"),
+        |curr: &Token | {format!("Expected a error type to throw but got {:?}", curr.value)}
+    );
+    let error_type: String = curr.value.to_string();
+    index += 1;
+    define_statement_checkup!(
+        index, tokens, curr, TokenType::Colon, String::from("Expected a colon for the throw statement but got nothing"),
+        |curr: &Token | {format!("Expected a colon for the throw statement but got {:?}", curr.value)}
+    );
+    index += 1;
+    define_statement_checkup!(
+        index, tokens, curr, TokenType::StringLiteral, String::from("Expected a message for the throw statement but got nothing"),
+        |curr: &Token | {format!("Expected a message for the throw statement but got {:?}", curr.value)}
+    );
+    let message: String = curr.value.to_string();
+    index += 1;
+    if index < tokens.len() {
+        curr = &tokens[index];
+        return Err(MascalError {
+            error_type: MascalErrorType::ParserError,
+            line: curr.line,
+            character: curr.start,
+            source: String::from("Unexpected tokens found during the parsing of the throw statement")
+        })
+    }
+    
+    
+    Ok(MascalStatement::Throw{
+        error_type,
+        message
+    })
+}
+
 pub fn parse_statement(token_sequence: &Vec<Token>) -> Result<MascalStatement, MascalError> {
-    let last_token = token_sequence.last().unwrap();
-    let first_token = token_sequence.first().unwrap();
+    let last_token: &Token = token_sequence.last().unwrap();
+    let first_token: &Token = token_sequence.first().unwrap();
     if last_token.token_type != TokenType::Semicolon {
         return Err(MascalError {
             error_type: MascalErrorType::ParserError,
@@ -104,13 +142,19 @@ pub fn parse_statement(token_sequence: &Vec<Token>) -> Result<MascalStatement, M
     }
 
     match first_token.token_type {
+        TokenType::Throw => {
+            let index: usize = locate_semicolon(token_sequence)?;
+            let throw_statement: MascalStatement = parse_throw_statement(&token_sequence[1..index])?;
+            Ok(throw_statement)
+        }
+        
         TokenType::If => {
             let if_statement: MascalStatement = parse_conditional_statement(&token_sequence)?;
             Ok(if_statement)
         }
         
         TokenType::For => {
-            Ok(MascalStatement::Expression(MascalExpression::LiteralExpression(MascalLiteral::NULL)))
+            Ok(MascalStatement::ExpressionStatement(MascalExpression::LiteralExpression(MascalLiteral::NULL)))
         }
 
         TokenType::ElseIf => {
@@ -135,16 +179,16 @@ pub fn parse_statement(token_sequence: &Vec<Token>) -> Result<MascalStatement, M
             && token_sequence[1].token_type == TokenType::VariableInitializer => {
             let index: usize = locate_semicolon(token_sequence)?;
             let name: String = first_token.value.to_string();
-            Ok(MascalStatement::Declaration(MascalDeclarationStatement {
+            Ok(MascalStatement::Declaration{
                 variable: name,
                 value: parse_expression(&token_sequence[2..index].to_vec())?
-            }))
+            })
         }
 
         _ => {
             let index: usize = locate_semicolon(token_sequence)?;
             let expression_statement: MascalExpression = parse_expression(&token_sequence[..index].to_vec())?;
-            Ok(MascalStatement::Expression(expression_statement))
+            Ok(MascalStatement::ExpressionStatement(expression_statement))
         }
     }
 }
