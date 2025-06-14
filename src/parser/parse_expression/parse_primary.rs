@@ -29,8 +29,11 @@ fn parse_delimited_array(
             source: format!("Expected a opening character {:?} but got {:?}", open_tok_chars, start.value)
         });
     }
-
+    
     let mut elems: Vec<MascalExpression> = Vec::new();
+    if tokens.get(*pos + 1).map(|t| &t.token_type) == Some(&close_tok) {
+        *pos += 1;
+    }
     while tokens.get(*pos).map(|t| &t.token_type) != Some(&close_tok) {
         *pos += 1;
         let e: MascalExpression = parse_expression_internal(
