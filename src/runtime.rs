@@ -1,3 +1,12 @@
+mod variable_table;
+pub mod execute_expression;
+mod execute_binary_expression;
+mod execute_inner_member_expression;
+mod execute_unary_expression;
+mod execute_function_expression;
+pub mod values;
+mod value_operations;
+
 use crate::ast::AbstractSyntaxTree;
 use crate::defs::blocks::{ExecutionBlock, ScopedBlocks};
 use crate::defs::errors::MascalError;
