@@ -2,6 +2,7 @@ use crate::defs::errors::{MascalErrorType, MascalError};
 use crate::defs::token::{Token, TokenType};
 use crate::lexer;
 use crate::parser::{parse, TokenSequence};
+use crate::runtime::interpert;
 use crate::semantic_analysis::conduct_semantic_analysis;
 
 macro_rules! define_pipeline_step {
@@ -32,4 +33,5 @@ pub fn trigger_pipeline(contents: String) {
     let token_sequence: TokenSequence = TokenSequence::new(tokens);
     let Some(tree) = define_pipeline_step!(parse, token_sequence) else {return};
     let Some(tree) = define_pipeline_step!(conduct_semantic_analysis, tree) else {return};
+    if define_pipeline_step!(interpert, tree).is_none() {return};
 }
