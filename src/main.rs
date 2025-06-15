@@ -4,6 +4,7 @@ mod language_pipeline;
 mod defs;
 mod ast;
 mod semantic_analysis;
+mod runtime;
 
 use std::{env, fs};
 use std::ffi::OsStr;
