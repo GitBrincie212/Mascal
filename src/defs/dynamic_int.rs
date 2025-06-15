@@ -36,8 +36,16 @@ impl IntegerNum {
         else if (i64::MIN as i128..i64::MAX as i128).contains(&val) {IntegerNum::I64(val as i64)}
         else {IntegerNum::I128(val)}
     }
+    
+    pub fn as_string(&self) -> String {
+        self.to_i128().to_string()
+    }
+    
+    pub fn is_negative_or_zero(&self) -> bool {
+        self.to_i128().is_negative() || self.to_i128() == 0
+    }
 
-    fn to_i128(&self) -> i128 {
+    pub fn to_i128(&self) -> i128 {
         match self {
             IntegerNum::I8(v) => *v as i128,
             IntegerNum::I16(v) => *v as i128,
@@ -51,7 +59,7 @@ impl IntegerNum {
     fn explicit_declaration_for_infinity_verfiy(
         &self, other: &IntegerNum, explicit_inf: &InfinityControl
     ) -> Result<(), MascalError> {
-        if explicit_inf == &InfinityControl::DISALLOW_INFINITY && (other == &IntegerNum::PositiveInfinity
+        if explicit_inf == &InfinityControl::DisallowInfinity && (other == &IntegerNum::PositiveInfinity
             || other == &IntegerNum::NegativeInfinity
             || self == &IntegerNum::NegativeInfinity
             || self == &IntegerNum::PositiveInfinity) {
@@ -68,7 +76,7 @@ impl IntegerNum {
     fn explicit_decleration_for_infinity_verify_self(
         &self, explicit_inf: &InfinityControl
     ) -> Result<(), MascalError> {
-        if explicit_inf == &InfinityControl::DISALLOW_INFINITY
+        if explicit_inf == &InfinityControl::DisallowInfinity
             && (self == &IntegerNum::NegativeInfinity || self == &IntegerNum::PositiveInfinity) {
             return Err(MascalError {
                 error_type: MascalErrorType::NonExplicitInfiniteDeclarationError,
@@ -81,7 +89,7 @@ impl IntegerNum {
     }
 
     fn verify_infinity_case(&self, other: &IntegerNum, explicit_inf: &InfinityControl) -> Result<(), MascalError> {
-        if explicit_inf != &InfinityControl::DISALLOW_INFINITY {
+        if explicit_inf != &InfinityControl::DisallowInfinity {
             return match (self, other) {
                 (IntegerNum::PositiveInfinity, IntegerNum::PositiveInfinity) => return Ok(()),
                 (IntegerNum::NegativeInfinity, IntegerNum::NegativeInfinity) => return Ok(()),
