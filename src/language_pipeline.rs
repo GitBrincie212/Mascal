@@ -3,6 +3,19 @@ use crate::defs::errors::{MascalErrorType, MascalError};
 use crate::defs::token::{Token, TokenType};
 use crate::lexer;
 use crate::parser::{parse, TokenSequence};
+use crate::semantic_analysis::conduct_semantic_analysis;
+
+macro_rules! define_pipeline_step {
+    ($func: expr, $($args: expr)*) => {
+        match $func($($args),*) {
+            Ok(val) => Some(val),
+            Err(e) => {
+                println!("{}", e);
+                None
+            }
+        }
+    };
+}
 
 pub fn trigger_pipeline(contents: String) {
     let tokens: Vec<Token> = lexer::tokenize(&*contents);
@@ -18,11 +31,6 @@ pub fn trigger_pipeline(contents: String) {
         return;
     }
     let token_sequence: TokenSequence = TokenSequence::new(tokens);
-    let resulted_blocks: Result<AbstractSyntaxTree, MascalError> = parse(token_sequence);
-    if resulted_blocks.is_err() {
-        println!("{}", resulted_blocks.err().unwrap());
-        return;
-    }
-    let blocks: AbstractSyntaxTree = resulted_blocks.unwrap();
-    dbg!(blocks);
+    let Some(tree) = define_pipeline_step!(parse, token_sequence) else {return};
+    let Some(tree) = define_pipeline_step!(conduct_semantic_analysis, tree) else {return};
 }
