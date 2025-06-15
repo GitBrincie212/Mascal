@@ -2,7 +2,7 @@ use crate::defs::blocks::{ExecutionBlock, MascalParameter, ScopedBlocks};
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
 use crate::defs::token::{Token, TokenType};
-use crate::defs::types::MascalType;
+use crate::defs::types::MascalUnprocessedType;
 use crate::parser::parse_executable_block::parse_executable;
 use crate::parser::parse_expression::parse_expression;
 use crate::parser::parse_variables::parse_variable_block;
@@ -94,17 +94,17 @@ pub fn parse_function(token_sequence: TokenSequence) -> Result<ScopedBlocks, Mas
     let parameters: Vec<MascalParameter> = returned_tuple.0;
     curr_index = returned_tuple.1;
 
-    let mut return_type: Option<MascalType> = None;
+    let mut return_type: Option<MascalUnprocessedType> = None;
     if token_sequence.is_of(TokenType::ReturnIndicator, curr_index) {
         curr_index += 1;
         let curr_token: &Token = token_sequence.acquire_token(curr_index);
         return_type = Some(match curr_token.token_type {
-            TokenType::Integer => MascalType::Integer,
-            TokenType::Float => MascalType::Float,
-            TokenType::Boolean => MascalType::Boolean,
-            TokenType::Dynamic => MascalType::Dynamic,
-            TokenType::String => MascalType::String,
-            TokenType::Type => MascalType::Type,
+            TokenType::Integer => MascalUnprocessedType::Integer,
+            TokenType::Float => MascalUnprocessedType::Float,
+            TokenType::Boolean => MascalUnprocessedType::Boolean,
+            TokenType::Dynamic => MascalUnprocessedType::Dynamic,
+            TokenType::String => MascalUnprocessedType::String,
+            TokenType::Type => MascalUnprocessedType::Type,
             _ => {return Err(MascalError {
                 error_type: MascalErrorType::ParserError,
                 line: curr_token.line,
@@ -121,13 +121,13 @@ pub fn parse_function(token_sequence: TokenSequence) -> Result<ScopedBlocks, Mas
         if !dimensions.is_empty() {
             for (dimension, is_dynamic) in dimensions {
                 if is_dynamic {
-                    return_type = Some(MascalType::DynamicArray {
+                    return_type = Some(MascalUnprocessedType::DynamicArray {
                         array_type: Box::new(return_type.unwrap()),
                         initial_size: dimension
                     });
                     continue;
                 }
-                return_type = Some(MascalType::StaticArray {
+                return_type = Some(MascalUnprocessedType::StaticArray {
                     array_type: Box::new(return_type.unwrap()),
                     size: dimension
                 });

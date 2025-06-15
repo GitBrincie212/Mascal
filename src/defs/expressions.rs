@@ -1,6 +1,6 @@
 use crate::defs::literal::MascalLiteral;
 use crate::defs::operators::{MascalBinaryOperators, MascalUnaryOperators};
-use crate::defs::types::MascalType;
+use crate::defs::types::MascalUnprocessedType;
 
 #[derive(Debug, Clone)]
 pub enum MascalExpression {
@@ -9,7 +9,7 @@ pub enum MascalExpression {
     SymbolicExpression(String),
     DynamicArrayExpression(Vec<MascalExpression>),
     StaticArrayExpression(Vec<MascalExpression>),
-    TypeExpression(Box<MascalType>),
+    TypeExpression(Box<MascalUnprocessedType>),
 
     // === Complex Expressions ===
     UnaryExpression {

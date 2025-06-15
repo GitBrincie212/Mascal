@@ -1,6 +1,6 @@
 use crate::defs::declerations::MascalVariableInitialDeclaration;
 use crate::defs::statements::{MascalStatement};
-use crate::defs::types::MascalType;
+use crate::defs::types::MascalUnprocessedType;
 
 #[derive(Debug, Clone)]
 pub struct VariableBlock {
@@ -30,7 +30,7 @@ pub enum ScopedBlocks {
     FUNCTION {
         parameters: Vec<MascalParameter>,
         name: String,
-        return_type: Option<MascalType>,
+        return_type: Option<MascalUnprocessedType>,
         execution_block: ExecutionBlock,
     }
 }
@@ -64,14 +64,14 @@ impl VariableBlock {
             .collect()
     }
 
-    pub fn get_variable_type(&self, var_type: MascalType) -> Option<&Vec<MascalVariableInitialDeclaration>> {
+    pub fn get_variable_type(&self, var_type: MascalUnprocessedType) -> Option<&Vec<MascalVariableInitialDeclaration>> {
         match var_type {
-            MascalType::Integer => Some(&self.integers),
-            MascalType::Float => Some(&self.floats),
-            MascalType::Boolean => Some(&self.booleans),
-            MascalType::String => Some(&self.strings),
-            MascalType::Dynamic => Some(&self.dynamics),
-            MascalType::Type => Some(&self.types),
+            MascalUnprocessedType::Integer => Some(&self.integers),
+            MascalUnprocessedType::Float => Some(&self.floats),
+            MascalUnprocessedType::Boolean => Some(&self.booleans),
+            MascalUnprocessedType::String => Some(&self.strings),
+            MascalUnprocessedType::Dynamic => Some(&self.dynamics),
+            MascalUnprocessedType::Type => Some(&self.types),
             _ => None
         }
     }
@@ -80,14 +80,14 @@ impl VariableBlock {
         self.get_variable_type(self.type_index_to_mascal_type(type_index)?)
     }
 
-    pub fn type_index_to_mascal_type(&self, type_index: usize) -> Option<MascalType> {
+    pub fn type_index_to_mascal_type(&self, type_index: usize) -> Option<MascalUnprocessedType> {
         match type_index {
-            0 => Some(MascalType::Integer),
-            1 => Some(MascalType::Float),
-            2 => Some(MascalType::Boolean),
-            3 => Some(MascalType::String),
-            4 => Some(MascalType::Dynamic),
-            5 => Some(MascalType::Type),
+            0 => Some(MascalUnprocessedType::Integer),
+            1 => Some(MascalUnprocessedType::Float),
+            2 => Some(MascalUnprocessedType::Boolean),
+            3 => Some(MascalUnprocessedType::String),
+            4 => Some(MascalUnprocessedType::Dynamic),
+            5 => Some(MascalUnprocessedType::Type),
             _ => None
         }
     }
