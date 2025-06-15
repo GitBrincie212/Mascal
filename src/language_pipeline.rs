@@ -1,4 +1,3 @@
-use crate::ast::AbstractSyntaxTree;
 use crate::defs::errors::{MascalErrorType, MascalError};
 use crate::defs::token::{Token, TokenType};
 use crate::lexer;
