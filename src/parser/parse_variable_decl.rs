@@ -16,14 +16,14 @@ pub fn parse_variable_decl<'a>(
     let mut is_dynamic_array: Vec<bool> = Vec::new();
     let mut initial_value: Option<MascalExpression> = None;
     let mut curr_index: usize = 0;
-    let mut infinity_control: InfinityControl = InfinityControl::DISALLOW_INFINITY;
+    let mut infinity_control: InfinityControl = InfinityControl::DisallowInfinity;
 
     if curr_index < tokens.len() && (tokens[curr_index].token_type == TokenType::InfinityExplicitDeclare
         || tokens[curr_index].token_type == TokenType::InfinityExplicitDeclarePlus
     ) {
         infinity_control = if tokens[curr_index].token_type == TokenType::InfinityExplicitDeclarePlus {
-            InfinityControl::ALLOW_INFINITY_EXTRA
-        } else {InfinityControl::ALLOW_INFINITY};
+            InfinityControl::AllowInfinityExtra
+        } else {InfinityControl::AllowInfinity };
         curr_index += 1;
     }
 

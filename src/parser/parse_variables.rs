@@ -26,7 +26,7 @@ pub fn parse_variable_type_block<'a>(
                 is_dynamic_array: Vec::new(),
                 dimensions: Vec::new(),
                 is_nullable: false,
-                infinity_control: InfinityControl::DISALLOW_INFINITY
+                infinity_control: InfinityControl::DisallowInfinity
             });
             return Ok(());
         }

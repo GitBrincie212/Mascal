@@ -8,7 +8,7 @@ pub(crate) fn check_per_variable(
     can_be_numeric: bool
 ) -> Result<HashSet<String>, MascalError> {
     for var_decl in variable_type {
-        if var_decl.infinity_control != InfinityControl::DISALLOW_INFINITY && !can_be_numeric {
+        if var_decl.infinity_control != InfinityControl::DisallowInfinity && !can_be_numeric {
             return Err(MascalError {
                 error_type: MascalErrorType::ParserError,
                 line: 0,
