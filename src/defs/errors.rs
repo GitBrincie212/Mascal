@@ -6,6 +6,7 @@ pub enum MascalErrorType {
     ParserError,
     RuntimeError,
     OverflowError,
+    TypeError,
     UndefinedOperation,
     UnallowedInfinityOperationError,
     NonExplicitInfiniteDeclarationError
