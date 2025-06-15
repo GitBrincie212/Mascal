@@ -8,13 +8,9 @@ use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::semantic_analysis::check_parameters_declaration::check_for_param_declaration;
 
 pub fn conduct_semantic_analysis(abstract_syntax_tree: AbstractSyntaxTree) -> Result<AbstractSyntaxTree, MascalError> {
-    let mut has_program: bool = false;
     for block in &abstract_syntax_tree.blocks {
         let varblock: &VariableBlock = &match block {
-            ScopedBlocks::PROGRAM(exec_block) => {
-                has_program = true;
-                exec_block
-            },
+            ScopedBlocks::PROGRAM(exec_block) => { exec_block },
             ScopedBlocks::FUNCTION {execution_block, parameters, .. } => {
                 check_for_param_declaration(execution_block, parameters)?;
                 execution_block
@@ -27,14 +23,6 @@ pub fn conduct_semantic_analysis(abstract_syntax_tree: AbstractSyntaxTree) -> Re
         defined_var_names = variable_check_stage::check_per_variable(&varblock.booleans, defined_var_names, false)?;
         defined_var_names = variable_check_stage::check_per_variable(&varblock.dynamics, defined_var_names, true)?;
         variable_check_stage::check_per_variable(&varblock.types, defined_var_names, false)?;
-    }
-    if !has_program {
-        return Err(MascalError {
-            error_type: MascalErrorType::ParserError,
-            character: 0,
-            line: 0,
-            source: String::from("Definition of a program is required in order to execute this file")
-        })
     }
     Ok(abstract_syntax_tree)
 }
