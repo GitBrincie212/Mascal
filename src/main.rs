@@ -3,6 +3,7 @@ mod lexer;
 mod language_pipeline;
 mod defs;
 mod ast;
+mod semantic_analysis;
 
 use std::{env, fs};
 use std::ffi::OsStr;
