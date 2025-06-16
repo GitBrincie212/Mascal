@@ -9,7 +9,7 @@ pub mod expressions;
 pub mod declerations;
 pub mod binding_power;
 pub mod dynamic_int;
-
+pub mod builtins;
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum InfinityControl {
