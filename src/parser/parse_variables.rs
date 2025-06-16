@@ -30,7 +30,7 @@ pub fn parse_variable_type_block<'a>(
             });
             return Ok(());
         }
-        let variable_decl = parse_variable_decl(token_sequence)?;
+        let variable_decl: MascalVariableInitialDeclaration = parse_variable_decl(token_sequence)?;
         variable_initialization.push(variable_decl);
         return Ok(());
     })?;
@@ -84,8 +84,8 @@ pub fn parse_variable_block(token_sequence: &TokenSequence) -> Result<VariableBl
         return Ok(VariableBlock::new(
             integer_tokens,
             float_tokens,
-            string_tokens,
             boolean_tokens,
+            string_tokens,
             dynamic_tokens,
             type_tokens,
         ));
