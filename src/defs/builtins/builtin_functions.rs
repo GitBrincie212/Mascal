@@ -2,32 +2,67 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use once_cell::sync::Lazy;
 use crate::defs::errors::MascalError;
+use crate::defs::expressions::MascalExpression;
 use crate::defs::types::MascalType;
 use crate::runtime::values::MascalValue;
 
 #[derive(Clone)]
-pub struct BuiltInFunction {
-    pub(crate) fixed_argument_types: Vec<MascalType>,
-    pub(crate) supports_dynamic_arguments: bool,
-    pub(crate) execution: Arc<dyn Fn(Vec<MascalValue>) -> Result<Option<MascalValue>, MascalError> + Send + Sync>,
+pub enum BuiltinFunction {
+    ValueBased {
+        fixed_argument_types: Vec<MascalType>,
+        supports_dynamic_arguments: bool,
+        execution: Arc<dyn Fn(Vec<MascalValue>) -> Result<Option<MascalValue>, MascalError> + Send + Sync>,
+    },
+    
+    ExpressionBased {
+        fixed_argument_types: Vec<MascalType>,
+        supports_dynamic_arguments: bool,
+        execution: Arc<dyn Fn(Vec<&MascalExpression>) -> Result<Option<MascalValue>, MascalError> + Send + Sync>,
+    }
+}
+
+impl BuiltinFunction {
+    fn new_value_based(
+        supports_dynamic_arguments: bool,
+        fixed_argument_types: Vec<MascalType>,
+        execution: Arc<dyn Fn(Vec<MascalValue>) -> Result<Option<MascalValue>, MascalError> + Send + Sync>,
+    ) -> Self {
+        BuiltinFunction::ValueBased {
+            supports_dynamic_arguments,
+            fixed_argument_types,
+            execution,
+        }
+    }
+
+    fn new_expresion_based (
+        supports_dynamic_arguments: bool,
+        fixed_argument_types: Vec<MascalType>,
+        execution: Arc<dyn Fn(Vec<&MascalExpression>) -> Result<Option<MascalValue>, MascalError> + Send + Sync>,
+    ) -> Self {
+        BuiltinFunction::ExpressionBased {
+            supports_dynamic_arguments,
+            fixed_argument_types,
+            execution,
+        }
+    }
 }
 
 macro_rules! define_builtin_function {
-    ($name: expr, $map: expr, $fixed_args: expr, $supports_dynamic_arguments: expr, $func: expr) => {
-        let func: Arc<BuiltInFunction> = Arc::new(BuiltInFunction {
-            fixed_argument_types: $fixed_args,
-            execution: Arc::new($func),
-            supports_dynamic_arguments: $supports_dynamic_arguments,
-        });
+    ($builtin_construct: expr, $name: expr, $map: expr, $fixed_args: expr, $supports_dynamic_arguments: expr, $func: expr) => {
+        let func: Arc<BuiltinFunction> = Arc::new($builtin_construct(
+            $supports_dynamic_arguments,
+            $fixed_args,
+            Arc::new($func),
+        ));
         $map.insert(String::from($name).to_uppercase(), Arc::clone(&func));
         $map.insert(String::from($name), Arc::clone(&func));
         $map.insert(String::from($name).to_lowercase(), Arc::clone(&func));
     };
 }
 
-pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltInFunction>>>  = Lazy::new(|| {
-    let mut map: HashMap<String, Arc<BuiltInFunction>> = HashMap::new();
-    define_builtin_function!("Write", map, Vec::new(), true, |args| {
+pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>>  = Lazy::new(|| {
+    let mut map: HashMap<String, Arc<BuiltinFunction>> = HashMap::new();
+    define_builtin_function!(BuiltinFunction::new_value_based, "Write", map, vec![], true, |args| {
         for val in args {
             print!("{}", val.as_string());
         }
@@ -35,7 +70,7 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltInFunction>>> 
         Ok(None)
     });
 
-    define_builtin_function!("Read", map, Vec::new(), true, |_args| {
+    define_builtin_function!(BuiltinFunction::new_value_based, "Read", map, vec![], true, |_args| {
         Ok(None)
     });
     map
