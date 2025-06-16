@@ -32,7 +32,7 @@ pub fn execute_expression<'a>(expression: MascalExpression, exec_data: &Executio
                 MascalLiteral::String(s)  => MascalValue::String(s),
                 MascalLiteral::Integer(i) => MascalValue::Integer(i),
                 MascalLiteral::Float(f)   => MascalValue::Float(f),
-                MascalLiteral::NULL       => MascalValue::NULL,
+                MascalLiteral::NULL => MascalValue::NULL,
                 MascalLiteral::Boolean(b) => MascalValue::Boolean(b),
             };
             Ok(Cow::Owned(mv))
@@ -56,7 +56,7 @@ pub fn execute_expression<'a>(expression: MascalExpression, exec_data: &Executio
                     error_type: MascalErrorType::RuntimeError,
                     character: 0,
                     line: 0,
-                    source: format!("Could not find the variable with the name {:?}", symbolic_expr)
+                    source: format!("Variable with the name {:?} is not initialized with a value", symbolic_expr)
                 });
             }
             Err(MascalError {
