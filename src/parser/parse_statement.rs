@@ -1,4 +1,5 @@
 use crate::define_statement_checkup;
+use crate::defs::dynamic_int::IntegerNum;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
 use crate::defs::literal::MascalLiteral;
@@ -12,7 +13,7 @@ fn parse_branch(token_sequence: &[Token], is_else: bool) -> Result<MascalConditi
     let mut open_brace_index: usize = 0;
     let condition_expression: Option<MascalExpression> = if !is_else {
         open_brace_index = 1;
-        let mut condition_tokens: Vec<Token> =  Vec::new();
+        let mut condition_tokens: Vec<Token> = Vec::new();
         for (index, token) in token_sequence.iter().enumerate() {
             if token.token_type == TokenType::OpenBrace {
                 open_brace_index = index;
@@ -129,6 +130,82 @@ fn parse_throw_statement(tokens: &[Token]) -> Result<MascalStatement, MascalErro
     })
 }
 
+macro_rules! parse_expression_in_statement {
+    ($tokens: expr, $index: expr, $terminator_tokens: expr) => {{
+        let mut expression_tokens: Vec<Token> = Vec::new();
+        for token in $tokens[$index..].iter() {
+            if $terminator_tokens.contains(&token.token_type) { break; }
+            expression_tokens.push(token.clone());
+            $index += 1;
+        }
+        parse_expression(&expression_tokens)?
+    }};
+}
+
+fn parse_for_loop_statement(tokens: &[Token]) -> Result<MascalStatement, MascalError> {
+    let mut index: usize = 0;
+    let mut curr: &Token;
+    define_statement_checkup!(
+        index, tokens, curr, TokenType::Identifier, String::from("Expected a variable identifier to use but got nothing"),
+        |curr: &Token | {format!("Expected a variable identifier to use but got {:?}", curr.value)}
+    );
+    let variable_name: String = curr.value.to_string();
+    index += 1;
+    define_statement_checkup!(
+        index, tokens, curr, TokenType::From, String::from("Expected FROM but got nothing"),
+        |curr: &Token | {format!("Expected FROM but got {:?}", curr.value)}
+    );
+    index += 1;
+
+    let from: MascalExpression = parse_expression_in_statement!(tokens, index, vec![TokenType::To]);
+
+    define_statement_checkup!(
+        index, tokens, curr, TokenType::To, String::from("Expected TO but got nothing"),
+        |curr: &Token | {format!("Expected TO but got {:?}", curr.value)}
+    );
+    index += 1;
+    
+    let to: MascalExpression = parse_expression_in_statement!(tokens, index, vec![TokenType::WithStep, TokenType::OpenBrace]);
+
+    let with_step: MascalExpression = if tokens[index].token_type == TokenType::WithStep {
+        index += 1;
+
+        parse_expression_in_statement!(tokens, index, vec![TokenType::OpenBrace])
+    } else {MascalExpression::LiteralExpression(MascalLiteral::Integer(IntegerNum::I8(1)))};
+    
+    if tokens[index].token_type != TokenType::OpenBrace {
+        return Err(MascalError {
+            error_type: MascalErrorType::ParserError,
+            line: tokens[index].line,
+            character: tokens[index].start,
+            source: String::from("Expected a opening brace for a for loop block")
+        })
+    }
+    
+    let statements_parser: TokenSequence = extract_braced_block_from_tokens(
+        &tokens[index..],
+        "For loop",
+        &[],
+        &[],
+    )?;
+
+    let mut statements: Vec<MascalStatement> = Vec::new();
+
+    run_per_statement(&statements_parser, |token_sequence| {
+        let stmt = parse_statement(token_sequence)?;
+        statements.push(stmt);
+        Ok(())
+    })?;
+
+    Ok(MascalStatement::For {
+        variable: variable_name,
+        from,
+        to,
+        step: with_step,
+        statements,
+    })
+}
+
 pub fn parse_statement(token_sequence: &Vec<Token>) -> Result<MascalStatement, MascalError> {
     let last_token: &Token = token_sequence.last().unwrap();
     let first_token: &Token = token_sequence.first().unwrap();
@@ -149,12 +226,13 @@ pub fn parse_statement(token_sequence: &Vec<Token>) -> Result<MascalStatement, M
         }
         
         TokenType::If => {
-            let if_statement: MascalStatement = parse_conditional_statement(&token_sequence)?;
+            let if_statement: MascalStatement = parse_conditional_statement(&token_sequence[1..])?;
             Ok(if_statement)
         }
         
         TokenType::For => {
-            Ok(MascalStatement::ExpressionStatement(MascalExpression::LiteralExpression(MascalLiteral::NULL)))
+            let for_statement: MascalStatement = parse_for_loop_statement(&token_sequence[1..])?;
+            Ok(for_statement)
         }
 
         TokenType::ElseIf => {
