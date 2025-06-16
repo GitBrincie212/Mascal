@@ -89,19 +89,21 @@ macro_rules! define_arithmetic_fn {
     };
 }
 
+// These are marker methods to make the macros compatible and produce the result, they do purely nothing 
+
 #[allow(dead_code)]
 fn add(_p0: MascalValue, _p1: MascalValue, _p2: &InfinityControl, ) -> Result<MascalValue, MascalError> {
-    todo!()
+    Ok(MascalValue::NULL)
 }
 
 #[allow(dead_code)]
 fn sub(_p0: MascalValue, _p1: MascalValue, _p2: &InfinityControl, ) -> Result<MascalValue, MascalError> {
-    todo!()
+    Ok(MascalValue::NULL)
 }
 
 #[allow(dead_code)]
 fn mul(_p0: MascalValue, _p1: MascalValue, _p2: &InfinityControl, ) -> Result<MascalValue, MascalError> {
-    todo!()
+    Ok(MascalValue::NULL)
 }
 
 define_arithmetic_fn!(add, add, +,
