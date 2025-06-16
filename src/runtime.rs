@@ -7,6 +7,7 @@ mod execute_function_expression;
 pub mod values;
 mod value_operations;
 mod execute_statement;
+mod execute_builtin_function;
 
 use std::borrow::Cow;
 use std::rc::Rc;
