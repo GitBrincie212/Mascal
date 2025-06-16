@@ -41,6 +41,10 @@ impl IntegerNum {
         self.to_i128().to_string()
     }
     
+    pub fn as_f64(&self) -> f64 {
+        self.to_i128() as f64
+    }
+    
     pub fn is_negative_or_zero(&self) -> bool {
         self.to_i128().is_negative() || self.to_i128() == 0
     }
@@ -120,22 +124,22 @@ impl IntegerNum {
         if self_num < num_other  { IntegerNum::new(self_num) } else { IntegerNum::new(num_other) }
     }
 
-    pub fn add(&self, other: IntegerNum, explicit_inf: InfinityControl) -> Result<IntegerNum, MascalError> {
+    pub fn add(&self, other: IntegerNum, explicit_inf: &InfinityControl) -> Result<IntegerNum, MascalError> {
         self.verify_infinity_case(&other, &explicit_inf)?;
         promotion_process(self, &other, i128::overflowing_add)
     }
 
-    pub fn sub(&self, other: IntegerNum, explicit_inf: InfinityControl) -> Result<IntegerNum, MascalError> {
+    pub fn sub(&self, other: IntegerNum, explicit_inf: &InfinityControl) -> Result<IntegerNum, MascalError> {
         self.verify_infinity_case(&other, &explicit_inf)?;
         promotion_process(self, &other, i128::overflowing_sub)
     }
 
-    pub fn mul(&self, other: IntegerNum, explicit_inf: InfinityControl) -> Result<IntegerNum, MascalError> {
+    pub fn mul(&self, other: IntegerNum, explicit_inf: &InfinityControl) -> Result<IntegerNum, MascalError> {
         self.explicit_declaration_for_infinity_verfiy(&other, &explicit_inf)?;
         promotion_process(self, &other, i128::overflowing_mul)
     }
 
-    pub fn div(&self, other: IntegerNum, explicit_inf: InfinityControl) -> Result<IntegerNum, MascalError> {
+    pub fn div(&self, other: IntegerNum, explicit_inf: &InfinityControl) -> Result<IntegerNum, MascalError> {
         self.explicit_declaration_for_infinity_verfiy(&other, &explicit_inf)?;
         if other.to_i128() == 0 {
             return Err(MascalError {
@@ -149,7 +153,7 @@ impl IntegerNum {
         promotion_process(self, &other, i128::overflowing_div)
     }
 
-    pub fn neg(&self, explicit_inf: InfinityControl) -> Result<IntegerNum, MascalError> {
+    pub fn neg(&self, explicit_inf: &InfinityControl) -> Result<IntegerNum, MascalError> {
         self.explicit_decleration_for_infinity_verify_self(&explicit_inf)?;
         let (num, did_overflow): (i128, bool) = self.to_i128().overflowing_neg();
         if !did_overflow {
@@ -164,7 +168,7 @@ impl IntegerNum {
         })
     }
 
-    pub fn modulo(&self, other: IntegerNum, explicit_inf: InfinityControl) -> Result<IntegerNum, MascalError> {
+    pub fn modulo(&self, other: IntegerNum, explicit_inf: &InfinityControl) -> Result<IntegerNum, MascalError> {
         self.explicit_declaration_for_infinity_verfiy(&other, &explicit_inf)?;
         if other.to_i128() == 0 {
             return Err(MascalError {
@@ -182,7 +186,7 @@ impl IntegerNum {
         })
     }
 
-    pub fn isqrt(&self, explicit_inf: InfinityControl) -> Result<IntegerNum, MascalError> {
+    pub fn isqrt(&self, explicit_inf: &InfinityControl) -> Result<IntegerNum, MascalError> {
         self.explicit_decleration_for_infinity_verify_self(&explicit_inf)?;
         let num = self.to_i128();
         if num < 0 {
@@ -219,12 +223,12 @@ impl IntegerNum {
         Ok(num)
     }
 
-    pub fn log2(&self, explicit_inf: InfinityControl) -> Result<IntegerNum, MascalError> {
+    pub fn log2(&self, explicit_inf: &InfinityControl) -> Result<IntegerNum, MascalError> {
         let num: i128 = self.logarithm_operation_pipeline(&explicit_inf)?;
         Ok(IntegerNum::new(num.ilog2() as i128))
     }
 
-    pub fn log10(&self, explicit_inf: InfinityControl) -> Result<IntegerNum, MascalError> {
+    pub fn log10(&self, explicit_inf: &InfinityControl) -> Result<IntegerNum, MascalError> {
         let num: i128 = self.logarithm_operation_pipeline(&explicit_inf)?;
         Ok(IntegerNum::new(num.ilog10() as i128))
     }
