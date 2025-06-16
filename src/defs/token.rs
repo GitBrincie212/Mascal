@@ -87,19 +87,11 @@ pub static SCOPABLE_TOKEN_TYPES: Lazy<HashSet<TokenType>> = Lazy::new(|| {
     ].iter().cloned())
 });
 
-pub static OPERAND_TOKEN_TYPES: Lazy<HashSet<TokenType>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        TokenType::Exponentiation, TokenType::Plus, TokenType::Minus, TokenType::Asterisk,
-        TokenType::OpenArrow, TokenType::CloseArrow, TokenType::LesserThanEqual, TokenType::Equals,
-        TokenType::GreaterThanEqual, TokenType::NotEquals, TokenType::And, TokenType::Or, TokenType::Division,
-        TokenType::Modulo
-    ].iter().cloned())
-});
-
 pub static TOKEN_REGEX_MAP: Lazy<TokenRegexMap> = Lazy::new(|| {
     let mut map: TokenRegexMap = Vec::new();
     map.push((Regex::new(r"//.*").unwrap(), TokenType::Comment));
-    map.push((Regex::new(r"#(?:Inf!|inf!|INF!)").unwrap(), TokenType::InfinityExplicitDeclarePlus));
+    map.push((Regex::new(r"^[a-zA-Z_][a-zA-Z0-9_]*").unwrap(), TokenType::Identifier));
+    map.push((Regex::new(r"#\b(?:Inf!|inf!|INF!)\b").unwrap(), TokenType::InfinityExplicitDeclarePlus));
     map.push((Regex::new(r"#(?:Inf|inf|INF)").unwrap(), TokenType::InfinityExplicitDeclare));
     map.push((Regex::new(r"Inf|inf|INF|∞").unwrap(), TokenType::Infinity));
     map.push((Regex::new(r"TRUE|true|True").unwrap(), TokenType::True));
@@ -124,7 +116,6 @@ pub static TOKEN_REGEX_MAP: Lazy<TokenRegexMap> = Lazy::new(|| {
     map.push((Regex::new(r"To|to|TO").unwrap(), TokenType::To));
     map.push((Regex::new(r"Mut|mut|MUT").unwrap(), TokenType::Mutable));
     map.push((Regex::new(r"with_step|With_Step|WITH_STEP").unwrap(), TokenType::WithStep));
-    map.push((Regex::new(r"with_step|With_Step|WITH_STEP").unwrap(), TokenType::WithStep));
     map.push((Regex::new(r"typeof|TypeOf|TYPEOF").unwrap(), TokenType::Typeof));
     map.push((Regex::new(r"type|Type|TYPE").unwrap(), TokenType::Type));
     map.push((Regex::new(r"and|AND|And").unwrap(), TokenType::And));
@@ -134,7 +125,7 @@ pub static TOKEN_REGEX_MAP: Lazy<TokenRegexMap> = Lazy::new(|| {
     map.push((Regex::new(r"\^").unwrap(), TokenType::Exponentiation));
     map.push((Regex::new(r"(\d+\.\d*)|(\d*\.\d+)").unwrap(), TokenType::FloatLiteral));
     map.push((Regex::new(r"(\d+)").unwrap(), TokenType::IntegerLiteral));
-    map.push((Regex::new("\"[^\"]*\"").unwrap(), TokenType::StringLiteral));
+    map.push((Regex::new("\"([^\"]*)\"").unwrap(), TokenType::StringLiteral));
     map.push((Regex::new(r"->").unwrap(), TokenType::ReturnIndicator));
     map.push((Regex::new(r"\+").unwrap(), TokenType::Plus));
     map.push((Regex::new(r"-").unwrap(), TokenType::Minus));
@@ -159,7 +150,6 @@ pub static TOKEN_REGEX_MAP: Lazy<TokenRegexMap> = Lazy::new(|| {
     map.push((Regex::new(r"<=").unwrap(), TokenType::LesserThanEqual));
     map.push((Regex::new(r"<").unwrap(), TokenType::OpenArrow));
     map.push((Regex::new(r">").unwrap(), TokenType::CloseArrow));
-    map.push((Regex::new(r"^[a-zA-Z_][a-zA-Z0-9_]*").unwrap(), TokenType::Identifier));
 
     map
 });
