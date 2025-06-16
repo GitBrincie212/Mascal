@@ -1,12 +1,12 @@
 use crate::defs::dynamic_int::IntegerNum;
-use crate::defs::types::{MascalType, MascalUnprocessedType};
+use crate::defs::types::{MascalType};
 
+#[derive(Clone)]
 pub enum MascalValue {
     Integer(IntegerNum),
     Float(f64),
     String(String),
     Boolean(bool),
-    Dynamic(Box<MascalValue>),
     NULL,
     DynamicArray(Vec<MascalValue>),
     StaticArray(Vec<MascalValue>),
@@ -20,9 +20,6 @@ impl MascalValue {
             MascalValue::Integer(i) => {i.as_string()}
             MascalValue::Float(f) => {f.to_string()}
             MascalValue::Boolean(b) => {b.to_string()}
-            MascalValue::Dynamic(d) => {
-                (*d.as_string()).to_string()
-            }
             MascalValue::NULL => {String::from("NULL")}
             MascalValue::DynamicArray(values) => {
                 String::from("<") + &*values.iter().map(|v| v.as_string())
@@ -40,41 +37,39 @@ impl MascalValue {
         }
     }
     
-    pub fn is_type_of(&self, value_type: &MascalUnprocessedType) -> bool {
+    pub fn is_type_of(&self, value_type: &MascalType) -> bool {
         match (self, value_type) {
-            (MascalValue::Integer(..), MascalUnprocessedType::Integer) => true,
-            (MascalValue::Float(..), MascalUnprocessedType::Float) => true,
-            (MascalValue::String(..), MascalUnprocessedType::String) => true,
-            (MascalValue::Boolean(..), MascalUnprocessedType::Boolean) => true,
-            (MascalValue::Dynamic(..), MascalUnprocessedType::Dynamic) => true,
+            (MascalValue::Integer {..}, MascalType::Integer) => true,
+            (MascalValue::Float{..}, MascalType::Float) => true,
+            (MascalValue::String(..), MascalType::String) => true,
+            (MascalValue::Boolean(..), MascalType::Boolean) => true,
             (MascalValue::NULL, _) => true,
-            (MascalValue::Type(..), MascalUnprocessedType::Type) => true,
-            (MascalValue::StaticArray(..), MascalUnprocessedType::StaticArray {array_type, ..}) => {
+            (MascalValue::Type(..), MascalType::Type) => true,
+            (MascalValue::StaticArray(..), MascalType::StaticArray {array_type, ..}) => {
                 self.is_type_of(array_type)
             }
-            (MascalValue::DynamicArray(..), MascalUnprocessedType::DynamicArray {array_type, ..}) => {
+            (MascalValue::DynamicArray(..), MascalType::DynamicArray {array_type, ..}) => {
                 self.is_type_of(array_type)
             }
             _ => false
         }
     }
 
-    pub fn is_atomic_type_of(&self, value_type: &MascalUnprocessedType) -> bool {
+    pub fn is_atomic_type_of(&self, value_type: &MascalType) -> bool {
         match (self, value_type) {
-            (MascalValue::Integer(..), MascalUnprocessedType::Integer) => true,
-            (MascalValue::Float(..), MascalUnprocessedType::Float) => true,
-            (MascalValue::String(..), MascalUnprocessedType::String) => true,
-            (MascalValue::Boolean(..), MascalUnprocessedType::Boolean) => true,
-            (MascalValue::Dynamic(..), MascalUnprocessedType::Dynamic) => true,
+            (MascalValue::Integer {..}, MascalType::Integer {..}) => true,
+            (MascalValue::Float {..}, MascalType::Float) => true,
+            (MascalValue::String(..), MascalType::String) => true,
+            (MascalValue::Boolean(..), MascalType::Boolean) => true,
             (MascalValue::NULL, _) => true,
-            (MascalValue::Type(..), MascalUnprocessedType::Type) => true,
-            (MascalValue::StaticArray(values), MascalUnprocessedType::StaticArray {array_type, ..}) => {
+            (MascalValue::Type(..), MascalType::Type) => true,
+            (MascalValue::StaticArray(values), MascalType::StaticArray {array_type, ..}) => {
                 for val in values {
                     return val.is_atomic_type_of(value_type);
                 }
                 true
             }
-            (MascalValue::DynamicArray(values), MascalUnprocessedType::DynamicArray {array_type, ..}) => {
+            (MascalValue::DynamicArray(values), MascalType::DynamicArray {array_type, ..}) => {
                 for val in values {
                     return val.is_atomic_type_of(value_type);
                 }
