@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
+use std::rc::Rc;
 use std::sync::Arc;
 use crate::defs::blocks::ExecutionBlock;
 use crate::defs::declerations::MascalVariableInitialDeclaration;
@@ -10,34 +11,55 @@ use crate::runtime::execute_expression::execute_expression;
 use crate::runtime::ExecutionData;
 use crate::runtime::values::MascalValue;
 
+
+/*
+ I am highly aware that this could be severally optimized by using a stack and a heap. However, 
+ this lookup table offers more simplicity compared to making a full on stack/heap; the goal is to
+ just make a toy language, investing in deep system level design will be way harder
+*/
 #[allow(dead_code)]
 pub type VariableTable = HashMap<String, VariableData>;
 
+#[derive(Debug, Clone)]
 pub struct VariableData {
     pub value: Option<MascalValue>,
     pub is_constant: bool,
     pub is_nullable: bool,
-    pub atomic_variable_type: Arc<MascalType>
+    pub atomic_variable_type: Arc<MascalType>,
+    pub infinity_control: Cow<'static, InfinityControl>,
+}
+
+impl VariableData {
+    pub fn clone_with_new_value(&self, new_value: Option<MascalValue>) -> VariableData {
+        VariableData {
+            value: new_value,
+            is_constant: self.is_constant,
+            is_nullable: self.is_nullable,
+            atomic_variable_type: self.atomic_variable_type.clone(),
+            infinity_control: self.infinity_control.clone(),
+        }
+    }
 }
 
 #[allow(dead_code)]
 fn create_variable_table_for_type(
-    variable_type: Vec<MascalVariableInitialDeclaration>,
+    variable_type: Cow<Vec<MascalVariableInitialDeclaration>>,
     mut table: VariableTable,
     target_type: Arc<MascalType>,
 ) -> Result<VariableTable, MascalError> {
-    for var in variable_type {
+    for var in variable_type.into_owned() {
         let value: Option<MascalValue> = if let Some(unwrapped_val) = var.initial_value {
             let val: Cow<MascalValue> = execute_expression(unwrapped_val, &ExecutionData {
                 variable_table: Some(&table),
-                infinity_control: InfinityControl::AllowInfinity
+                infinity_control: var.infinity_control.clone(),
+                scoped_blocks: Rc::new(Vec::new())
             })?;
-            if val.is_atomic_type_of(&target_type) {
+            if !val.is_atomic_type_of(&target_type) {
                 return Err(MascalError {
                     error_type: MascalErrorType::RuntimeError,
                     line: 0,
                     character: 0,
-                    source: String::from("Interpreted value does not match its type")
+                    source: format!("Interpreted value does not match its atomic type which is {:?}", &target_type)
                 });
             }
             Some(val.into_owned())
@@ -46,7 +68,8 @@ fn create_variable_table_for_type(
             value,
             is_constant: var.is_constant,
             is_nullable: var.is_nullable,
-            atomic_variable_type: Arc::clone(&target_type)
+            atomic_variable_type: Arc::clone(&target_type),
+            infinity_control: Cow::Owned(var.infinity_control)
         });
     }
     
@@ -54,13 +77,14 @@ fn create_variable_table_for_type(
 }
 
 #[allow(dead_code)]
-pub fn create_variable_table(block: ExecutionBlock) -> Result<VariableTable, MascalError> {
+pub fn create_variable_table(block: &ExecutionBlock) -> Result<VariableTable, MascalError> {
     let mut table: VariableTable = HashMap::new();
-    table = create_variable_table_for_type(block.variables.integers, table, Arc::new(MascalType::Integer))?;
-    table = create_variable_table_for_type(block.variables.floats, table, Arc::new(MascalType::Float))?;
-    table = create_variable_table_for_type(block.variables.strings, table, Arc::new(MascalType::String))?;
-    table = create_variable_table_for_type(block.variables.booleans, table, Arc::new(MascalType::Boolean))?;
-    table = create_variable_table_for_type(block.variables.dynamics, table, Arc::new(MascalType::Dynamic))?;
-    table = create_variable_table_for_type(block.variables.types, table, Arc::new(MascalType::Type))?;
+
+    table = create_variable_table_for_type(Cow::Borrowed(&block.variables.integers), table, Arc::new(MascalType::Integer))?;
+    table = create_variable_table_for_type(Cow::Borrowed(&block.variables.floats), table, Arc::new(MascalType::Float))?;
+    table = create_variable_table_for_type(Cow::Borrowed(&block.variables.strings), table, Arc::new(MascalType::String))?;
+    table = create_variable_table_for_type(Cow::Borrowed(&block.variables.booleans), table, Arc::new(MascalType::Boolean))?;
+    table = create_variable_table_for_type(Cow::Borrowed(&block.variables.dynamics), table, Arc::new(MascalType::Dynamic))?;
+    table = create_variable_table_for_type(Cow::Borrowed(&block.variables.types), table, Arc::new(MascalType::Type))?;
     Ok(table)
 }
