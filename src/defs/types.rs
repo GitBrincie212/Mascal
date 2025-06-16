@@ -1,3 +1,4 @@
+use std::rc::Rc;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
 use crate::defs::InfinityControl;
@@ -85,7 +86,8 @@ macro_rules! process_array_size {
     ($array_size: expr, $mutable_size: expr) => {
         let size = execute_expression($array_size, &ExecutionData {
             variable_table: None,
-            infinity_control: InfinityControl::DisallowInfinity
+            infinity_control: InfinityControl::DisallowInfinity,
+            scoped_blocks: Rc::new(Vec::new())
         })?.into_owned();
         match size {
             MascalValue::Integer(int) => {
@@ -144,7 +146,7 @@ pub fn to_processed_type(unprocessed: MascalUnprocessedType) -> Result<MascalTyp
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MascalType {
     Integer,
     Float,
