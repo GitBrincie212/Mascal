@@ -1,7 +1,9 @@
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
+use crate::defs::InfinityControl;
 use crate::defs::token::TokenType;
 use crate::runtime::execute_expression::execute_expression;
+use crate::runtime::ExecutionData;
 use crate::runtime::values::MascalValue;
 
 #[derive(Debug, Clone)]
@@ -81,7 +83,10 @@ pub fn token_type_to_atom_mascal_type(tt: &TokenType) -> Option<MascalUnprocesse
 
 macro_rules! process_array_size {
     ($array_size: expr, $mutable_size: expr) => {
-        let size = execute_expression($array_size)?;
+        let size = execute_expression($array_size, &ExecutionData {
+            variable_table: None,
+            infinity_control: InfinityControl::DisallowInfinity
+        })?.into_owned();
         match size {
             MascalValue::Integer(int) => {
                 if int.is_negative_or_zero() {
