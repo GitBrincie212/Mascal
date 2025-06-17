@@ -1,3 +1,8 @@
+pub mod value_arithmetic_operations;
+pub mod value_comparision_operations;
+mod value_utils;
+pub mod value_boolean_operations;
+
 use crate::defs::dynamic_int::IntegerNum;
 use crate::defs::types::{MascalType};
 
@@ -61,7 +66,7 @@ impl MascalValue {
             }
         }
     }
-    
+
     pub fn extract_as_float(&self) -> Option<f64> {
         match self {
             MascalValue::Integer(i) => Some(i.as_f64()),
