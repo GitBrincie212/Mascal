@@ -68,9 +68,6 @@ pub enum TokenType {
     Typeof,
     True,
     False,
-    Infinity,
-    InfinityExplicitDeclare,
-    InfinityExplicitDeclarePlus,
     Throw,
 
     // Special Stuff Regarding Mascal
@@ -91,9 +88,6 @@ pub static TOKEN_REGEX_MAP: Lazy<TokenRegexMap> = Lazy::new(|| {
     let mut map: TokenRegexMap = Vec::new();
     map.push((Regex::new(r"//.*").unwrap(), TokenType::Comment));
     map.push((Regex::new(r"^[a-zA-Z_][a-zA-Z0-9_]*").unwrap(), TokenType::Identifier));
-    map.push((Regex::new(r"#\b(?:Inf!|inf!|INF!)\b").unwrap(), TokenType::InfinityExplicitDeclarePlus));
-    map.push((Regex::new(r"#(?:Inf|inf|INF)").unwrap(), TokenType::InfinityExplicitDeclare));
-    map.push((Regex::new(r"Inf|inf|INF|∞").unwrap(), TokenType::Infinity));
     map.push((Regex::new(r"TRUE|true|True").unwrap(), TokenType::True));
     map.push((Regex::new(r"FALSE|false|False").unwrap(), TokenType::False));
     map.push((Regex::new(r"NULL").unwrap(), TokenType::NULL));
