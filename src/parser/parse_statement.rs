@@ -206,6 +206,43 @@ fn parse_for_loop_statement(tokens: &[Token]) -> Result<MascalStatement, MascalE
     })
 }
 
+fn parse_while_loop_statement(tokens: &[Token]) -> Result<MascalStatement, MascalError> {
+    let mut index: usize = 0;
+
+    let condition_expression: MascalExpression = parse_expression_in_statement!(
+        tokens, index, vec![TokenType::OpenBrace]
+    );
+
+    if tokens[index].token_type != TokenType::OpenBrace {
+        return Err(MascalError {
+            error_type: MascalErrorType::ParserError,
+            line: tokens[index].line,
+            character: tokens[index].start,
+            source: String::from("Expected a opening brace for a for loop block")
+        })
+    }
+
+    let statements_parser: TokenSequence = extract_braced_block_from_tokens(
+        &tokens[index..],
+        "While loop",
+        &[],
+        &[],
+    )?;
+
+    let mut statements: Vec<MascalStatement> = Vec::new();
+
+    run_per_statement(&statements_parser, |token_sequence| {
+        let stmt = parse_statement(token_sequence)?;
+        statements.push(stmt);
+        Ok(())
+    })?;
+
+    Ok(MascalStatement::While(MascalConditionalBranch {
+        condition: Some(condition_expression),
+        statements
+    }))
+}
+
 pub fn parse_statement(token_sequence: &Vec<Token>) -> Result<MascalStatement, MascalError> {
     let last_token: &Token = token_sequence.last().unwrap();
     let first_token: &Token = token_sequence.first().unwrap();
@@ -232,6 +269,11 @@ pub fn parse_statement(token_sequence: &Vec<Token>) -> Result<MascalStatement, M
         
         TokenType::For => {
             let for_statement: MascalStatement = parse_for_loop_statement(&token_sequence[1..])?;
+            Ok(for_statement)
+        }
+        
+        TokenType::While => {
+            let for_statement: MascalStatement = parse_while_loop_statement(&token_sequence[1..])?;
             Ok(for_statement)
         }
 
