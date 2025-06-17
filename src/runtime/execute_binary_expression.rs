@@ -14,22 +14,19 @@ pub fn execute_binary_expression<'a>(
     let right_value: MascalValue = execute_expression(*right, exec_data)?.into_owned();
     
     Ok(Cow::Owned(match operator {
-        MascalBinaryOperators::Plus => {MascalValue::add(left_value, right_value, &exec_data.infinity_control)}
-        MascalBinaryOperators::Minus => {MascalValue::sub(left_value, right_value, &exec_data.infinity_control)}
-        MascalBinaryOperators::Multiply => {MascalValue::mul(left_value, right_value, &exec_data.infinity_control)}
-        MascalBinaryOperators::Divide => {MascalValue::div(left_value, right_value, &exec_data.infinity_control)}
-        /*
-        MascalBinaryOperators::Modulo => {}
-        MascalBinaryOperators::Equals => {}
-        MascalBinaryOperators::GreaterThan => {}
-        MascalBinaryOperators::LessThan => {}
-        MascalBinaryOperators::GreaterThanOrEqual => {}
-        MascalBinaryOperators::LessThanOrEqual => {}
-        MascalBinaryOperators::And => {}
-        MascalBinaryOperators::Or => {}
-        MascalBinaryOperators::NotEqual => {}
-        MascalBinaryOperators::Exponentiation => {}
-         */
-        _ => {todo!()}
+        MascalBinaryOperators::Plus => {MascalValue::add(left_value, right_value)}
+        MascalBinaryOperators::Minus => {MascalValue::sub(left_value, right_value)}
+        MascalBinaryOperators::Multiply => {MascalValue::mul(left_value, right_value)}
+        MascalBinaryOperators::Divide => {MascalValue::div(left_value, right_value)}
+        MascalBinaryOperators::Equals => {MascalValue::equals(&left_value, &right_value)}
+        MascalBinaryOperators::NotEqual => {MascalValue::not_equals(&left_value, &right_value)}
+        MascalBinaryOperators::GreaterThan => {MascalValue::greater_than(&left_value, &right_value)}
+        MascalBinaryOperators::LessThan => {MascalValue::less_than(&left_value, &right_value)}
+        MascalBinaryOperators::GreaterThanOrEqual => {MascalValue::greater_than_or_equal(&left_value, &right_value)}
+        MascalBinaryOperators::LessThanOrEqual => {MascalValue::less_than_or_equal(&left_value, &right_value)}
+        MascalBinaryOperators::Exponentiation => {MascalValue::exponention(&left_value, &right_value)}
+        MascalBinaryOperators::Modulo => {MascalValue::modulo(&left_value, &right_value)}
+        MascalBinaryOperators::And => {MascalValue::and(&left_value, &right_value)}
+        MascalBinaryOperators::Or => {MascalValue::or(&left_value, &right_value)}
     }?))
 }
