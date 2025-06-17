@@ -164,7 +164,7 @@ fn parse_for_loop_statement(tokens: &[Token]) -> Result<MascalStatement, MascalE
         |curr: &Token | {format!("Expected TO but got {:?}", curr.value)}
     );
     index += 1;
-    
+
     let to: MascalExpression = parse_expression_in_statement!(tokens, index, vec![TokenType::WithStep, TokenType::OpenBrace]);
 
     let with_step: MascalExpression = if tokens[index].token_type == TokenType::WithStep {
@@ -172,7 +172,7 @@ fn parse_for_loop_statement(tokens: &[Token]) -> Result<MascalStatement, MascalE
 
         parse_expression_in_statement!(tokens, index, vec![TokenType::OpenBrace])
     } else {MascalExpression::LiteralExpression(MascalLiteral::Integer(IntegerNum::I8(1)))};
-    
+
     if tokens[index].token_type != TokenType::OpenBrace {
         return Err(MascalError {
             error_type: MascalErrorType::ParserError,
@@ -181,7 +181,7 @@ fn parse_for_loop_statement(tokens: &[Token]) -> Result<MascalStatement, MascalE
             source: String::from("Expected a opening brace for a for loop block")
         })
     }
-    
+
     let statements_parser: TokenSequence = extract_braced_block_from_tokens(
         &tokens[index..],
         "For loop",
@@ -226,7 +226,7 @@ pub fn parse_statement(token_sequence: &Vec<Token>) -> Result<MascalStatement, M
         }
         
         TokenType::If => {
-            let if_statement: MascalStatement = parse_conditional_statement(&token_sequence[1..])?;
+            let if_statement: MascalStatement = parse_conditional_statement(&token_sequence)?;
             Ok(if_statement)
         }
         
