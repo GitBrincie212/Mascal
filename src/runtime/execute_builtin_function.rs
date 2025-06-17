@@ -21,7 +21,7 @@ pub fn execute_builtin_function<'a>(
             for (index, arg) in arguments.iter().enumerate() {
                 let result: MascalValue = execute_expression(arg.clone(), exec_data)?
                     .into_owned();
-                if args.len() > fixed_argument_types.len() {
+                if index < fixed_argument_types.len() {
                     let arg_type = &fixed_argument_types[index];
                     if !result.is_type_of(arg_type) {
                         return Err(MascalError {
