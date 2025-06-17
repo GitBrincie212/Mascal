@@ -4,6 +4,7 @@ mod value_utils;
 pub mod value_boolean_operations;
 
 use crate::defs::dynamic_int::IntegerNum;
+use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::types::{MascalType};
 
 #[derive(Clone, Debug)]
@@ -19,6 +20,36 @@ pub enum MascalValue {
 }
 
 impl MascalValue {
+    pub fn as_mascal_type(&self) -> Result<MascalType, MascalError> {
+        match self {
+            MascalValue::String(s) => Ok(MascalType::String),
+            MascalValue::Integer(i) => Ok(MascalType::Integer),
+            MascalValue::Float(f) => Ok(MascalType::Float),
+            MascalValue::Boolean(b) => Ok(MascalType::Boolean),
+            MascalValue::Type(_) => Ok(MascalType::Type),
+            MascalValue::DynamicArray(values) |  MascalValue::StaticArray(values) => {
+                let mut mascal_type: MascalType = MascalType::Dynamic;
+                let mut has_run_once: bool = false;
+                for value in values {
+                    let val_type: MascalType = value.as_mascal_type()?;
+                    if has_run_once && mascal_type != val_type {
+                        return Ok(MascalType::Dynamic);
+                    }
+                    mascal_type = val_type;
+                    has_run_once = true;
+                }
+                Ok(mascal_type)
+            }
+
+            MascalValue::NULL => Err(MascalError {
+                error_type: MascalErrorType::TypeError,
+                line: 0,
+                character: 0,
+                source: String::from("NULL is not a type in of itself")
+            }),
+        }
+    }
+    
     pub fn as_string(&self) -> String {
         match self {
             MascalValue::String(s) => s.clone(),
