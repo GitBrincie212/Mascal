@@ -7,9 +7,7 @@ pub enum MascalErrorType {
     RuntimeError,
     OverflowError,
     TypeError,
-    UndefinedOperation,
-    UnallowedInfinityOperationError,
-    NonExplicitInfiniteDeclarationError
+    UndefinedOperation
 }
 
 #[derive(Debug)]

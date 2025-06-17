@@ -1,5 +1,4 @@
 use crate::defs::expressions::MascalExpression;
-use crate::defs::InfinityControl;
 
 #[derive(Debug, Clone)]
 pub struct MascalVariableInitialDeclaration {
@@ -9,5 +8,4 @@ pub struct MascalVariableInitialDeclaration {
     pub dimensions: Vec<MascalExpression>,
     pub initial_value: Option<MascalExpression>,
     pub is_dynamic_array: Vec<bool>,
-    pub infinity_control: InfinityControl
 }

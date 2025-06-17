@@ -4,7 +4,6 @@ use crate::defs::blocks::{ExecutionBlock, MascalParameter, ScopedBlocks};
 use crate::defs::builtins::builtin_functions::{BUILT_IN_FUNCTION_TABLE};
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
-use crate::defs::InfinityControl;
 use crate::defs::statements::MascalStatement;
 use crate::defs::types::{to_processed_type, MascalType, MascalUnprocessedType};
 use crate::runtime::execute_expression::execute_expression;
@@ -81,7 +80,6 @@ pub fn execute_function_call<'a>(
                 if variable == &fn_name {
                     let computed_value: Cow<MascalValue> = execute_expression(value.clone(), &ExecutionData {
                         variable_table: Some(&scoped_variable_table),
-                        infinity_control: InfinityControl::DisallowInfinity,
                         scoped_blocks: exec_data.scoped_blocks.clone()
                     })?;
                     if processed_return_type.is_none() {

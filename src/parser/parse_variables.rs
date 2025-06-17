@@ -1,7 +1,6 @@
 use crate::defs::blocks::VariableBlock;
 use crate::defs::declerations::MascalVariableInitialDeclaration;
 use crate::defs::errors::{MascalError, MascalErrorType};
-use crate::defs::InfinityControl;
 use crate::defs::token::{Token, TokenType};
 use crate::parser::parse_variable_decl::parse_variable_decl;
 use crate::parser::TokenSequence;
@@ -26,7 +25,6 @@ pub fn parse_variable_type_block<'a>(
                 is_dynamic_array: Vec::new(),
                 dimensions: Vec::new(),
                 is_nullable: false,
-                infinity_control: InfinityControl::DisallowInfinity
             });
             return Ok(());
         }

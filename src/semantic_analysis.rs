@@ -17,12 +17,12 @@ pub fn conduct_semantic_analysis(abstract_syntax_tree: AbstractSyntaxTree) -> Re
             }
         }.variables;
         let mut defined_var_names: HashSet<String> = HashSet::new();
-        defined_var_names = variable_check_stage::check_per_variable(&varblock.integers, defined_var_names, true)?;
-        defined_var_names = variable_check_stage::check_per_variable(&varblock.floats, defined_var_names, true)?;
-        defined_var_names = variable_check_stage::check_per_variable(&varblock.strings, defined_var_names, false)?;
-        defined_var_names = variable_check_stage::check_per_variable(&varblock.booleans, defined_var_names, false)?;
-        defined_var_names = variable_check_stage::check_per_variable(&varblock.dynamics, defined_var_names, true)?;
-        variable_check_stage::check_per_variable(&varblock.types, defined_var_names, false)?;
+        defined_var_names = variable_check_stage::check_per_variable(&varblock.integers, defined_var_names)?;
+        defined_var_names = variable_check_stage::check_per_variable(&varblock.floats, defined_var_names)?;
+        defined_var_names = variable_check_stage::check_per_variable(&varblock.strings, defined_var_names)?;
+        defined_var_names = variable_check_stage::check_per_variable(&varblock.booleans, defined_var_names)?;
+        defined_var_names = variable_check_stage::check_per_variable(&varblock.dynamics, defined_var_names)?;
+        variable_check_stage::check_per_variable(&varblock.types, defined_var_names)?;
     }
     Ok(abstract_syntax_tree)
 }

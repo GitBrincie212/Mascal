@@ -1,5 +1,4 @@
 use crate::defs::errors::{MascalError, MascalErrorType};
-use crate::defs::InfinityControl;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum IntegerNum {
@@ -7,9 +6,7 @@ pub enum IntegerNum {
     I16(i16),
     I32(i32),
     I64(i64),
-    I128(i128),
-    PositiveInfinity,
-    NegativeInfinity
+    I128(i128)
 }
 
 fn promotion_process<F>(
@@ -40,7 +37,7 @@ impl IntegerNum {
     pub fn as_string(&self) -> String {
         self.to_i128().to_string()
     }
-    
+
     pub fn as_f64(&self) -> f64 {
         self.to_i128() as f64
     }
@@ -59,58 +56,6 @@ impl IntegerNum {
             _ => {0}
         }
     }
-    
-    fn explicit_declaration_for_infinity_verfiy(
-        &self, other: &IntegerNum, explicit_inf: &InfinityControl
-    ) -> Result<(), MascalError> {
-        if explicit_inf == &InfinityControl::DisallowInfinity && (other == &IntegerNum::PositiveInfinity
-            || other == &IntegerNum::NegativeInfinity
-            || self == &IntegerNum::NegativeInfinity
-            || self == &IntegerNum::PositiveInfinity) {
-            return Err(MascalError {
-                error_type: MascalErrorType::NonExplicitInfiniteDeclarationError,
-                line: 0,
-                character: 0,
-                source: String::from("Value has not been explicitly declared to include infinity"),
-            });
-        }
-        Ok(())
-    }
-    
-    fn explicit_decleration_for_infinity_verify_self(
-        &self, explicit_inf: &InfinityControl
-    ) -> Result<(), MascalError> {
-        if explicit_inf == &InfinityControl::DisallowInfinity
-            && (self == &IntegerNum::NegativeInfinity || self == &IntegerNum::PositiveInfinity) {
-            return Err(MascalError {
-                error_type: MascalErrorType::NonExplicitInfiniteDeclarationError,
-                line: 0,
-                character: 0,
-                source: String::from("Value has not been explicitly declared to include infinity"),
-            });
-        }
-        Ok(())
-    }
-
-    fn verify_infinity_case(&self, other: &IntegerNum, explicit_inf: &InfinityControl) -> Result<(), MascalError> {
-        if explicit_inf != &InfinityControl::DisallowInfinity {
-            return match (self, other) {
-                (IntegerNum::PositiveInfinity, IntegerNum::PositiveInfinity) => return Ok(()),
-                (IntegerNum::NegativeInfinity, IntegerNum::NegativeInfinity) => return Ok(()),
-                (IntegerNum::NegativeInfinity, IntegerNum::PositiveInfinity) |
-                (IntegerNum::PositiveInfinity, IntegerNum::NegativeInfinity) => return Err(MascalError {
-                    error_type: MascalErrorType::UnallowedInfinityOperationError,
-                    line: 0,
-                    character: 0,
-                    source: String::from("Cannot operate this operation with infinities that have different signs"),
-                }),
-                _ => {Ok(())}
-            };
-        }
-        self.explicit_declaration_for_infinity_verfiy(other, explicit_inf)?;
-        
-        Ok(())
-    }
 
     pub fn max(&self, other: &IntegerNum) -> IntegerNum {
         let num_other: i128 = self.to_i128();
@@ -124,23 +69,19 @@ impl IntegerNum {
         if self_num < num_other  { IntegerNum::new(self_num) } else { IntegerNum::new(num_other) }
     }
 
-    pub fn add(&self, other: IntegerNum, explicit_inf: &InfinityControl) -> Result<IntegerNum, MascalError> {
-        self.verify_infinity_case(&other, &explicit_inf)?;
+    pub fn add(&self, other: IntegerNum) -> Result<IntegerNum, MascalError> {
         promotion_process(self, &other, i128::overflowing_add)
     }
 
-    pub fn sub(&self, other: IntegerNum, explicit_inf: &InfinityControl) -> Result<IntegerNum, MascalError> {
-        self.verify_infinity_case(&other, &explicit_inf)?;
+    pub fn sub(&self, other: IntegerNum) -> Result<IntegerNum, MascalError> {
         promotion_process(self, &other, i128::overflowing_sub)
     }
 
-    pub fn mul(&self, other: IntegerNum, explicit_inf: &InfinityControl) -> Result<IntegerNum, MascalError> {
-        self.explicit_declaration_for_infinity_verfiy(&other, &explicit_inf)?;
+    pub fn mul(&self, other: IntegerNum) -> Result<IntegerNum, MascalError> {
         promotion_process(self, &other, i128::overflowing_mul)
     }
 
-    pub fn div(&self, other: IntegerNum, explicit_inf: &InfinityControl) -> Result<IntegerNum, MascalError> {
-        self.explicit_declaration_for_infinity_verfiy(&other, &explicit_inf)?;
+    pub fn div(&self, other: IntegerNum) -> Result<IntegerNum, MascalError> {
         if other.to_i128() == 0 {
             return Err(MascalError {
                 error_type: MascalErrorType::UndefinedOperation,
@@ -153,8 +94,7 @@ impl IntegerNum {
         promotion_process(self, &other, i128::overflowing_div)
     }
 
-    pub fn neg(&self, explicit_inf: &InfinityControl) -> Result<IntegerNum, MascalError> {
-        self.explicit_decleration_for_infinity_verify_self(&explicit_inf)?;
+    pub fn neg(&self) -> Result<IntegerNum, MascalError> {
         let (num, did_overflow): (i128, bool) = self.to_i128().overflowing_neg();
         if !did_overflow {
             return Ok(IntegerNum::new(num))
@@ -168,8 +108,7 @@ impl IntegerNum {
         })
     }
 
-    pub fn modulo(&self, other: IntegerNum, explicit_inf: &InfinityControl) -> Result<IntegerNum, MascalError> {
-        self.explicit_declaration_for_infinity_verfiy(&other, &explicit_inf)?;
+    pub fn modulo(&self, other: IntegerNum) -> Result<IntegerNum, MascalError> {
         if other.to_i128() == 0 {
             return Err(MascalError {
                 character: 0,
@@ -186,8 +125,7 @@ impl IntegerNum {
         })
     }
 
-    pub fn isqrt(&self, explicit_inf: &InfinityControl) -> Result<IntegerNum, MascalError> {
-        self.explicit_decleration_for_infinity_verify_self(&explicit_inf)?;
+    pub fn isqrt(&self) -> Result<IntegerNum, MascalError> {
         let num = self.to_i128();
         if num < 0 {
             return Err(MascalError {
@@ -201,35 +139,44 @@ impl IntegerNum {
         Ok(IntegerNum::new(num.isqrt()))
     }
     
-    fn logarithm_operation_pipeline(&self, explicit_inf: &InfinityControl) -> Result<i128, MascalError> {
-        self.explicit_decleration_for_infinity_verify_self(explicit_inf)?;
+    fn logarithm_operation_pipeline(&self) -> Result<i128, MascalError> {
         let num: i128 = self.to_i128();
-        if num < 0 {
+        if num <= 0 {
             return Err(MascalError {
                 error_type: MascalErrorType::UndefinedOperation,
                 line: 0,
                 character: 0,
-                source: String::from(" by zero"),
+                source: String::from("Cannot use the logarithm operation with a negative or zero value"),
             });
-        } else if num == 0 {
-            return Err(MascalError {
-                error_type: MascalErrorType::UndefinedOperation,
-                line: 0,
-                character: 0,
-                source: String::from(" by zero"),
-            })
         }
         
         Ok(num)
     }
 
-    pub fn log2(&self, explicit_inf: &InfinityControl) -> Result<IntegerNum, MascalError> {
-        let num: i128 = self.logarithm_operation_pipeline(&explicit_inf)?;
+    pub fn log2(&self) -> Result<IntegerNum, MascalError> {
+        let num: i128 = self.logarithm_operation_pipeline()?;
         Ok(IntegerNum::new(num.ilog2() as i128))
     }
 
-    pub fn log10(&self, explicit_inf: &InfinityControl) -> Result<IntegerNum, MascalError> {
-        let num: i128 = self.logarithm_operation_pipeline(&explicit_inf)?;
+    pub fn log10(&self) -> Result<IntegerNum, MascalError> {
+        let num: i128 = self.logarithm_operation_pipeline()?;
         Ok(IntegerNum::new(num.ilog10() as i128))
+    }
+
+    pub fn exponentation(&self, other: &IntegerNum) -> Result<IntegerNum, MascalError> {
+        let other_val: i128 = other.to_i128();
+        let self_val: i128 = self.to_i128();
+        if self_val <= 0 {
+            return Err(MascalError {
+                character: 0,
+                line: 0,
+                error_type: MascalErrorType::UndefinedOperation,
+                source: String::from("Cannot perform exponentation with a negative or zero base")
+            })
+        }
+        if other_val <= 0 {
+            return Ok(IntegerNum::new(1i128 / num_traits::pow(self_val, other_val.abs() as usize)));
+        }
+        Ok(IntegerNum::new(num_traits::pow(self_val,  other_val as usize)))
     }
 }

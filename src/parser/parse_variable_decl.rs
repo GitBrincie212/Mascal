@@ -1,7 +1,6 @@
 use crate::defs::declerations::MascalVariableInitialDeclaration;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
-use crate::defs::InfinityControl;
 use crate::defs::token::{Token, TokenType};
 use crate::parser::parse_expression::parse_expression;
 use crate::parser::utils::parse_array_type;
@@ -16,16 +15,6 @@ pub fn parse_variable_decl<'a>(
     let mut is_dynamic_array: Vec<bool> = Vec::new();
     let mut initial_value: Option<MascalExpression> = None;
     let mut curr_index: usize = 0;
-    let mut infinity_control: InfinityControl = InfinityControl::DisallowInfinity;
-
-    if curr_index < tokens.len() && (tokens[curr_index].token_type == TokenType::InfinityExplicitDeclare
-        || tokens[curr_index].token_type == TokenType::InfinityExplicitDeclarePlus
-    ) {
-        infinity_control = if tokens[curr_index].token_type == TokenType::InfinityExplicitDeclarePlus {
-            InfinityControl::AllowInfinityExtra
-        } else {InfinityControl::AllowInfinity };
-        curr_index += 1;
-    }
 
     if curr_index < tokens.len() && tokens[curr_index].token_type == TokenType::Const {
         is_constant = true;
@@ -82,6 +71,5 @@ pub fn parse_variable_decl<'a>(
         dimensions,
         is_dynamic_array,
         initial_value,
-        infinity_control,
     })
 }

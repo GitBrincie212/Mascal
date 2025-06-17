@@ -1,7 +1,6 @@
 use std::rc::Rc;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
-use crate::defs::InfinityControl;
 use crate::defs::token::TokenType;
 use crate::runtime::execute_expression::execute_expression;
 use crate::runtime::ExecutionData;
@@ -86,7 +85,6 @@ macro_rules! process_array_size {
     ($array_size: expr, $mutable_size: expr) => {
         let size = execute_expression($array_size, &ExecutionData {
             variable_table: None,
-            infinity_control: InfinityControl::DisallowInfinity,
             scoped_blocks: Rc::new(Vec::new())
         })?.into_owned();
         match size {

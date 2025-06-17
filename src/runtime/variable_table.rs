@@ -5,7 +5,6 @@ use std::sync::Arc;
 use crate::defs::blocks::ExecutionBlock;
 use crate::defs::declerations::MascalVariableInitialDeclaration;
 use crate::defs::errors::{MascalError, MascalErrorType};
-use crate::defs::InfinityControl;
 use crate::defs::types::{MascalType};
 use crate::runtime::execute_expression::execute_expression;
 use crate::runtime::ExecutionData;
@@ -26,7 +25,6 @@ pub struct VariableData {
     pub is_constant: bool,
     pub is_nullable: bool,
     pub atomic_variable_type: Arc<MascalType>,
-    pub infinity_control: Cow<'static, InfinityControl>,
 }
 
 impl VariableData {
@@ -36,7 +34,6 @@ impl VariableData {
             is_constant: self.is_constant,
             is_nullable: self.is_nullable,
             atomic_variable_type: self.atomic_variable_type.clone(),
-            infinity_control: self.infinity_control.clone(),
         }
     }
 }
@@ -51,7 +48,6 @@ fn create_variable_table_for_type(
         let value: Option<MascalValue> = if let Some(unwrapped_val) = var.initial_value {
             let val: Cow<MascalValue> = execute_expression(unwrapped_val, &ExecutionData {
                 variable_table: Some(&table),
-                infinity_control: var.infinity_control.clone(),
                 scoped_blocks: Rc::new(Vec::new())
             })?;
             if !val.is_atomic_type_of(&target_type) {
@@ -69,7 +65,6 @@ fn create_variable_table_for_type(
             is_constant: var.is_constant,
             is_nullable: var.is_nullable,
             atomic_variable_type: Arc::clone(&target_type),
-            infinity_control: Cow::Owned(var.infinity_control)
         });
     }
     

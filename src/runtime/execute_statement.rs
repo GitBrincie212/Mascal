@@ -4,7 +4,6 @@ use crate::defs::blocks::ScopedBlocks;
 use crate::defs::dynamic_int::IntegerNum;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
-use crate::defs::InfinityControl;
 use crate::defs::literal::MascalLiteral;
 use crate::defs::statements::MascalStatement;
 use crate::defs::types::MascalType;
@@ -30,7 +29,6 @@ fn error_check_expression(
     }
     let val_num: MascalValue = execute_expression(val, &ExecutionData {
         variable_table: Some(&variable_table),
-        infinity_control: InfinityControl::DisallowInfinity,
         scoped_blocks,
     })?.into_owned();
     match &val_num {
@@ -79,7 +77,6 @@ pub fn execute_statement<'a>(
                     let cond_expr = Cow::Borrowed(&cond).into_owned();
                     let value: MascalValue = execute_expression(cond_expr, &ExecutionData {
                         variable_table: Some(&variable_table),
-                        infinity_control: InfinityControl::AllowInfinity,
                         scoped_blocks: scoped_blocks.clone(),
                     })?.into_owned();
                     match value {
@@ -108,7 +105,6 @@ pub fn execute_statement<'a>(
                 let cond_expr = Cow::Borrowed(&condition).into_owned().condition.unwrap();
                 let value: MascalValue = execute_expression(cond_expr, &ExecutionData {
                     variable_table: Some(&variable_table),
-                    infinity_control: InfinityControl::AllowInfinity,
                     scoped_blocks: scoped_blocks.clone(),
                 })?.into_owned();
                 match value {
@@ -195,7 +191,6 @@ pub fn execute_statement<'a>(
         MascalStatement::ExpressionStatement(expression) => {
             execute_expression(expression, &ExecutionData {
                 variable_table: Some(&variable_table),
-                infinity_control: InfinityControl::AllowInfinity,
                 scoped_blocks,
             })?;
         }
@@ -221,7 +216,6 @@ pub fn execute_statement<'a>(
             let mut owned_data: VariableData = unwrapped_data.into_owned();
             let value: Cow<MascalValue> = execute_expression(value, &ExecutionData {
                 variable_table: Some(&variable_table),
-                infinity_control: owned_data.infinity_control.clone().into_owned(),
                 scoped_blocks,
             })?;
             owned_data.value = Some(value.into_owned());
