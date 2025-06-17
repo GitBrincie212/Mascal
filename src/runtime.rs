@@ -5,7 +5,6 @@ mod execute_inner_member_expression;
 mod execute_unary_expression;
 mod execute_function_expression;
 pub mod values;
-mod value_operations;
 mod execute_statement;
 mod execute_builtin_function;
 
@@ -14,13 +13,11 @@ use std::rc::Rc;
 use crate::ast::AbstractSyntaxTree;
 use crate::defs::blocks::{ExecutionBlock, ScopedBlocks};
 use crate::defs::errors::MascalError;
-use crate::defs::InfinityControl;
 use crate::runtime::execute_statement::execute_statement;
 use crate::runtime::variable_table::{create_variable_table, VariableTable};
 
 pub struct ExecutionData<'a> {
     pub variable_table: Option<&'a VariableTable>,
-    pub infinity_control: InfinityControl,
     pub scoped_blocks: Rc<Vec<ScopedBlocks>>
 }
 
