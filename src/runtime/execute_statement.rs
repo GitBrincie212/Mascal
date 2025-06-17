@@ -221,7 +221,31 @@ pub fn execute_statement<'a>(
             owned_data.value = Some(value.into_owned());
             variable_table.insert(variable, owned_data);
         }
-        MascalStatement::Throw { .. } => {}
+        MascalStatement::Throw {
+            error_type,
+            message
+        } => {
+            let mascal_error_type: MascalErrorType = match error_type.as_str() {
+                "TypeError" => MascalErrorType::TypeError,
+                "RuntimeError" => MascalErrorType::RuntimeError,
+                "OverflowError" => MascalErrorType::OverflowError,
+                "UndefinedOperationError" => MascalErrorType::UndefinedOperation,
+                _ => {
+                    return Err(MascalError {
+                        error_type: MascalErrorType::UndefinedErrorType,
+                        character: 0,
+                        line: 0,
+                        source: String::from("Use of an undefined usable error type in the throw statement (perhaps a typo?)"),
+                    })
+                }
+            };
+            return Err(MascalError {
+                error_type: mascal_error_type,
+                character: 0,
+                line: 0,
+                source: message
+            })
+        }
     };
 
     Ok(variable_table)
