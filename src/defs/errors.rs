@@ -8,7 +8,8 @@ pub enum MascalErrorType {
     OverflowError,
     TypeError,
     UndefinedOperation,
-    UndefinedErrorType
+    UndefinedErrorType,
+    InputError
 }
 
 #[derive(Debug)]
