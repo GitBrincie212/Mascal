@@ -31,7 +31,7 @@ pub fn execute_expression(
     match expression {
         MascalExpression::LiteralExpression(value) => {
             let mv = match value {
-                MascalLiteral::String(s)  => MascalValue::String(Arc::new(s)),
+                MascalLiteral::String(s)  => MascalValue::String(Arc::from(s)),
                 MascalLiteral::Integer(i) => MascalValue::Integer(i),
                 MascalLiteral::Float(f)   => MascalValue::Float(f),
                 MascalLiteral::NULL => MascalValue::NULL,
@@ -71,17 +71,17 @@ pub fn execute_expression(
                     error_type: MascalErrorType::RuntimeError,
                     character: 0,
                     line: 0,
-                    source: format!("Variable {:?} not found", symbolic_expr),
+                    source: format!("Unknown expression {:?} not found", symbolic_expr),
                 })
             }
         }
         
         MascalExpression::DynamicArrayExpression(array) => {
-            define_array_expression_exec!(array, exec_data.clone(), MascalValue::StaticArray);
+            define_array_expression_exec!(array, exec_data.clone(), MascalValue::DynamicArray);
         }
         
         MascalExpression::StaticArrayExpression(array) => {
-            define_array_expression_exec!(array, exec_data.clone(), MascalValue::DynamicArray);
+            define_array_expression_exec!(array, exec_data.clone(), MascalValue::StaticArray);
         }
         
         MascalExpression::TypeExpression(type_expr) => {
