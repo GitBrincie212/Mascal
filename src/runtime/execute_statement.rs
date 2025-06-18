@@ -1,5 +1,7 @@
 use std::borrow::Cow;
+use std::cell::RefCell;
 use std::rc::Rc;
+use std::sync::Arc;
 use crate::defs::blocks::ScopedBlocks;
 use crate::defs::dynamic_int::IntegerNum;
 use crate::defs::errors::{MascalError, MascalErrorType};
@@ -13,8 +15,8 @@ use crate::runtime::values::MascalValue;
 use crate::runtime::variable_table::{VariableData, VariableTable};
 
 fn error_check_expression(
-    variable_table: &VariableTable, mut val: MascalExpression, variable_data: &VariableData,
-    variable: &String, scoped_blocks: Rc<Vec<ScopedBlocks>>
+    variable_table: Rc<RefCell<VariableTable>>, mut val: MascalExpression, variable_data: &VariableData,
+    variable: &String, scoped_blocks: Rc<RefCell<Vec<ScopedBlocks>>>
 ) -> Result<MascalValue, MascalError> {
     if let MascalExpression::LiteralExpression(literal) = &val {
         if let MascalLiteral::Float(v) = literal {
@@ -27,10 +29,10 @@ fn error_check_expression(
             }
         }
     }
-    let val_num: MascalValue = execute_expression(val, &ExecutionData {
-        variable_table: Some(&variable_table),
+    let val_num: MascalValue = execute_expression(val, Rc::new(RefCell::new(ExecutionData {
+        variable_table: Some(variable_table),
         scoped_blocks,
-    })?.into_owned();
+    })))?;
     match &val_num {
         MascalValue::Integer(_) => {
             if *variable_data.atomic_variable_type != MascalType::Integer {
@@ -67,18 +69,19 @@ fn error_check_expression(
     Ok(val_num)
 }
 
-pub fn execute_statement<'a>(
-    statement: Cow<MascalStatement>, mut variable_table: VariableTable, scoped_blocks: Rc<Vec<ScopedBlocks>>
-) -> Result<VariableTable, MascalError> {
-    match statement.into_owned() {
+pub fn execute_statement(
+    statement: MascalStatement, variable_table: Rc<RefCell<VariableTable>>, 
+    scoped_blocks: Rc<RefCell<Vec<ScopedBlocks>>>
+) -> Result<(), MascalError> {
+    match statement {
         MascalStatement::ConditionalStatement(branches) => {
             for branch in branches {
                 let cond: bool = if let Some(cond) = branch.condition {
                     let cond_expr = Cow::Borrowed(&cond).into_owned();
-                    let value: MascalValue = execute_expression(cond_expr, &ExecutionData {
-                        variable_table: Some(&variable_table),
+                    let value: MascalValue = execute_expression(cond_expr, Rc::new(RefCell::new(ExecutionData {
+                        variable_table: Some(variable_table.clone()),
                         scoped_blocks: scoped_blocks.clone(),
-                    })?.into_owned();
+                    })))?;
                     match value {
                         MascalValue::Boolean(b) => Ok(b),
                         _ => Err(MascalError {
@@ -90,23 +93,23 @@ pub fn execute_statement<'a>(
                     }?
                 } else {true};
 
-                if !cond {return Ok(variable_table)}
+                if !cond {return Ok(())}
                 for stmt in branch.statements {
-                    variable_table = execute_statement(
-                        Cow::Borrowed(&stmt),
-                        variable_table,
+                    execute_statement(
+                        stmt,
+                        variable_table.clone(),
                         scoped_blocks.clone()
                     )?;
                 }
             }
         }
-        MascalStatement::While(condition) => {
+        MascalStatement::While(mut condition) => {
             while {
-                let cond_expr = Cow::Borrowed(&condition).into_owned().condition.unwrap();
-                let value: MascalValue = execute_expression(cond_expr, &ExecutionData {
-                    variable_table: Some(&variable_table),
+                let cond_expr = condition.condition.take().unwrap();
+                let value: MascalValue = execute_expression(cond_expr, Rc::new(RefCell::new(ExecutionData {
+                    variable_table: Some(variable_table.clone()),
                     scoped_blocks: scoped_blocks.clone(),
-                })?.into_owned();
+                })))?;
                 match value {
                     MascalValue::Boolean(b) => Ok(b),
                     _ => Err(MascalError {
@@ -118,9 +121,9 @@ pub fn execute_statement<'a>(
                 }
             }? {
                 for stmt in &condition.statements {
-                    variable_table = execute_statement(
-                        Cow::Borrowed(stmt),
-                        variable_table,
+                    execute_statement(
+                        stmt.clone(),
+                        variable_table.clone(),
                         scoped_blocks.clone()
                     )?;
                 }
@@ -133,93 +136,149 @@ pub fn execute_statement<'a>(
             step,
             statements
         } => {
-            let wrapped_variable_data: Option<VariableData> = variable_table.get(&variable)
-                .map(|x| x.clone());
-            if wrapped_variable_data.is_none() {
-                return Err(MascalError {
-                    error_type: MascalErrorType::RuntimeError,
-                    character: 0,
-                    line: 0,
-                    source: format!("Could not find the variable with the name {:?}", variable)
-                });
-            }
-            let variable_data: VariableData = wrapped_variable_data.unwrap();
+            let variable_metadata = {
+                variable_table.borrow_mut();
+                let borrowed_vartable = variable_table.borrow();
+                let variable_data = borrowed_vartable.get(&variable).ok_or_else(||
+                    MascalError {
+                        error_type: MascalErrorType::RuntimeError,
+                        character: 0,
+                        line: 0,
+                        source: format!("Variable {:?} not found", variable)
+                    }
+                )?;
+                (
+                    variable_data.clone(),
+                    variable_data.is_constant,
+                    variable_data.is_nullable,
+                    variable_data.array_dimensions.clone(),
+                    variable_data.is_dynamic_array.clone(),
+                    Arc::clone(&variable_data.atomic_variable_type)
+                )
+            };
+            let (
+                variable_data,
+                is_constant,
+                is_nullable,
+                array_dimensions,
+                is_dynamic_array,
+                atomic_variable_type
+            ) = variable_metadata;
             let from_num: MascalValue = error_check_expression(
-                &variable_table, from, &variable_data, &variable, scoped_blocks.clone()
+                variable_table.clone(), from, &variable_data, &variable, scoped_blocks.clone()
             )?;
+            
             let to_num: MascalValue = error_check_expression(
-                &variable_table, to, &variable_data, &variable, scoped_blocks.clone()
+                variable_table.clone(), to, &variable_data, &variable, scoped_blocks.clone()
             )?;
+            
             let step_num: MascalValue = error_check_expression(
-                &variable_table, step, &variable_data, &variable, scoped_blocks.clone()
+                variable_table.clone(), step, &variable_data, &variable, scoped_blocks.clone()
             )?;
+            
             match (&from_num, &to_num, &step_num) {
                 (MascalValue::Integer(..), ..) => {
                     let int_to_num: i128 = to_num.extract_as_int().unwrap();
                     let int_step_num: i128 = step_num.extract_as_int().unwrap();
                     let mut curr: i128 = from_num.extract_as_int().unwrap();
                     while curr <= int_to_num {
-                        variable_table.insert(variable.clone(), variable_data.clone_with_new_value(Some(
-                            MascalValue::Integer(IntegerNum::new(curr))
-                        )));
+                        {
+                            let mut mutable_borrow_vartable = variable_table.borrow_mut();
+                            mutable_borrow_vartable.insert(variable.clone(), VariableData {
+                                value: Some(Rc::new(RefCell::new(MascalValue::Integer(IntegerNum::new(curr))))),
+                                is_constant,
+                                is_nullable,
+                                array_dimensions: array_dimensions.clone(),
+                                is_dynamic_array: is_dynamic_array.clone(),
+                                atomic_variable_type: Arc::clone(&atomic_variable_type),
+                            });
+                        }
                         for statement in &statements {
-                            variable_table = execute_statement(
-                                Cow::Borrowed(statement), variable_table, scoped_blocks.clone()
+                            execute_statement(
+                                statement.clone(), variable_table.clone(), scoped_blocks.clone()
                             )?;
                         }
                         curr += int_step_num;
                     }
                 }
+                
                 (MascalValue::Float(..), ..) => {
                     let float_to_num: f64 = to_num.extract_as_float().unwrap();
                     let float_step_num: f64 = step_num.extract_as_float().unwrap();
                     let mut curr: f64 = from_num.extract_as_float().unwrap();
                     while curr <= float_to_num {
-                        variable_table.insert(variable.clone(), variable_data.clone_with_new_value(Some(MascalValue::Float(curr))));
+                        {
+                            let mut mutable_borrow_vartable = variable_table.borrow_mut();
+                            mutable_borrow_vartable.insert(variable.clone(), VariableData {
+                                value: Some(Rc::new(RefCell::new(MascalValue::Float(curr)))),
+                                is_constant,
+                                is_nullable,
+                                array_dimensions: array_dimensions.clone(),
+                                is_dynamic_array: is_dynamic_array.clone(),
+                                atomic_variable_type: Arc::clone(&atomic_variable_type),
+                            });
+                        }
                         for statement in &statements {
-                            variable_table = execute_statement(
-                                Cow::Borrowed(statement), variable_table, scoped_blocks.clone()
+                            execute_statement(
+                                statement.clone(), variable_table.clone(), scoped_blocks.clone()
                             )?;
                         }
                         curr += float_step_num;
                     }
                 }
-                _ => {}
+                _ => {unreachable!()}
             }
-
+            
+            return Ok(());
         }
         MascalStatement::ExpressionStatement(expression) => {
-            execute_expression(expression, &ExecutionData {
-                variable_table: Some(&variable_table),
+            execute_expression(expression, Rc::new(RefCell::new(ExecutionData {
+                variable_table: Some(variable_table.clone()),
                 scoped_blocks,
-            })?;
+            })))?;
         }
         MascalStatement::Declaration { variable, value } => {
-            let variable_data: Option<&VariableData> = variable_table.get(&variable);
-            if variable_data.is_none() {
-                return Err(MascalError {
-                    line: 0,
-                    character: 0,
-                    error_type: MascalErrorType::RuntimeError,
-                    source: format!("Expected a variable name, however got an unknown one called {:?}",variable)
-                })
+            let mut vartable_mutable_borrow = variable_table.borrow_mut();
+            if let Some(vardata) = vartable_mutable_borrow.get(&variable) {
+                let is_constant = vardata.is_constant;
+                let is_nullable = vardata.is_nullable;
+                let array_dimensions = vardata.array_dimensions.clone();
+                let is_dynamic_array = vardata.is_dynamic_array.clone();
+                let atomic_variable_type = Arc::clone(&vardata.atomic_variable_type);
+                if is_constant {
+                    return Err(MascalError {
+                        line: 0,
+                        character: 0,
+                        error_type: MascalErrorType::RuntimeError,
+                        source: format!("Cannot assign a new value to the constant variable called {:?}",variable)
+                    })
+                }
+                
+                drop(vartable_mutable_borrow);
+                let value: MascalValue = execute_expression(value, Rc::new(RefCell::new(ExecutionData {
+                    variable_table: Some(variable_table.clone()),
+                    scoped_blocks,
+                })))?;
+                vartable_mutable_borrow = variable_table.borrow_mut();
+                let owned_data = VariableData {
+                    value: Some(Rc::new(RefCell::new(value))),
+                    is_constant,
+                    is_nullable,
+                    array_dimensions,
+                    is_dynamic_array,
+                    atomic_variable_type,
+                };
+
+                vartable_mutable_borrow.insert(variable, owned_data);
+                return Ok(());
             }
-            let unwrapped_data: Cow<VariableData> = Cow::Borrowed(variable_data.unwrap());
-            if unwrapped_data.is_constant {
-                return Err(MascalError {
-                    line: 0,
-                    character: 0,
-                    error_type: MascalErrorType::RuntimeError,
-                    source: format!("Cannot assign a new value to the constant variable called {:?}",variable)
-                })
-            }
-            let mut owned_data: VariableData = unwrapped_data.into_owned();
-            let value: Cow<MascalValue> = execute_expression(value, &ExecutionData {
-                variable_table: Some(&variable_table),
-                scoped_blocks,
-            })?;
-            owned_data.value = Some(value.into_owned());
-            variable_table.insert(variable, owned_data);
+            
+            return Err(MascalError {
+                line: 0,
+                character: 0,
+                error_type: MascalErrorType::RuntimeError,
+                source: format!("Expected a variable name, however got an unknown one called {:?}", variable)
+            });
         }
         MascalStatement::Throw {
             error_type,
@@ -248,5 +307,5 @@ pub fn execute_statement<'a>(
         }
     };
 
-    Ok(variable_table)
+    Ok(())
 }

@@ -1,5 +1,5 @@
-use std::borrow::Cow;
-use std::ops::Deref;
+use std::cell::RefCell;
+use std::rc::Rc;
 use crate::defs::blocks::{ExecutionBlock, MascalParameter, ScopedBlocks};
 use crate::defs::builtins::builtin_functions::{BUILT_IN_FUNCTION_TABLE};
 use crate::defs::errors::{MascalError, MascalErrorType};
@@ -14,9 +14,9 @@ use crate::runtime::values::MascalValue;
 use crate::runtime::variable_table::{create_variable_table, VariableData, VariableTable};
 
 #[allow(dead_code)]
-pub fn execute_function_call<'a>(
-    function: MascalExpression, arguments: Vec<MascalExpression>, exec_data: &ExecutionData<'a>
-) -> Result<Cow<'a, MascalValue>, MascalError> {
+pub fn execute_function_call(
+    function: MascalExpression, arguments: Vec<MascalExpression>, exec_data: Rc<RefCell<ExecutionData>>
+) -> Result<MascalValue, MascalError> {
     let fn_name: String;
     match function {
         MascalExpression::SymbolicExpression(name) => {fn_name = name}
@@ -28,12 +28,14 @@ pub fn execute_function_call<'a>(
         });}
     }
     if let Some(built_in_func) = BUILT_IN_FUNCTION_TABLE.get(&fn_name)  {
-        return execute_builtin_function(built_in_func, arguments, exec_data);
+        return execute_builtin_function(built_in_func, arguments, exec_data.clone());
     }
     let mut func_parameters: &Vec<MascalParameter> = &Vec::new();
     let mut func_return_type: Option<MascalUnprocessedType> = None;
     let mut wrapped_func_exec_block: Option<ExecutionBlock> = None;
-    for scoped_block in exec_data.scoped_blocks.deref().iter() {
+    let exedata_binding = exec_data.borrow();
+    let borrowed_scoped_blocks = exedata_binding.scoped_blocks.borrow();
+    for scoped_block in borrowed_scoped_blocks.iter() {
         match scoped_block {
             ScopedBlocks::PROGRAM(..) => {unreachable!()}
             ScopedBlocks::FUNCTION {
@@ -44,7 +46,7 @@ pub fn execute_function_call<'a>(
             } => {
                 if name == &fn_name {
                     func_return_type = return_type.clone();
-                    func_parameters = parameters;
+                    func_parameters = &parameters;
                     wrapped_func_exec_block = Some(execution_block.clone());
                     break;
                 }
@@ -60,28 +62,32 @@ pub fn execute_function_call<'a>(
         })
     }
     let func_exec_block: ExecutionBlock = wrapped_func_exec_block.unwrap();
-    let mut scoped_variable_table: VariableTable = create_variable_table(&func_exec_block)?;
-    for (index, parameter) in func_parameters.iter().enumerate() {
-        let data: &mut VariableData = scoped_variable_table
+    let scoped_variable_table: Rc<RefCell<VariableTable>> = create_variable_table(&func_exec_block)?;
+    let mut borrowed_mut_vartable = scoped_variable_table.borrow_mut();
+    for (index, parameter) in func_parameters.into_iter().enumerate() {
+        let data: &mut VariableData = borrowed_mut_vartable
             .get_mut(&parameter.name)
             .unwrap();
-        let result: MascalValue = execute_expression(arguments[index].clone(), exec_data)?.into_owned();
-        data.value = Some(result);
+        let result: MascalValue = execute_expression(arguments[index].clone(), exec_data.clone())?;
+        data.value = Some(Rc::new(RefCell::new(result)));
     }
     let processed_return_type: Option<MascalType> = if let Some(return_type) = func_return_type {
         Some(to_processed_type(return_type)?)
     } else {None};
-    for statement in &func_exec_block.body {
+    for statement in func_exec_block.body.into_iter() {
         match &statement {
-            &MascalStatement::Declaration {
+            MascalStatement::Declaration {
                 variable,
                 value
             } => {
                 if variable == &fn_name {
-                    let computed_value: Cow<MascalValue> = execute_expression(value.clone(), &ExecutionData {
-                        variable_table: Some(&scoped_variable_table),
-                        scoped_blocks: exec_data.scoped_blocks.clone()
-                    })?;
+                    let computed_value: MascalValue = execute_expression(
+                        value.clone(),
+                        Rc::new(RefCell::new(ExecutionData {
+                            variable_table: Some(scoped_variable_table.clone()),
+                            scoped_blocks: exec_data.borrow().scoped_blocks.clone()
+                        }
+                    )))?;
                     if processed_return_type.is_none() {
                         return Err(MascalError {
                             error_type: MascalErrorType::RuntimeError,
@@ -89,7 +95,7 @@ pub fn execute_function_call<'a>(
                             line: 0,
                             source: format!(
                                 "Expected no value to be returned, but returned {:?}",
-                                computed_value.into_owned()
+                                computed_value
                             )
                         })
                     }
@@ -105,14 +111,14 @@ pub fn execute_function_call<'a>(
                             )
                         })
                     }
-                    return Ok(Cow::Owned(computed_value.into_owned()));
+                    return Ok(computed_value);
                 }
             }
 
             _ => {}
         }
-        scoped_variable_table = execute_statement(
-            Cow::Borrowed(statement), scoped_variable_table, exec_data.scoped_blocks.clone()
+        execute_statement(
+            statement, scoped_variable_table.clone(), exec_data.borrow().scoped_blocks.clone()
         )?;
     }
     if processed_return_type.clone().is_some() {
@@ -124,5 +130,5 @@ pub fn execute_function_call<'a>(
         });
     }
 
-    Ok(Cow::Owned(MascalValue::NULL))
+    Ok(MascalValue::NULL)
 }

@@ -3,6 +3,8 @@ pub mod value_comparision_operations;
 mod value_utils;
 pub mod value_boolean_operations;
 
+use std::ops::Deref;
+use std::sync::Arc;
 use crate::defs::dynamic_int::IntegerNum;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::types::{MascalType};
@@ -11,11 +13,11 @@ use crate::defs::types::{MascalType};
 pub enum MascalValue {
     Integer(IntegerNum),
     Float(f64),
-    String(String),
+    String(Arc<String>),
     Boolean(bool),
     NULL,
-    DynamicArray(Vec<MascalValue>),
-    StaticArray(Vec<MascalValue>),
+    DynamicArray(Arc<Vec<MascalValue>>),
+    StaticArray(Arc<Vec<MascalValue>>),
     Type(MascalType)
 }
 
@@ -30,7 +32,7 @@ impl MascalValue {
             MascalValue::DynamicArray(values) |  MascalValue::StaticArray(values) => {
                 let mut mascal_type: MascalType = MascalType::Dynamic;
                 let mut has_run_once: bool = false;
-                for value in values {
+                for value in values.iter() {
                     let val_type: MascalType = value.as_mascal_type()?;
                     if has_run_once && mascal_type != val_type {
                         return Ok(MascalType::Dynamic);
@@ -49,10 +51,10 @@ impl MascalValue {
             }),
         }
     }
-    
+
     pub fn as_string(&self) -> String {
         match self {
-            MascalValue::String(s) => s.clone(),
+            MascalValue::String(s) => s.deref().clone(),
             MascalValue::Integer(i) => {i.as_string()}
             MascalValue::Float(f) => {f.to_string()}
             MascalValue::Boolean(b) => {b.to_string()}

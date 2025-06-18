@@ -1,4 +1,5 @@
-use std::borrow::Cow;
+use std::cell::RefCell;
+use std::rc::Rc;
 use std::sync::Arc;
 use crate::defs::builtins::builtin_functions::BuiltinFunction;
 use crate::defs::errors::{MascalError, MascalErrorType};
@@ -9,8 +10,8 @@ use crate::runtime::values::MascalValue;
 
 pub fn execute_builtin_function<'a>(
     built_in_func: &Arc<BuiltinFunction>, arguments: Vec<MascalExpression>,
-    exec_data:  &ExecutionData<'a>
-) -> Result<Cow<'a, MascalValue>, MascalError> {
+    exec_data:  Rc<RefCell<ExecutionData>>
+) -> Result<MascalValue, MascalError> {
     match built_in_func.as_ref() {
         BuiltinFunction::ValueBased {
             fixed_argument_types,
@@ -19,8 +20,7 @@ pub fn execute_builtin_function<'a>(
         } => {
             let mut args: Vec<MascalValue> = Vec::with_capacity(arguments.len());
             for (index, arg) in arguments.iter().enumerate() {
-                let result: MascalValue = execute_expression(arg.clone(), exec_data)?
-                    .into_owned();
+                let result: MascalValue = execute_expression(arg.clone(), exec_data.clone())?;
                 if index < fixed_argument_types.len() {
                     let arg_type = &fixed_argument_types[index];
                     if !result.is_type_of(arg_type) {
@@ -43,8 +43,8 @@ pub fn execute_builtin_function<'a>(
                 }
                 args.push(result);
             }
-            let val: Option<MascalValue> = execution(args)?;
-            Ok(Cow::Owned(val.unwrap_or(MascalValue::NULL)))
+            let val: Option<MascalValue> = execution(args, exec_data.clone())?;
+            Ok(val.unwrap_or(MascalValue::NULL))
         }
         
         BuiltinFunction::ExpressionBased {
@@ -64,8 +64,8 @@ pub fn execute_builtin_function<'a>(
                 }
                 args.push(arg);
             }
-            let val: Option<MascalValue> = execution(args)?;
-            Ok(Cow::Owned(val.unwrap_or(MascalValue::NULL)))
+            let val: Option<MascalValue> = execution(args, exec_data.clone())?;
+            Ok(val.unwrap_or(MascalValue::NULL))
         }
     }
 }

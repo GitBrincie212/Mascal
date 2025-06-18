@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use crate::{define_arithmetic_fn, unsupported_operation_error, error_float_overflow};
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::runtime::values::MascalValue;
@@ -9,11 +10,17 @@ impl MascalValue {
     ) -> Result<MascalValue, MascalError> {
         define_arithmetic_fn!(Self::add, left, right, add, +,
             (MascalValue::String(l), MascalValue::String(r)) => {
-                Ok(MascalValue::String(l + r.as_str()))
+                Ok(MascalValue::String(Arc::new(format!("{}{}", l, r))))
             },
 
             (MascalValue::DynamicArray(l), MascalValue::DynamicArray(r)) => {
-                Ok(MascalValue::DynamicArray(l.into_iter().chain(r.into_iter()).collect()))
+                if let (Ok(l_vec), Ok(r_vec)) = (Arc::try_unwrap(l.clone()), Arc::try_unwrap(r.clone())) {
+                    let mut l_vec = l_vec;
+                    l_vec.extend(r_vec);
+                    return Ok(MascalValue::DynamicArray(Arc::new(l_vec)));
+                }
+                let merged: Vec<MascalValue> = l.iter().cloned().chain(r.iter().cloned()).collect();
+                Ok(MascalValue::DynamicArray(Arc::new(merged)))
             }
         )
     }

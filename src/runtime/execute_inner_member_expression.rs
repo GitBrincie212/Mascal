@@ -1,4 +1,5 @@
-use std::borrow::Cow;
+use std::cell::RefCell;
+use std::rc::Rc;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
 use crate::runtime::execute_expression::execute_expression;
@@ -6,10 +7,10 @@ use crate::runtime::execute_function_expression::execute_function_call;
 use crate::runtime::ExecutionData;
 use crate::runtime::values::MascalValue;
 
-pub fn execute_inner_member_expression<'a>(
-    member: MascalExpression, value: MascalExpression, exec_data: &ExecutionData<'a>
-) -> Result<Cow<'a, MascalValue>, MascalError> {
-    let val: Cow<MascalValue> = execute_expression(member, exec_data)?;
+pub fn execute_inner_member_expression(
+    member: MascalExpression, value: MascalExpression, exec_data: Rc<RefCell<ExecutionData>>
+) -> Result<MascalValue, MascalError> {
+    let val: MascalValue = execute_expression(member, exec_data.clone())?;
     match value {
         MascalExpression::LiteralExpression(lit_value) => {
             todo!()

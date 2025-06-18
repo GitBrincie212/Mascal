@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::rc::Rc;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
@@ -83,10 +84,10 @@ pub fn token_type_to_atom_mascal_type(tt: &TokenType) -> Option<MascalUnprocesse
 
 macro_rules! process_array_size {
     ($array_size: expr, $mutable_size: expr) => {
-        let size = execute_expression($array_size, &ExecutionData {
+        let size: MascalValue = execute_expression($array_size, Rc::new(RefCell::new(ExecutionData {
             variable_table: None,
-            scoped_blocks: Rc::new(Vec::new())
-        })?.into_owned();
+            scoped_blocks: Rc::new(RefCell::new(Vec::new()))
+        })))?;
         match size {
             MascalValue::Integer(int) => {
                 if int.is_negative_or_zero() {

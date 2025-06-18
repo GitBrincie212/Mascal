@@ -8,7 +8,7 @@ pub mod values;
 mod execute_statement;
 mod execute_builtin_function;
 
-use std::borrow::Cow;
+use std::cell::RefCell;
 use std::rc::Rc;
 use crate::ast::AbstractSyntaxTree;
 use crate::defs::blocks::{ExecutionBlock, ScopedBlocks};
@@ -16,23 +16,23 @@ use crate::defs::errors::MascalError;
 use crate::runtime::execute_statement::execute_statement;
 use crate::runtime::variable_table::{create_variable_table, VariableTable};
 
-pub struct ExecutionData<'a> {
-    pub variable_table: Option<&'a VariableTable>,
-    pub scoped_blocks: Rc<Vec<ScopedBlocks>>
+pub struct ExecutionData {
+    pub variable_table: Option<Rc<RefCell<VariableTable>>>,
+    pub scoped_blocks: Rc<RefCell<Vec<ScopedBlocks>>>
 }
 
-pub fn interpert(mut abstract_syntax_tree: AbstractSyntaxTree) -> Result<(), MascalError> {
+pub fn interpert(abstract_syntax_tree: AbstractSyntaxTree) -> Result<(), MascalError> {
     let mut scoped_blocks: Vec<ScopedBlocks> = abstract_syntax_tree.blocks;
     let program_block: ScopedBlocks = scoped_blocks.remove(abstract_syntax_tree.program_index);
     let exec_block: ExecutionBlock = match program_block {
         ScopedBlocks::PROGRAM(exec_block) => exec_block,
         ScopedBlocks::FUNCTION {..} => {unreachable!()},
     };
-    let mut scoped_variable_table: VariableTable = create_variable_table(&exec_block)?;
-    let containerized_scoped_blocks: Rc<Vec<ScopedBlocks>> =  Rc::new(scoped_blocks);
-    for statement in &exec_block.body {
-        scoped_variable_table = execute_statement(
-            Cow::Borrowed(statement), scoped_variable_table, containerized_scoped_blocks.clone()
+    let scoped_variable_table: Rc<RefCell<VariableTable>> = create_variable_table(&exec_block)?;
+    let containerized_scoped_blocks: Rc<RefCell<Vec<ScopedBlocks>>> =  Rc::new(RefCell::new(scoped_blocks));
+    for statement in exec_block.body.into_iter() {
+        execute_statement(
+            statement, scoped_variable_table.clone(), containerized_scoped_blocks.clone()
         )?;
     }
     Ok(())

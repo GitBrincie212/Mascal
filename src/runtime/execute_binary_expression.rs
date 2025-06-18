@@ -1,4 +1,5 @@
-use std::borrow::Cow;
+use std::cell::RefCell;
+use std::rc::Rc;
 use crate::defs::errors::MascalError;
 use crate::defs::expressions::MascalExpression;
 use crate::defs::operators::MascalBinaryOperators;
@@ -8,12 +9,12 @@ use crate::runtime::values::MascalValue;
 
 pub fn execute_binary_expression<'a>(
     left: Box<MascalExpression>, operator: MascalBinaryOperators, right: Box<MascalExpression>,
-    exec_data: &ExecutionData<'a>
-) -> Result<Cow<'a, MascalValue>, MascalError> {
-    let left_value: MascalValue = execute_expression(*left, exec_data)?.into_owned();
-    let right_value: MascalValue = execute_expression(*right, exec_data)?.into_owned();
+    exec_data: Rc<RefCell<ExecutionData>>
+) -> Result<MascalValue, MascalError> {
+    let left_value: MascalValue = execute_expression(*left, exec_data.clone())?;
+    let right_value: MascalValue = execute_expression(*right, exec_data)?;
     
-    Ok(Cow::Owned(match operator {
+    Ok(match operator {
         MascalBinaryOperators::Plus => {MascalValue::add(left_value, right_value)}
         MascalBinaryOperators::Minus => {MascalValue::sub(left_value, right_value)}
         MascalBinaryOperators::Multiply => {MascalValue::mul(left_value, right_value)}
@@ -28,5 +29,5 @@ pub fn execute_binary_expression<'a>(
         MascalBinaryOperators::Modulo => {MascalValue::modulo(&left_value, &right_value)}
         MascalBinaryOperators::And => {MascalValue::and(&left_value, &right_value)}
         MascalBinaryOperators::Or => {MascalValue::or(&left_value, &right_value)}
-    }?))
+    }?)
 }
