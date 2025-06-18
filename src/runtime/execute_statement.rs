@@ -1,4 +1,3 @@
-use std::borrow::Cow;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::Arc;
@@ -77,8 +76,7 @@ pub fn execute_statement(
         MascalStatement::ConditionalStatement(branches) => {
             for branch in branches {
                 let cond: bool = if let Some(cond) = branch.condition {
-                    let cond_expr = Cow::Borrowed(&cond).into_owned();
-                    let value: MascalValue = execute_expression(cond_expr, Rc::new(RefCell::new(ExecutionData {
+                    let value: MascalValue = execute_expression(cond, Rc::new(RefCell::new(ExecutionData {
                         variable_table: Some(variable_table.clone()),
                         scoped_blocks: scoped_blocks.clone(),
                     })))?;
