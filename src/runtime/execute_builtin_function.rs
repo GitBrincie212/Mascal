@@ -9,7 +9,7 @@ use crate::runtime::ExecutionData;
 use crate::runtime::values::MascalValue;
 
 pub fn execute_builtin_function<'a>(
-    built_in_func: &Arc<BuiltinFunction>, arguments: Vec<MascalExpression>,
+    built_in_func: Arc<BuiltinFunction>, arguments: Vec<MascalExpression>,
     exec_data:  Rc<RefCell<ExecutionData>>
 ) -> Result<MascalValue, MascalError> {
     match built_in_func.as_ref() {
@@ -22,13 +22,39 @@ pub fn execute_builtin_function<'a>(
             for (index, arg) in arguments.iter().enumerate() {
                 let result: MascalValue = execute_expression(arg.clone(), exec_data.clone())?;
                 if index < fixed_argument_types.len() {
-                    let arg_type = &fixed_argument_types[index];
-                    if !result.is_type_of(arg_type) {
+                    let arg_types = &fixed_argument_types[index];
+                    let mut is_atleast_one_type: bool = false;
+                    for arg_type in arg_types {
+                        if result.is_type_of(arg_type) {
+                            is_atleast_one_type = true;
+                            break;
+                        }
+                    }
+                    if !is_atleast_one_type {
+                        if arg_types.len() == 1 {
+                            return Err(MascalError {
+                                error_type: MascalErrorType::TypeError,
+                                line: 0,
+                                character: 0,
+                                source: format!(
+                                    "Expected a type of {:?} but got {:?}", 
+                                    arg_types.first().unwrap().as_string(), 
+                                    result.as_type_string()
+                                )
+                            })
+                        }
                         return Err(MascalError {
                             error_type: MascalErrorType::TypeError,
                             line: 0,
                             character: 0,
-                            source: format!("Expected a type of \"{:?}\" but got \"{:?}\"", arg_type, result)
+                            source: format!(
+                                "Expected at least one of the types {:?} but got {:?}", 
+                                arg_types.iter()
+                                    .map(|x| x.as_string())
+                                    .collect::<Vec<String>>()
+                                    .concat(), 
+                                result.as_type_string()
+                            )
                         })
                     }
                 } else {
