@@ -163,6 +163,11 @@ impl IntegerNum {
         Ok(IntegerNum::new(num.ilog10() as i128))
     }
 
+    pub fn ln(&self) -> Result<IntegerNum, MascalError> {
+        let num: i128 = self.logarithm_operation_pipeline()?;
+        Ok(IntegerNum::new((num as f32).ln().round() as i128))
+    }
+
     pub fn exponentation(&self, other: &IntegerNum) -> Result<IntegerNum, MascalError> {
         let other_val: i128 = other.to_i128();
         let self_val: i128 = self.to_i128();
