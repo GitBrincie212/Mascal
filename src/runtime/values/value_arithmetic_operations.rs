@@ -10,7 +10,7 @@ impl MascalValue {
     ) -> Result<MascalValue, MascalError> {
         define_arithmetic_fn!(Self::add, left, right, add, +,
             (MascalValue::String(l), MascalValue::String(r)) => {
-                Ok(MascalValue::String(Arc::new(format!("{}{}", l, r))))
+                Ok(MascalValue::String(Arc::from(format!("{}{}", l, r))))
             },
 
             (MascalValue::DynamicArray(l), MascalValue::DynamicArray(r)) => {
