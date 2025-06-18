@@ -52,7 +52,7 @@ macro_rules! create_variable_table_for_type {
                     variable_table: Some($table.clone()),
                     scoped_blocks: Rc::new(RefCell::new(Vec::new()))
                 })))?;
-                
+
                 dimensions_val.push(match val {
                     MascalValue::Integer(i) => {
                         if i.is_negative_or_zero() {
@@ -74,10 +74,19 @@ macro_rules! create_variable_table_for_type {
                 });
             }
             
+            let is_dynamic_array: Rc<[bool]> = Rc::from(var.is_dynamic_array);
+            let array_dimensions: Rc<[usize]> = Rc::from(dimensions_val);
+            if let Some(unwrapped_value) = value.clone() {
+                unwrapped_value.borrow().is_expected_array(
+                    array_dimensions.clone(),
+                    is_dynamic_array.clone()
+                )?;
+            }
+
             $table.borrow_mut().insert(var.name, VariableData {
                 value,
-                is_dynamic_array: Rc::from(var.is_dynamic_array),
-                array_dimensions: Rc::from(dimensions_val),
+                is_dynamic_array,
+                array_dimensions,
                 is_constant: var.is_constant,
                 is_nullable: var.is_nullable,
                 atomic_variable_type: $target_type.clone(),
@@ -96,13 +105,13 @@ pub fn create_variable_table(mut block: ExecutionBlock) -> Result<(Rc<RefCell<Va
     let booleans = std::mem::take(&mut block.variables.booleans);
     let dynamics = std::mem::take(&mut block.variables.dynamics);
     let types = std::mem::take(&mut block.variables.types);
-    
+
     create_variable_table_for_type!(integers, Rc::clone(&table), Arc::new(MascalType::Integer));
     create_variable_table_for_type!(floats, Rc::clone(&table), Arc::new(MascalType::Float));
     create_variable_table_for_type!(strings, Rc::clone(&table), Arc::new(MascalType::String));
     create_variable_table_for_type!(booleans, Rc::clone(&table), Arc::new(MascalType::Boolean));
     create_variable_table_for_type!(dynamics, Rc::clone(&table), Arc::new(MascalType::Dynamic));
     create_variable_table_for_type!(types, Rc::clone(&table), Arc::new(MascalType::Type));
-    
+
     Ok((table, block))
 }

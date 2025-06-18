@@ -69,7 +69,7 @@ fn error_check_expression(
 }
 
 pub fn execute_statement(
-    statement: MascalStatement, variable_table: Rc<RefCell<VariableTable>>, 
+    statement: MascalStatement, variable_table: Rc<RefCell<VariableTable>>,
     scoped_blocks: Rc<RefCell<Vec<ScopedBlocks>>>
 ) -> Result<(), MascalError> {
     match statement {
@@ -165,15 +165,15 @@ pub fn execute_statement(
             let from_num: MascalValue = error_check_expression(
                 variable_table.clone(), from, &variable_data, &variable, scoped_blocks.clone()
             )?;
-            
+
             let to_num: MascalValue = error_check_expression(
                 variable_table.clone(), to, &variable_data, &variable, scoped_blocks.clone()
             )?;
-            
+
             let step_num: MascalValue = error_check_expression(
                 variable_table.clone(), step, &variable_data, &variable, scoped_blocks.clone()
             )?;
-            
+
             match (&from_num, &to_num, &step_num) {
                 (MascalValue::Integer(..), ..) => {
                     let int_to_num: i128 = to_num.extract_as_int().unwrap();
@@ -199,7 +199,7 @@ pub fn execute_statement(
                         curr += int_step_num;
                     }
                 }
-                
+
                 (MascalValue::Float(..), ..) => {
                     let float_to_num: f64 = to_num.extract_as_float().unwrap();
                     let float_step_num: f64 = step_num.extract_as_float().unwrap();
@@ -226,7 +226,7 @@ pub fn execute_statement(
                 }
                 _ => {unreachable!()}
             }
-            
+
             return Ok(());
         }
         MascalStatement::ExpressionStatement(expression) => {
@@ -251,12 +251,15 @@ pub fn execute_statement(
                         source: format!("Cannot assign a new value to the constant variable called {:?}",variable)
                     })
                 }
-                
+
                 drop(vartable_mutable_borrow);
                 let value: MascalValue = execute_expression(value, Rc::new(RefCell::new(ExecutionData {
                     variable_table: Some(variable_table.clone()),
                     scoped_blocks,
                 })))?;
+
+                value.is_expected_array(array_dimensions.clone(), is_dynamic_array.clone())?;
+
                 vartable_mutable_borrow = variable_table.borrow_mut();
                 let owned_data = VariableData {
                     value: Some(Rc::new(RefCell::new(value))),
@@ -270,7 +273,7 @@ pub fn execute_statement(
                 vartable_mutable_borrow.insert(variable, owned_data);
                 return Ok(());
             }
-            
+
             return Err(MascalError {
                 line: 0,
                 character: 0,
