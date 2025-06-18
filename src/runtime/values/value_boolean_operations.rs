@@ -11,7 +11,7 @@ impl MascalValue {
             (MascalValue::Boolean(b1), MascalValue::Boolean(b2)) => Ok(
                 MascalValue::Boolean(*b1 && *b2)
             ),
-                
+
             (l, r) => unsupported_operation_error!(l, r)
         }
     }
@@ -29,9 +29,7 @@ impl MascalValue {
         }
     }
 
-    pub fn not(
-        value: MascalValue,
-    ) -> Result<MascalValue, MascalError> {
+    pub fn not(value: &MascalValue) -> Result<MascalValue, MascalError> {
         match value {
             MascalValue::Boolean(b1) => Ok(
                 MascalValue::Boolean(!b1)
