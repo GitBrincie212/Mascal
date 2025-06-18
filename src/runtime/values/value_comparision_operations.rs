@@ -21,7 +21,7 @@ impl MascalValue {
             _ => {unreachable!()}
         })
     }
-    
+
     fn is_first_array_gt(_arr1: &Vec<MascalValue>, _arr2: &Vec<MascalValue>) -> Result<MascalValue, MascalError> {
         Err(MascalError {
             error_type: MascalErrorType::UndefinedOperation,
@@ -140,7 +140,7 @@ impl MascalValue {
         left: &MascalValue,
         right: &MascalValue
     ) -> Result<MascalValue, MascalError> {
-        comparison_arms!(left, right, Self::is_first_array_lt, le, |v1: MascalValue, v2: MascalValue| {
+        comparison_arms!(left, right, Self::is_first_array_le, le, |v1: MascalValue, v2: MascalValue| {
             return Err(MascalError {
                 error_type: MascalErrorType::UndefinedOperation,
                 character: 0,
