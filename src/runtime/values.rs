@@ -4,6 +4,7 @@ mod value_utils;
 pub mod value_boolean_operations;
 
 use std::ops::Deref;
+use std::rc::Rc;
 use std::sync::Arc;
 use crate::defs::dynamic_int::IntegerNum;
 use crate::defs::errors::{MascalError, MascalErrorType};
@@ -22,6 +23,119 @@ pub enum MascalValue {
 }
 
 impl MascalValue {
+    fn is_expected_array_internal(&self, sizes: Rc<[usize]>, dynamics: Rc<[bool]>, curr: usize) -> Result<(), MascalError> {
+        match self {
+            MascalValue::StaticArray(values) => {
+                if curr < sizes.len()  {
+                    if dynamics[curr] {
+                        return Err(MascalError {
+                            error_type: MascalErrorType::TypeError,
+                            line: 0,
+                            character: 0,
+                            source: format!(
+                                "Expected a dynamic array with size {} element(s) but got a static array with size {} element(s)", 
+                                sizes[curr],
+                                values.len()
+                            ),
+                        })
+                    } else if sizes[curr] != values.len() {
+                        return Err(MascalError {
+                            error_type: MascalErrorType::TypeError,
+                            line: 0,
+                            character: 0,
+                            source: format!(
+                                "Expected a static array with size {} element(s) but got a static array with size {} element(s)",
+                                sizes[curr],
+                                values.len()
+                            ),
+                        })
+                    }
+                } else {
+                    return Err(MascalError {
+                        error_type: MascalErrorType::TypeError,
+                        line: 0,
+                        character: 0,
+                        source: String::from("The current array type is deeper than initialized to be")
+                    })
+                }
+                for val in values.iter() {
+                    val.is_expected_array_internal(sizes.clone(), dynamics.clone(), curr + 1)?;
+                }
+                Ok(())
+            }
+            MascalValue::DynamicArray(values) => {
+                if curr < sizes.len()  {
+                    if !dynamics[curr] {
+                        return Err(MascalError {
+                            error_type: MascalErrorType::TypeError,
+                            line: 0,
+                            character: 0,
+                            source: format!(
+                                "Expected a static array with size {} element(s) but got a dynamic array with size {} element(s)",
+                                sizes[curr],
+                                values.len()
+                            ),
+                        })
+                    }
+                } else {
+                    return Err(MascalError {
+                        error_type: MascalErrorType::TypeError,
+                        line: 0,
+                        character: 0,
+                        source: String::from("The current array type is deeper than initialized to be")
+                    })
+                }
+                for val in values.iter() {
+                    val.is_expected_array_internal(sizes.clone(), dynamics.clone(), curr + 1)?;
+                }
+                Ok(())
+            }
+            _ => {
+                let expected_dimensions = if !sizes.is_empty() {sizes.len() - 1} else {0};
+                if curr < expected_dimensions {
+                    return Err(MascalError {
+                        error_type: MascalErrorType::TypeError,
+                        line: 0,
+                        character: 0,
+                        source: format!("Expected a {} but got an atomic type instead", {
+                            let current_size: usize = sizes[curr + 1];
+                            let is_dynamic_current: bool = dynamics[curr + 1];
+                            if is_dynamic_current {
+                                format!("dynamic array with {} dimension(s)", current_size)
+                            } else {format!("static array with {} dimension(s)", current_size)}
+                        })
+                    })
+                }
+                Ok(())
+            }
+        }
+    }
+    
+    pub fn is_expected_array(&self, sizes: Rc<[usize]>, dynamics: Rc<[bool]>) -> Result<(), MascalError> {
+        match self {
+            MascalValue::StaticArray(_) | MascalValue::DynamicArray(_) => {
+                self.is_expected_array_internal(sizes, dynamics, 0)
+            }
+            _ => {
+                if !sizes.is_empty() {
+                    return Err(MascalError {
+                        error_type: MascalErrorType::TypeError,
+                        line: 0,
+                        character: 0,
+                        source: format!("Expected a {} but got an atomic type instead", {
+                            let current_size: usize = *sizes.first().unwrap();
+                            let is_dynamic_current: bool = *dynamics.first().unwrap();
+                            if is_dynamic_current {
+                                format!("dynamic array with {} dimension(s)", current_size)
+                            } else {format!("static array with {} dimension(s)", current_size)}
+                        })
+                    });
+                }
+                Ok(())
+            }
+        }
+    }
+    
     pub fn as_mascal_type(&self) -> Result<MascalType, MascalError> {
         match self {
             MascalValue::String(s) => Ok(MascalType::String),
