@@ -13,7 +13,7 @@ use crate::defs::types::{MascalType};
 pub enum MascalValue {
     Integer(IntegerNum),
     Float(f64),
-    String(Arc<String>),
+    String(Arc<str>),
     Boolean(bool),
     NULL,
     DynamicArray(Arc<Vec<MascalValue>>),
@@ -54,20 +54,20 @@ impl MascalValue {
 
     pub fn as_string(&self) -> String {
         match self {
-            MascalValue::String(s) => s.deref().clone(),
+            MascalValue::String(s) => s.deref().to_string(),
             MascalValue::Integer(i) => {i.as_string()}
             MascalValue::Float(f) => {f.to_string()}
-            MascalValue::Boolean(b) => {b.to_string()}
+            MascalValue::Boolean(b) => {if *b {String::from("True")} else {String::from("False")}}
             MascalValue::NULL => {String::from("NULL")}
             MascalValue::DynamicArray(values) => {
                 String::from("<") + &*values.iter().map(|v| v.as_string())
                     .collect::<Vec<String>>()
-                    .join(",") + ">"
+                    .join(", ") + ">"
             }
             MascalValue::StaticArray(values) => {
                 String::from("[") + &*values.iter().map(|v| v.as_string())
                     .collect::<Vec<String>>()
-                    .join(",") + "]"
+                    .join(", ") + "]"
             }
             MascalValue::Type(t) => {
                 t.as_string()
