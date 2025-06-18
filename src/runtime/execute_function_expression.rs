@@ -28,7 +28,7 @@ pub fn execute_function_call(
         });}
     }
     if let Some(built_in_func) = BUILT_IN_FUNCTION_TABLE.get(&fn_name)  {
-        return execute_builtin_function(built_in_func, arguments, exec_data.clone());
+        return execute_builtin_function(built_in_func.clone(), arguments, exec_data.clone());
     }
     let mut func_parameters: &Vec<MascalParameter> = &Vec::new();
     let mut func_return_type: Option<MascalUnprocessedType> = None;
@@ -61,8 +61,9 @@ pub fn execute_function_call(
             source: format!("Unidentified function with the name of {:?}", fn_name)
         })
     }
-    let func_exec_block: ExecutionBlock = wrapped_func_exec_block.unwrap();
-    let scoped_variable_table: Rc<RefCell<VariableTable>> = create_variable_table(&func_exec_block)?;
+    let mut func_exec_block: ExecutionBlock = wrapped_func_exec_block.unwrap();
+    let scoped_variable_table: Rc<RefCell<VariableTable>>;
+    (scoped_variable_table, func_exec_block) = create_variable_table(func_exec_block)?;
     let mut borrowed_mut_vartable = scoped_variable_table.borrow_mut();
     for (index, parameter) in func_parameters.into_iter().enumerate() {
         let data: &mut VariableData = borrowed_mut_vartable
