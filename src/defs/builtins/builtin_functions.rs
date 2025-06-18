@@ -15,13 +15,13 @@ use crate::runtime::values::MascalValue;
 #[derive(Clone)]
 pub enum BuiltinFunction {
     ValueBased {
-        fixed_argument_types: Vec<MascalType>,
+        fixed_argument_types: Vec<Vec<MascalType>>,
         supports_dynamic_arguments: bool,
         execution: Arc<dyn Fn(Vec<MascalValue>, Rc<RefCell<ExecutionData>>) -> Result<Option<MascalValue>, MascalError> + Send + Sync>,
     },
-    
+
     ExpressionBased {
-        fixed_argument_types: Vec<MascalType>,
+        fixed_argument_types: Vec<Vec<MascalType>>,
         supports_dynamic_arguments: bool,
         execution: Arc<dyn Fn(Vec<&MascalExpression>, Rc<RefCell<ExecutionData>>) -> Result<Option<MascalValue>, MascalError> + Send + Sync>,
     }
@@ -30,7 +30,7 @@ pub enum BuiltinFunction {
 impl BuiltinFunction {
     fn new_value_based(
         supports_dynamic_arguments: bool,
-        fixed_argument_types: Vec<MascalType>,
+        fixed_argument_types: Vec<Vec<MascalType>>,
         execution: Arc<dyn Fn(Vec<MascalValue>, Rc<RefCell<ExecutionData>>) -> Result<Option<MascalValue>, MascalError> + Send + Sync>,
     ) -> Self {
         BuiltinFunction::ValueBased {
@@ -42,7 +42,7 @@ impl BuiltinFunction {
 
     fn new_expresion_based (
         supports_dynamic_arguments: bool,
-        fixed_argument_types: Vec<MascalType>,
+        fixed_argument_types: Vec<Vec<MascalType>>,
         execution: Arc<dyn Fn(Vec<&MascalExpression>, Rc<RefCell<ExecutionData>>) -> Result<Option<MascalValue>, MascalError> + Send + Sync>,
     ) -> Self {
         BuiltinFunction::ExpressionBased {
@@ -69,7 +69,7 @@ macro_rules! define_builtin_function {
 pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>>  = Lazy::new(|| {
     let mut map: HashMap<String, Arc<BuiltinFunction>> = HashMap::new();
     define_builtin_function!(
-        BuiltinFunction::new_value_based, "Write", map, vec![], true, 
+        BuiltinFunction::new_value_based, "Write", map, vec![], true,
         |args, _| {
             for val in args {
                 print!("{}", val.as_string());
@@ -80,12 +80,82 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
     );
 
     define_builtin_function!(
-        BuiltinFunction::new_expresion_based, "Read", map, vec![], true, 
+        BuiltinFunction::new_value_based, "Ln", map, vec![vec![MascalType::Float]], false,
+        |args, _| {
+            match args.first().unwrap() {
+                MascalValue::Integer(i) => Ok(Some(MascalValue::Integer(i.ln()?))),
+                MascalValue::Float(f) => Ok(Some(MascalValue::Float(f.ln()))),
+                _ => unreachable!()
+            }
+        }
+    );
+
+    define_builtin_function!(
+        BuiltinFunction::new_value_based, "Sqrt", map, vec![vec![MascalType::Float, MascalType::Integer]], false,
+        |args, _| {
+            match args.first().unwrap() {
+                MascalValue::Integer(i) => Ok(Some(MascalValue::Integer(i.isqrt()?))),
+                MascalValue::Float(f) => Ok(Some(MascalValue::Float(f.sqrt()))),
+                _ => unreachable!()
+            }
+        }
+    );
+
+    define_builtin_function!(
+        BuiltinFunction::new_value_based, "Log", map, vec![vec![MascalType::Float, MascalType::Integer]], false,
+        |args, _| {
+            match args.first().unwrap() {
+                MascalValue::Integer(i) => Ok(Some(MascalValue::Integer(i.log10()?))),
+                MascalValue::Float(f) => Ok(Some(MascalValue::Float(f.log10()))),
+                _ => unreachable!()
+            }
+        }
+    );
+
+    define_builtin_function!(
+        BuiltinFunction::new_value_based, "Log2", map, vec![vec![MascalType::Float, MascalType::Integer]], false,
+        |args, _| {
+            match args.first().unwrap() {
+                MascalValue::Integer(i) => Ok(Some(MascalValue::Integer(i.log2()?))),
+                MascalValue::Float(f) => Ok(Some(MascalValue::Float(f.log2()))),
+                _ => unreachable!()
+            }
+        }
+    );
+
+    define_builtin_function!(
+        BuiltinFunction::new_value_based, "Exp", map, vec![vec![MascalType::Float, MascalType::Integer]], false,
+        |args, _| {
+            match args.first().unwrap() {
+                MascalValue::Integer(i) => Ok(Some(
+                    MascalValue::Integer(IntegerNum::new(i.as_f64().exp().round() as i128))
+                )),
+                MascalValue::Float(f) => Ok(Some(MascalValue::Float(f.exp()))),
+                _ => unreachable!()
+            }
+        }
+    );
+
+    define_builtin_function!(
+        BuiltinFunction::new_value_based, "Cbrt", map, vec![vec![MascalType::Float, MascalType::Integer]], false,
+        |args, _| {
+            match args.first().unwrap() {
+                MascalValue::Integer(i) => Ok(Some(
+                    MascalValue::Integer(IntegerNum::new(i.as_f64().cbrt().round() as i128))
+                )),
+                MascalValue::Float(f) => Ok(Some(MascalValue::Float(f.cbrt()))),
+                _ => unreachable!()
+            }
+        }
+    );
+
+    define_builtin_function!(
+        BuiltinFunction::new_expresion_based, "Read", map, vec![], true,
         |args, exec_data| {
             for arg in args {
                 let varname: &str = match arg {
                     MascalExpression::SymbolicExpression(s) => s.as_str(),
-                    
+
                     _ => return Err(MascalError {
                         error_type: MascalErrorType::RuntimeError,
                         line: 0,
@@ -96,7 +166,8 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
                 let execdata_ref = exec_data.borrow_mut();
                 let extracted_vartable = execdata_ref.variable_table.as_ref()
                     .unwrap();
-                if let Some(unwrapped_vardata) = extracted_vartable.borrow_mut().get_mut(varname) {
+                let mut mutable_borrow_vartable = extracted_vartable.borrow_mut();
+                if let Some(unwrapped_vardata) = mutable_borrow_vartable.get_mut(varname) {
                     if !unwrapped_vardata.array_dimensions.is_empty() {
                         return Err(MascalError {
                             error_type: MascalErrorType::RuntimeError,
@@ -108,6 +179,7 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
                     let atomic_type: &MascalType = unwrapped_vardata.atomic_variable_type.as_ref();
                     let mut input: String = String::new();
                     let result: Result<usize, _> = io::stdin().read_line(&mut input);
+                    let input_str: &str = input.trim();
                     if result.is_err() {
                         return Err(MascalError {
                             error_type: MascalErrorType::InputError,
@@ -118,7 +190,7 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
                     }
                     let read_value: MascalValue = match atomic_type {
                         MascalType::Integer => {
-                            let int: Result<i128, ParseIntError> = input.parse::<i128>();
+                            let int: Result<i128, ParseIntError> = input_str.parse::<i128>();
                             if int.is_err() {
                                 return Err(MascalError {
                                     error_type: MascalErrorType::InputError,
@@ -130,7 +202,7 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
                             MascalValue::Integer(IntegerNum::new(int.unwrap()))
                         }
                         MascalType::Float => {
-                            let int: Result<f64, ParseFloatError> = input.parse::<f64>();
+                            let int: Result<f64, ParseFloatError> = input_str.parse::<f64>();
                             if int.is_err() {
                                 return Err(MascalError {
                                     error_type: MascalErrorType::InputError,
@@ -142,7 +214,7 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
                             MascalValue::Float(int.unwrap())
                         }
                         MascalType::Boolean => {
-                            match input.as_str() {
+                            match input_str {
                                 "true" | "TRUE" => MascalValue::Boolean(true),
                                 "false" | "FALSE" => MascalValue::Boolean(false),
                                 _ => {
@@ -150,12 +222,12 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
                                         error_type: MascalErrorType::InputError,
                                         line: 0,
                                         character: 0,
-                                        source: String::from("The user input cannot be parsed as an integer")
+                                        source: String::from("The user input cannot be parsed as a boolean")
                                     })
                                 }
                             }
                         }
-                        MascalType::String => {MascalValue::String(Arc::new(input))}
+                        MascalType::String => {MascalValue::String(Arc::from(input_str))}
                         _ => {return Err(MascalError {
                             error_type: MascalErrorType::TypeError,
                             line: 0,
@@ -165,12 +237,6 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
                     };
                     let value_ref = &mut unwrapped_vardata.value;
                     *value_ref = Some(Rc::new(RefCell::new(read_value)));
-                    let execdata_mut_ref = exec_data.borrow_mut();
-                    execdata_mut_ref.variable_table
-                        .as_ref()
-                        .unwrap()
-                        .borrow_mut()
-                        .insert(varname.to_string(), unwrapped_vardata.clone());
                 } else {
                     return Err(MascalError {
                         error_type: MascalErrorType::RuntimeError,
