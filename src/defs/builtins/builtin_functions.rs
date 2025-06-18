@@ -150,6 +150,88 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
     );
 
     define_builtin_function!(
+        BuiltinFunction::new_value_based, "Abs", map, vec![vec![MascalType::Float, MascalType::Integer]], false,
+        |args, _| {
+            match args.first().unwrap() {
+                MascalValue::Integer(i) => Ok(Some(
+                    MascalValue::Integer(IntegerNum::new(i.to_i128().abs()))
+                )),
+                MascalValue::Float(f) => Ok(Some(MascalValue::Float(f.abs()))),
+                _ => unreachable!()
+            }
+        }
+    );
+
+    define_builtin_function!(
+        BuiltinFunction::new_value_based, "Sin", map, vec![vec![MascalType::Float, MascalType::Integer]], false,
+        |args, _| {
+            match args.first().unwrap() {
+                MascalValue::Integer(i) => Ok(Some(
+                    MascalValue::Integer(IntegerNum::new(i.as_f64().sin() as i128))
+                )),
+                MascalValue::Float(f) => Ok(Some(MascalValue::Float(f.sin()))),
+                _ => unreachable!()
+            }
+        }
+    );
+
+    define_builtin_function!(
+        BuiltinFunction::new_value_based, "Tan", map, vec![vec![MascalType::Float, MascalType::Integer]], false,
+        |args, _| {
+            match args.first().unwrap() {
+                MascalValue::Integer(i) => Ok(Some(
+                    MascalValue::Integer(IntegerNum::new(i.as_f64().tan() as i128))
+                )),
+                MascalValue::Float(f) => Ok(Some(MascalValue::Float(f.tan()))),
+                _ => unreachable!()
+            }
+        }
+    );
+
+    define_builtin_function!(
+        BuiltinFunction::new_value_based, "Cos", map, vec![vec![MascalType::Float, MascalType::Integer]], false,
+        |args, _| {
+            match args.first().unwrap() {
+                MascalValue::Integer(i) => Ok(Some(
+                    MascalValue::Integer(IntegerNum::new(i.as_f64().cos() as i128))
+                )),
+                MascalValue::Float(f) => Ok(Some(MascalValue::Float(f.cos()))),
+                _ => unreachable!()
+            }
+        }
+    );
+
+    define_builtin_function!(
+        BuiltinFunction::new_value_based, "Floor", map, vec![vec![MascalType::Float]], false,
+        |args, _| {
+            match args.first().unwrap() {
+                MascalValue::Float(f) => Ok(Some(MascalValue::Float(f.floor()))),
+                _ => unreachable!()
+            }
+        }
+    );
+
+    define_builtin_function!(
+        BuiltinFunction::new_value_based, "Ceil", map, vec![vec![MascalType::Float]], false,
+        |args, _| {
+            match args.first().unwrap() {
+                MascalValue::Float(f) => Ok(Some(MascalValue::Float(f.ceil()))),
+                _ => unreachable!()
+            }
+        }
+    );
+
+    define_builtin_function!(
+        BuiltinFunction::new_value_based, "Round", map, vec![vec![MascalType::Float]], false,
+        |args, _| {
+            match args.first().unwrap() {
+                MascalValue::Float(f) => Ok(Some(MascalValue::Float(f.round()))),
+                _ => unreachable!()
+            }
+        }
+    );
+
+    define_builtin_function!(
         BuiltinFunction::new_expresion_based, "Read", map, vec![], true,
         |args, exec_data| {
             for arg in args {
