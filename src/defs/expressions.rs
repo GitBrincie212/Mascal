@@ -31,5 +31,11 @@ pub enum MascalExpression {
     CallExpression {
         function: Box<MascalExpression>,
         arguments: Vec<MascalExpression>,
+    },
+    
+    IndexExpression {
+        array: Box<MascalExpression>,
+        index: Box<MascalExpression>,
+        is_dynamic: bool
     }
 }
