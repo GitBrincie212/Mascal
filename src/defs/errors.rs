@@ -7,6 +7,7 @@ pub enum MascalErrorType {
     RuntimeError,
     OverflowError,
     TypeError,
+    IndexError,
     UndefinedOperation,
     UndefinedErrorType,
     InputError
