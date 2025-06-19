@@ -167,8 +167,8 @@ pub fn parse_array_type<F>(
     let mut is_curr_array_dynamic: Option<bool> = None;
     let is_array_open: bool = first_token.token_type == TokenType::OpenBracket
         || first_token.token_type == TokenType::OpenArrow;
+    let mut token_sequence: Vec<&Token> = Vec::new();
     while curr_index < tokens.len() && is_array_open {
-        let mut token_sequence: Vec<&Token> = Vec::new();
         let token: &Token = &tokens[curr_index];
         match tokens[curr_index].token_type {
             TokenType::OpenBracket => {
