@@ -271,7 +271,7 @@ pub fn parse_statement(token_sequence: &Vec<Token>) -> Result<MascalStatement, M
             let for_statement: MascalStatement = parse_for_loop_statement(&token_sequence[1..])?;
             Ok(for_statement)
         }
-        
+
         TokenType::While => {
             let for_statement: MascalStatement = parse_while_loop_statement(&token_sequence[1..])?;
             Ok(for_statement)
@@ -295,19 +295,40 @@ pub fn parse_statement(token_sequence: &Vec<Token>) -> Result<MascalStatement, M
             })
         }
 
-        TokenType::Identifier if token_sequence.len() >= 3
-            && token_sequence[1].token_type == TokenType::VariableInitializer => {
-            let index: usize = locate_semicolon(token_sequence)?;
-            let name: String = first_token.value.to_string();
-            Ok(MascalStatement::Declaration{
-                variable: name,
-                value: parse_expression(&token_sequence[2..index].to_vec())?
-            })
-        }
-
         _ => {
             let index: usize = locate_semicolon(token_sequence)?;
-            let expression_statement: MascalExpression = parse_expression(&token_sequence[..index].to_vec())?;
+            let mut assignment_index: Option<usize> = None;
+            let trunucated_token_seq: Vec<Token> = token_sequence[..index].to_vec();
+            for (index, tok) in trunucated_token_seq.iter().enumerate() {
+                if tok.token_type == TokenType::VariableInitializer {
+                    assignment_index = Some(index);
+                    break;
+                }
+            }
+            if let Some(unwrapped_assign_index) = assignment_index {
+                let target_assigne: MascalExpression = parse_expression(
+                    &trunucated_token_seq[..unwrapped_assign_index].to_vec()
+                )?;
+                match target_assigne {
+                    MascalExpression::IndexExpression {..} 
+                    | MascalExpression::SymbolicExpression(_) => {}
+
+                    _ => {return Err(MascalError {
+                        error_type: MascalErrorType::ParserError,
+                        line: trunucated_token_seq.first().unwrap().line,
+                        character: trunucated_token_seq.first().unwrap().line,
+                        source: String::from("Expected either a index-based variable modification or variable assignment but got something else")
+                    });}
+                }
+                let value_assigned: MascalExpression = parse_expression(
+                    &trunucated_token_seq[unwrapped_assign_index + 1..].to_vec()
+                )?;
+                return Ok(MascalStatement::Declaration{
+                    variable: target_assigne,
+                    value: value_assigned
+                });
+            }
+            let expression_statement: MascalExpression = parse_expression(&trunucated_token_seq)?;
             Ok(MascalStatement::ExpressionStatement(expression_statement))
         }
     }
