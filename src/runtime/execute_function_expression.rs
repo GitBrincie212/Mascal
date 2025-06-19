@@ -81,38 +81,50 @@ pub fn execute_function_call(
                 variable,
                 value
             } => {
-                if variable == &fn_name {
-                    let computed_value: MascalValue = execute_expression(
-                        value.clone(),
-                        Rc::new(RefCell::new(ExecutionData {
-                            variable_table: Some(scoped_variable_table.clone()),
-                            scoped_blocks: exec_data.borrow().scoped_blocks.clone()
+                match variable {
+                    MascalExpression::SymbolicExpression(name) => {
+                        if name == &fn_name {
+                            let computed_value: MascalValue = execute_expression(
+                                value.clone(),
+                                Rc::new(RefCell::new(ExecutionData {
+                                    variable_table: Some(scoped_variable_table.clone()),
+                                    scoped_blocks: exec_data.borrow().scoped_blocks.clone()
+                                }
+                                )))?;
+                            if processed_return_type.is_none() {
+                                return Err(MascalError {
+                                    error_type: MascalErrorType::RuntimeError,
+                                    character: 0,
+                                    line: 0,
+                                    source: format!(
+                                        "Expected no value to be returned, but returned {:?}",
+                                        computed_value
+                                    )
+                                })
+                            }
+                            if !computed_value.is_type_of(&processed_return_type.clone().unwrap()) {
+                                return Err(MascalError {
+                                    error_type: MascalErrorType::RuntimeError,
+                                    character: 0,
+                                    line: 0,
+                                    source: format!(
+                                        "Expected value of type {:?} to be returned, but returned {:?}",
+                                        &processed_return_type.unwrap(),
+                                        computed_value.as_type_string()
+                                    )
+                                })
+                            }
+                            return Ok(computed_value);
                         }
-                    )))?;
-                    if processed_return_type.is_none() {
+                    }
+                    _ => {
                         return Err(MascalError {
                             error_type: MascalErrorType::RuntimeError,
                             character: 0,
                             line: 0,
-                            source: format!(
-                                "Expected no value to be returned, but returned {:?}",
-                                computed_value
-                            )
+                            source: String::from("Callables do not support using expressions for the name other than an identifier")
                         })
                     }
-                    if !computed_value.is_type_of(&processed_return_type.clone().unwrap()) {
-                        return Err(MascalError {
-                            error_type: MascalErrorType::RuntimeError,
-                            character: 0,
-                            line: 0,
-                            source: format!(
-                                "Expected value of type {:?} to be returned, but returned {:?}",
-                                &processed_return_type.unwrap(),
-                                computed_value.as_type_string()
-                            )
-                        })
-                    }
-                    return Ok(computed_value);
                 }
             }
 
