@@ -44,10 +44,13 @@ pub enum MascalStatement {
     a <- 3;
      */
     Declaration {
-        variable: String,
+        variable: MascalExpression,
         value: MascalExpression,
     },
     
+    /*
+    THROW RuntimeError: "...";
+     */
     Throw {
         error_type: String,
         message: String,
