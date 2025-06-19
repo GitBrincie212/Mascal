@@ -8,6 +8,7 @@ use crate::defs::expressions::MascalExpression;
 use crate::defs::literal::MascalLiteral;
 use crate::defs::statements::MascalStatement;
 use crate::defs::types::MascalType;
+use crate::runtime::execute_declaration_statement::execute_declaration_statement;
 use crate::runtime::execute_expression::execute_expression;
 use crate::runtime::ExecutionData;
 use crate::runtime::values::MascalValue;
@@ -236,50 +237,7 @@ pub fn execute_statement(
             })))?;
         }
         MascalStatement::Declaration { variable, value } => {
-            let mut vartable_mutable_borrow = variable_table.borrow_mut();
-            if let Some(vardata) = vartable_mutable_borrow.get(&variable) {
-                let is_constant = vardata.is_constant;
-                let is_nullable = vardata.is_nullable;
-                let array_dimensions = vardata.array_dimensions.clone();
-                let is_dynamic_array = vardata.is_dynamic_array.clone();
-                let atomic_variable_type = Arc::clone(&vardata.atomic_variable_type);
-                if is_constant {
-                    return Err(MascalError {
-                        line: 0,
-                        character: 0,
-                        error_type: MascalErrorType::RuntimeError,
-                        source: format!("Cannot assign a new value to the constant variable called {:?}",variable)
-                    })
-                }
-
-                drop(vartable_mutable_borrow);
-                let value: MascalValue = execute_expression(value, Rc::new(RefCell::new(ExecutionData {
-                    variable_table: Some(variable_table.clone()),
-                    scoped_blocks,
-                })))?;
-
-                value.is_expected_array(array_dimensions.clone(), is_dynamic_array.clone())?;
-
-                vartable_mutable_borrow = variable_table.borrow_mut();
-                let owned_data = VariableData {
-                    value: Some(Rc::new(RefCell::new(value))),
-                    is_constant,
-                    is_nullable,
-                    array_dimensions,
-                    is_dynamic_array,
-                    atomic_variable_type,
-                };
-
-                vartable_mutable_borrow.insert(variable, owned_data);
-                return Ok(());
-            }
-
-            return Err(MascalError {
-                line: 0,
-                character: 0,
-                error_type: MascalErrorType::RuntimeError,
-                source: format!("Expected a variable name, however got an unknown one called {:?}", variable)
-            });
+            execute_declaration_statement(variable, value, variable_table.clone(), scoped_blocks.clone())?;
         }
         MascalStatement::Throw {
             error_type,
@@ -290,6 +248,8 @@ pub fn execute_statement(
                 "RuntimeError" => MascalErrorType::RuntimeError,
                 "OverflowError" => MascalErrorType::OverflowError,
                 "UndefinedOperationError" => MascalErrorType::UndefinedOperation,
+                "IndexError" => MascalErrorType::IndexError,
+                "InputError" => MascalErrorType::InputError,
                 _ => {
                     return Err(MascalError {
                         error_type: MascalErrorType::UndefinedErrorType,
