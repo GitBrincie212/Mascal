@@ -60,7 +60,7 @@ macro_rules! create_variable_table_for_type {
                                 error_type: MascalErrorType::TypeError,
                                 line: 0,
                                 character: 0,
-                                source: format!("Evaluated expression is not of type integer to be used {:?}", $target_type.clone())
+                                source: String::from("Evaluated expression is not a positive non-zero integer to be used in specifying an array size")
                             });
                         }
                         i.to_i128() as usize
@@ -69,7 +69,7 @@ macro_rules! create_variable_table_for_type {
                         error_type: MascalErrorType::TypeError,
                         line: 0,
                         character: 0,
-                        source: format!("Evaluated expression is not of type integer to be used {:?}", $target_type.clone())
+                        source: String::from("Evaluated expression is not of type integer to be used in specifying an array size")
                     })}
                 });
             }
