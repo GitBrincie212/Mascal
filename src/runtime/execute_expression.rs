@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use std::cell::RefCell;
 use std::rc::Rc;
+use crate::defs::dynamic_int::IntegerNum;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
 use crate::defs::literal::MascalLiteral;
@@ -74,6 +75,74 @@ pub fn execute_expression(
                     source: format!("Unknown expression {:?} not found", symbolic_expr),
                 })
             }
+        }
+
+        MascalExpression::IndexExpression {
+            index,
+            array,
+            is_dynamic
+        } => {
+            let arr_value = execute_expression(*array, exec_data.clone())?;
+            if !arr_value.is_array() {
+                return Err(MascalError {
+                    error_type: MascalErrorType::TypeError,
+                    line: 0,
+                    character: 0,
+                    source: String::from("Expected an array type but found instead an atomic type")
+                })
+            }
+            let index_value: MascalValue = execute_expression(*index, exec_data.clone())?;
+            let num: &IntegerNum = match &index_value {
+                MascalValue::Integer(i) => Ok(i),
+
+                _ => {
+                    return Err(MascalError {
+                        error_type: MascalErrorType::TypeError,
+                        line: 0,
+                        character: 0,
+                        source: format!("Expected an index type (integer) but got {:?}", index_value.as_type_string())
+                    })
+                }
+            }?;
+            let mut num_val: i128 = num.to_i128();
+            let array: Arc<Vec<MascalValue>> = match arr_value {
+                MascalValue::DynamicArray(elements) => {
+                    if !is_dynamic {
+                        return Err(MascalError {
+                            error_type: MascalErrorType::IndexError,
+                            line: 0,
+                            character: 0,
+                            source: String::from("Attempting to access a static array when it is a dynamic one")
+                        })
+                    }
+                    elements
+                }
+                MascalValue::StaticArray(elements) => {
+                    if is_dynamic {
+                        return Err(MascalError {
+                            error_type: MascalErrorType::IndexError,
+                            line: 0,
+                            character: 0,
+                            source: String::from("Attempting to access a dynamic array when it is a static one")
+                        })
+                    }
+                    elements
+                }
+                _ => unreachable!()
+            };
+            if num_val < 0 {
+                num_val = (array.len() as i128) + num_val;
+            }
+
+            if num_val < 0 || num_val >= array.len() as i128 {
+                return Err(MascalError {
+                    error_type: MascalErrorType::IndexError,
+                    line: 0,
+                    character: 0,
+                    source: format!("Index is out of bounds for array size of {}", array.len())
+                })
+            }
+            Ok(array[num_val as usize].clone())
         }
         
         MascalExpression::DynamicArrayExpression(array) => {
