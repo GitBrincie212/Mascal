@@ -4,7 +4,7 @@ mod check_parameters_declaration;
 use std::collections::HashSet;
 use crate::ast::AbstractSyntaxTree;
 use crate::defs::blocks::{ScopedBlocks, VariableBlock};
-use crate::defs::errors::{MascalError, MascalErrorType};
+use crate::defs::errors::{MascalError};
 use crate::semantic_analysis::check_parameters_declaration::check_for_param_declaration;
 
 pub fn conduct_semantic_analysis(abstract_syntax_tree: AbstractSyntaxTree) -> Result<AbstractSyntaxTree, MascalError> {
