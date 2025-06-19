@@ -91,15 +91,15 @@ impl MascalValue {
                 Ok(())
             }
             _ => {
-                let expected_dimensions = if !sizes.is_empty() {sizes.len() - 1} else {0};
-                if curr < expected_dimensions {
+                if curr < sizes.len() {
                     return Err(MascalError {
                         error_type: MascalErrorType::TypeError,
                         line: 0,
                         character: 0,
                         source: format!("Expected a {} but got an atomic type instead", {
-                            let current_size: usize = sizes[curr + 1];
-                            let is_dynamic_current: bool = dynamics[curr + 1];
+                            let next_idx: usize = usize::min(curr + 1, sizes.len() - 1);
+                            let current_size: usize = sizes[next_idx];
+                            let is_dynamic_current: bool = dynamics[next_idx];
                             if is_dynamic_current {
                                 format!("dynamic array with {} dimension(s)", current_size)
                             } else {format!("static array with {} dimension(s)", current_size)}
@@ -138,10 +138,10 @@ impl MascalValue {
     
     pub fn as_mascal_type(&self) -> Result<MascalType, MascalError> {
         match self {
-            MascalValue::String(s) => Ok(MascalType::String),
-            MascalValue::Integer(i) => Ok(MascalType::Integer),
-            MascalValue::Float(f) => Ok(MascalType::Float),
-            MascalValue::Boolean(b) => Ok(MascalType::Boolean),
+            MascalValue::String(_) => Ok(MascalType::String),
+            MascalValue::Integer(_) => Ok(MascalType::Integer),
+            MascalValue::Float(_) => Ok(MascalType::Float),
+            MascalValue::Boolean(_) => Ok(MascalType::Boolean),
             MascalValue::Type(_) => Ok(MascalType::Type),
             MascalValue::DynamicArray(values) |  MascalValue::StaticArray(values) => {
                 let mut mascal_type: MascalType = MascalType::Dynamic;
@@ -227,6 +227,14 @@ impl MascalValue {
             MascalValue::Integer(i) => Some(i.to_i128()),
             MascalValue::Float(f) => Some(f.round() as i128),
             _ => {None}
+        }
+    }
+    
+    pub fn is_array(&self) -> bool {
+        match self {
+            MascalValue::DynamicArray(_) => true,
+            MascalValue::StaticArray(_) => true,
+            _ => false
         }
     }
     
