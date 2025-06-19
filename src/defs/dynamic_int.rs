@@ -53,7 +53,6 @@ impl IntegerNum {
             IntegerNum::I32(v) => *v as i128,
             IntegerNum::I64(v) => *v as i128,
             IntegerNum::I128(v) => *v,
-            _ => {0}
         }
     }
 
