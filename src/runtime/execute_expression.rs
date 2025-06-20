@@ -13,17 +13,7 @@ use crate::runtime::execute_unary_expression::execute_unary_expression;
 use crate::runtime::ExecutionData;
 use crate::runtime::values::MascalValue;
 use crate::runtime::variable_table::{VariableData, VariableTable};
-
-macro_rules! define_array_expression_exec {
-    ($array: expr, $variable_table: expr, $arr_type:expr) => {
-        let mut arr: Vec<MascalValue> = Vec::with_capacity($array.len());
-        for expr in $array {
-            arr.push(execute_expression(expr, $variable_table)?);
-        }
-        let arr = $arr_type(Arc::new(arr));
-        return Ok(arr);
-    };
-}
+use crate::{define_array_expression_exec, index_array_impl, uninit_cell_error};
 
 #[allow(dead_code)]
 pub fn execute_expression(
@@ -82,7 +72,7 @@ pub fn execute_expression(
             array,
             is_dynamic
         } => {
-            let arr_value = execute_expression(*array, exec_data.clone())?;
+            let arr_value: MascalValue = execute_expression(*array, exec_data.clone())?;
             if !arr_value.is_array() {
                 return Err(MascalError {
                     error_type: MascalErrorType::TypeError,
@@ -105,52 +95,25 @@ pub fn execute_expression(
                 }
             }?;
             let mut num_val: i128 = num.to_i128();
-            let array: Arc<Vec<MascalValue>> = match arr_value {
+            match arr_value {
                 MascalValue::DynamicArray(elements) => {
-                    if !is_dynamic {
-                        return Err(MascalError {
-                            error_type: MascalErrorType::IndexError,
-                            line: 0,
-                            character: 0,
-                            source: String::from("Attempting to access a static array when it is a dynamic one")
-                        })
-                    }
-                    elements
+                    index_array_impl!(elements, is_dynamic, num_val);
                 }
                 MascalValue::StaticArray(elements) => {
-                    if is_dynamic {
-                        return Err(MascalError {
-                            error_type: MascalErrorType::IndexError,
-                            line: 0,
-                            character: 0,
-                            source: String::from("Attempting to access a dynamic array when it is a static one")
-                        })
-                    }
-                    elements
+                    index_array_impl!(elements, is_dynamic, num_val);
                 }
                 _ => unreachable!()
-            };
-            if num_val < 0 {
-                num_val = (array.len() as i128) + num_val;
             }
-
-            if num_val < 0 || num_val >= array.len() as i128 {
-                return Err(MascalError {
-                    error_type: MascalErrorType::IndexError,
-                    line: 0,
-                    character: 0,
-                    source: format!("Index is out of bounds for array size of {}", array.len())
-                })
-            }
-            Ok(array[num_val as usize].clone())
         }
         
         MascalExpression::DynamicArrayExpression(array) => {
-            define_array_expression_exec!(array, exec_data.clone(), MascalValue::DynamicArray);
+            let arr = define_array_expression_exec!(array, exec_data.clone());
+            Ok(MascalValue::DynamicArray(arr))
         }
         
         MascalExpression::StaticArrayExpression(array) => {
-            define_array_expression_exec!(array, exec_data.clone(), MascalValue::StaticArray);
+            let arr = define_array_expression_exec!(array, exec_data.clone());
+            Ok(MascalValue::StaticArray(arr.into()))
         }
         
         MascalExpression::TypeExpression(type_expr) => {
