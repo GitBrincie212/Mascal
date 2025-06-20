@@ -1,6 +1,6 @@
 #[macro_export]
 macro_rules! comparison_arms {
-    ( $left: expr, $right: expr, $array_fn:expr, $method:ident, $fallback: expr ) => {
+    ( $left: expr, $right: expr, $method:ident, $fallback: expr ) => {
         match ($left, $right) {
             (MascalValue::Integer(i1), MascalValue::Integer(i2)) => {
                 Ok(MascalValue::Boolean(i1.to_i128().$method(&i2.to_i128())))
@@ -16,14 +16,6 @@ macro_rules! comparison_arms {
 
             (MascalValue::Float(f1), MascalValue::Float(f2)) => {
                 Ok(MascalValue::Boolean(f1.$method(&f2)))
-            }
-
-            (MascalValue::DynamicArray(a1), MascalValue::DynamicArray(a2)) => {
-                $array_fn(&a1, &a2)
-            }
-
-            (MascalValue::StaticArray(a1), MascalValue::StaticArray(a2)) => {
-                $array_fn(&a1, &a2)
             }
 
             (MascalValue::String(s1), MascalValue::String(s2)) => {
