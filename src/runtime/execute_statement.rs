@@ -256,6 +256,8 @@ pub fn execute_statement(
                 "UndefinedOperationError" => MascalErrorType::UndefinedOperation,
                 "IndexError" => MascalErrorType::IndexError,
                 "InputError" => MascalErrorType::InputError,
+                "ArgumentError" => MascalErrorType::ArgumentError,
+                "ValueError" => MascalErrorType::ValueError,
                 _ => {
                     return Err(MascalError {
                         error_type: MascalErrorType::UndefinedErrorType,
