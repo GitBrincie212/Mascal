@@ -3,9 +3,17 @@ pub mod value_comparision_operations;
 mod value_utils;
 pub mod value_boolean_operations;
 
+use std::cell::RefCell;
 use std::ops::Deref;
 use std::rc::Rc;
 use std::sync::Arc;
+use crate::{
+    as_mascal_type_array_impl, 
+    as_string_array_impl, 
+    as_type_string_array_impl, 
+    atomic_type_array_impl,
+    uninit_cell_error
+};
 use crate::defs::dynamic_int::IntegerNum;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::types::{MascalType};
@@ -17,14 +25,16 @@ pub enum MascalValue {
     String(Arc<str>),
     Boolean(bool),
     NULL,
-    DynamicArray(Arc<Vec<MascalValue>>),
-    StaticArray(Arc<Vec<MascalValue>>),
+    StaticArray(Box<[Rc<RefCell<Option<MascalValue>>>]>),
+    DynamicArray(Vec<Rc<RefCell<Option<MascalValue>>>>),
     Type(MascalType)
 }
 
-impl MascalValue {
-    fn is_expected_array_internal(&self, sizes: Rc<[usize]>, dynamics: Rc<[bool]>, curr: usize) -> Result<(), MascalError> {
-        match self {
+fn is_expected_array_internal(
+    outer_value: Rc<RefCell<Option<MascalValue>>>, sizes: Rc<[usize]>, dynamics: Rc<[bool]>, curr: usize
+) -> Result<(), MascalError> {
+    if let Some(unwrapped_outer_value) = &*outer_value.borrow() {
+        return match unwrapped_outer_value {
             MascalValue::StaticArray(values) => {
                 if curr < sizes.len()  {
                     if dynamics[curr] {
@@ -33,7 +43,7 @@ impl MascalValue {
                             line: 0,
                             character: 0,
                             source: format!(
-                                "Expected a dynamic array with size {} element(s) but got a static array with size {} element(s)", 
+                                "Expected a dynamic array with size {} element(s) but got a static array with size {} element(s)",
                                 sizes[curr],
                                 values.len()
                             ),
@@ -58,8 +68,8 @@ impl MascalValue {
                         source: String::from("The current array type is deeper than initialized to be")
                     })
                 }
-                for val in values.iter() {
-                    val.is_expected_array_internal(sizes.clone(), dynamics.clone(), curr + 1)?;
+                for val in values.clone().into_iter() {
+                    is_expected_array_internal(val.clone(), sizes.clone(), dynamics.clone(), curr + 1)?;
                 }
                 Ok(())
             }
@@ -86,7 +96,7 @@ impl MascalValue {
                     })
                 }
                 for val in values.iter() {
-                    val.is_expected_array_internal(sizes.clone(), dynamics.clone(), curr + 1)?;
+                    is_expected_array_internal(val.clone(), sizes.clone(), dynamics.clone(), curr + 1)?;
                 }
                 Ok(())
             }
@@ -110,12 +120,26 @@ impl MascalValue {
             }
         }
     }
-    
+    uninit_cell_error!();
+}
+
+impl MascalValue {
     pub fn is_expected_array(&self, sizes: Rc<[usize]>, dynamics: Rc<[bool]>) -> Result<(), MascalError> {
         match self {
-            MascalValue::StaticArray(_) | MascalValue::DynamicArray(_) => {
-                self.is_expected_array_internal(sizes, dynamics, 0)
+            MascalValue::StaticArray(v) => {
+                for values in v.iter() {
+                    is_expected_array_internal(values.clone(), sizes.clone(), dynamics.clone(), 1)?;
+                }
+                Ok(())
             }
+
+            MascalValue::DynamicArray(v) => {
+                for values in v.iter() {
+                    is_expected_array_internal(values.clone(), sizes.clone(), dynamics.clone(), 1)?;
+                }
+                Ok(())
+            }
+            
             _ => {
                 if !sizes.is_empty() {
                     return Err(MascalError {
@@ -135,7 +159,7 @@ impl MascalValue {
             }
         }
     }
-    
+
     pub fn as_mascal_type(&self) -> Result<MascalType, MascalError> {
         match self {
             MascalValue::String(_) => Ok(MascalType::String),
@@ -143,18 +167,11 @@ impl MascalValue {
             MascalValue::Float(_) => Ok(MascalType::Float),
             MascalValue::Boolean(_) => Ok(MascalType::Boolean),
             MascalValue::Type(_) => Ok(MascalType::Type),
-            MascalValue::DynamicArray(values) |  MascalValue::StaticArray(values) => {
-                let mut mascal_type: MascalType = MascalType::Dynamic;
-                let mut has_run_once: bool = false;
-                for value in values.iter() {
-                    let val_type: MascalType = value.as_mascal_type()?;
-                    if has_run_once && mascal_type != val_type {
-                        return Ok(MascalType::Dynamic);
-                    }
-                    mascal_type = val_type;
-                    has_run_once = true;
-                }
-                Ok(mascal_type)
+            MascalValue::StaticArray(values) => {
+                as_mascal_type_array_impl!(values);
+            }
+            MascalValue::DynamicArray(values) => {
+                as_mascal_type_array_impl!(values);
             }
 
             MascalValue::NULL => Err(MascalError {
@@ -166,50 +183,40 @@ impl MascalValue {
         }
     }
 
-    pub fn as_string(&self) -> String {
+    pub fn as_string(&self) -> Result<String, MascalError> {
         match self {
-            MascalValue::String(s) => s.deref().to_string(),
-            MascalValue::Integer(i) => {i.as_string()}
-            MascalValue::Float(f) => {f.to_string()}
-            MascalValue::Boolean(b) => {if *b {String::from("True")} else {String::from("False")}}
-            MascalValue::NULL => {String::from("NULL")}
+            MascalValue::String(s) => Ok(s.deref().to_string()),
+            MascalValue::Integer(i) => {Ok(i.as_string())}
+            MascalValue::Float(f) => {Ok(f.to_string())}
+            MascalValue::Boolean(b) => {if *b {Ok(String::from("TRUE"))} else {Ok(String::from("FALSE"))}}
+            MascalValue::NULL => {Ok(String::from("NULL"))}
             MascalValue::DynamicArray(values) => {
-                String::from("<") + &*values.iter().map(|v| v.as_string())
-                    .collect::<Vec<String>>()
-                    .join(", ") + ">"
+                as_string_array_impl!(values, "<", ">");
             }
             MascalValue::StaticArray(values) => {
-                String::from("[") + &*values.iter().map(|v| v.as_string())
-                    .collect::<Vec<String>>()
-                    .join(", ") + "]"
+                as_string_array_impl!(values, "[", "]");
             }
             MascalValue::Type(t) => {
-                t.as_string()
+                Ok(t.as_string())
             }
         }
     }
 
-    pub fn as_type_string(&self) -> String {
+    pub fn as_type_string(&self) -> Result<String, MascalError> {
         match self {
-            MascalValue::String(_) => String::from("STRING"),
-            MascalValue::Integer(_) => String::from("INTEGER"),
-            MascalValue::Float(_) => String::from("FLOAT"),
-            MascalValue::Boolean(_) => String::from("BOOLEAN"),
-            MascalValue::NULL => String::from("NULL"),
+            MascalValue::String(_) => Ok(String::from("STRING")),
+            MascalValue::Integer(_) => Ok(String::from("INTEGER")),
+            MascalValue::Float(_) => Ok(String::from("FLOAT")),
+            MascalValue::Boolean(_) => Ok(String::from("BOOLEAN")),
+            MascalValue::NULL => Ok(String::from("NULL")),
             MascalValue::DynamicArray(values) => {
-                if let Some(first) = values.first() {
-                    return first.as_string() + format!("<{}>", values.len()).as_str();
-                }
-                String::from("ANY")
+                as_type_string_array_impl!(values);
             }
             MascalValue::StaticArray(values) => {
-                if let Some(first) = values.first() {
-                    return first.as_string() + format!("[{}]", values.len()).as_str();
-                }
-                String::from("ANY")
+                as_type_string_array_impl!(values);
             }
             MascalValue::Type(t) => {
-                t.as_string()
+                Ok(t.as_string())
             }
         }
     }
@@ -229,7 +236,7 @@ impl MascalValue {
             _ => {None}
         }
     }
-    
+
     pub fn is_array(&self) -> bool {
         match self {
             MascalValue::DynamicArray(_) => true,
@@ -256,22 +263,22 @@ impl MascalValue {
         }
     }
 
-    pub fn is_atomic_type_of(&self, value_type: &MascalType) -> bool {
+    pub fn is_atomic_type_of(&self, value_type: &MascalType) -> Result<bool, MascalError> {
         match (self, value_type) {
-            (MascalValue::Integer {..}, MascalType::Integer {..}) => true,
-            (MascalValue::Float {..}, MascalType::Float) => true,
-            (MascalValue::String(..), MascalType::String) => true,
-            (MascalValue::Boolean(..), MascalType::Boolean) => true,
-            (MascalValue::NULL, _) => true,
-            (_, MascalType::Dynamic) => true,
-            (MascalValue::Type(..), MascalType::Type) => true,
+            (MascalValue::Integer {..}, MascalType::Integer {..}) => Ok(true),
+            (MascalValue::Float {..}, MascalType::Float) => Ok(true),
+            (MascalValue::String(..), MascalType::String) => Ok(true),
+            (MascalValue::Boolean(..), MascalType::Boolean) => Ok(true),
+            (MascalValue::NULL, _) => Ok(true),
+            (_, MascalType::Dynamic) => Ok(true),
+            (MascalValue::Type(..), MascalType::Type) => Ok(true),
             (MascalValue::StaticArray(values), _) => {
-                values.iter().all(|val| val.is_atomic_type_of(value_type))
+                atomic_type_array_impl!(values, &value_type);
             }
             (MascalValue::DynamicArray(values), _) => {
-                values.iter().all(|val| val.is_atomic_type_of(value_type))
+                atomic_type_array_impl!(values, &value_type);
             }
-            _ => false
+            _ => Ok(false)
         }
     }
 }
