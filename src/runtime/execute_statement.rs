@@ -92,7 +92,7 @@ pub fn execute_statement(
                     }?
                 } else {true};
 
-                if !cond {return Ok(())}
+                if !cond {continue;}
                 for stmt in branch.statements {
                     execute_statement(
                         stmt,
@@ -100,6 +100,7 @@ pub fn execute_statement(
                         scoped_blocks.clone()
                     )?;
                 }
+                break;
             }
         }
         MascalStatement::While(mut condition) => {
