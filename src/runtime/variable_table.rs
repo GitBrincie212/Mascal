@@ -32,6 +32,7 @@ pub struct VariableData {
 macro_rules! create_variable_table_for_type {
     ($variable_type: expr, $table: expr, $target_type: expr) => {
         for var in $variable_type {
+            let has_defined_value = var.initial_value.is_some();
             let mut value: Option<Rc<RefCell<MascalValue>>> = if let Some(unwrapped_val) = var.initial_value {
                 let val: MascalValue = execute_expression(unwrapped_val, Rc::new(RefCell::new(ExecutionData {
                     variable_table: Some($table.clone()),
@@ -76,8 +77,8 @@ macro_rules! create_variable_table_for_type {
 
                 dimensions_val.push(size);
             }
-            
-            value = if !dimensions_val.is_empty() {
+
+            value = if !dimensions_val.is_empty() && !has_defined_value  {
                 let dyns: Vec<bool> = var.is_dynamic_array.clone();
                 let arr = make_array(&dimensions_val, &dyns);
                 Some(Rc::new(RefCell::new(arr)))
