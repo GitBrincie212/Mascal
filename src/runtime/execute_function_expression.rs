@@ -33,8 +33,8 @@ pub fn execute_function_call(
     let mut func_parameters: &Vec<MascalParameter> = &Vec::new();
     let mut func_return_type: Option<MascalUnprocessedType> = None;
     let mut wrapped_func_exec_block: Option<ExecutionBlock> = None;
-    let exedata_binding = exec_data.borrow();
-    let borrowed_scoped_blocks = exedata_binding.scoped_blocks.borrow();
+    let exedata_binding = &*exec_data.borrow();
+    let borrowed_scoped_blocks = &*exedata_binding.scoped_blocks.borrow();
     for scoped_block in borrowed_scoped_blocks.iter() {
         match scoped_block {
             ScopedBlocks::PROGRAM(..) => {unreachable!()}
