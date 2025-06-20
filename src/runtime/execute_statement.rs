@@ -103,10 +103,15 @@ pub fn execute_statement(
                 break;
             }
         }
-        MascalStatement::While(mut condition) => {
+        MascalStatement::While(condition) => {
+            let cond_expr: MascalExpression = condition.condition.unwrap();
             while {
-                let cond_expr = condition.condition.take().unwrap();
-                let value: MascalValue = execute_expression(cond_expr, Rc::new(RefCell::new(ExecutionData {
+                /*
+                 I am aware I should avoid cloning expressions (because of their tree form). 
+                 However, if I try to use references or even smart pointers, it would require sweeping 
+                 changes to the entire codebase which I am not willing to do
+                */
+                let value: MascalValue = execute_expression(cond_expr.clone(), Rc::new(RefCell::new(ExecutionData {
                     variable_table: Some(variable_table.clone()),
                     scoped_blocks: scoped_blocks.clone(),
                 })))?;
