@@ -1,5 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
+use crate::defs::dynamic_int::IntegerNum;
+use crate::defs::errors::MascalError;
 use crate::runtime::values::MascalValue;
 
 pub fn make_array(
@@ -30,6 +32,43 @@ pub fn make_array(
         return MascalValue::DynamicArray(slots);
     }
     MascalValue::StaticArray(slots.into_boxed_slice())
+}
+
+pub fn get_dimensions(val: &Option<MascalValue>, dimension: usize) -> Result<Option<MascalValue>, MascalError> {
+    if let Some(unwrapped_val) = val {
+        match unwrapped_val {
+            MascalValue::StaticArray(val) => {
+                return get_dimensions(&*val.first().unwrap().borrow(), dimension + 1);
+            }
+            MascalValue::DynamicArray(val) => {
+                return get_dimensions(&*val.first().unwrap().borrow(), dimension + 1);
+            }
+            _ => {}
+        };
+    }
+    Ok(Some(MascalValue::Integer(IntegerNum::new(dimension as i128))))
+}
+
+pub fn get_sizes(val: &Option<MascalValue>, mut sizes: Vec<usize>) -> Result<Option<MascalValue>, MascalError> {
+    if let Some(unwrapped_val) = val {
+        match unwrapped_val {
+            MascalValue::StaticArray(val) => {
+                sizes.push(val.len());
+                return get_sizes(&*val.first().unwrap().borrow(), sizes);
+            }
+            MascalValue::DynamicArray(val) => {
+                sizes.push(val.len());
+                return get_sizes(&*val.first().unwrap().borrow(), sizes);
+            }
+            _ => {}
+        };
+    }
+    let converted_size = sizes.iter()
+            .map(|x| Rc::new(RefCell::new(Some(MascalValue::Integer(IntegerNum::new(*x as i128))))))
+            .collect::<Vec<_>>()
+            .into_boxed_slice();
+    
+    Ok(Some(MascalValue::StaticArray(converted_size)))
 }
 
 #[macro_export]
@@ -69,6 +108,9 @@ macro_rules! as_mascal_type_array_impl {
 macro_rules! as_string_array_impl {
     ($values: expr, $open: expr, $close: expr) => {
         let mut target_string = String::from($open);
+        if $values.is_empty() {
+            return Ok(target_string + $close);
+        }
         for v in $values[..$values.len() - 1].iter() {
             if let Some(unwrapped_value) = &*v.borrow() {
                 target_string += format!("{}, ", unwrapped_value.as_string()?).as_str();
@@ -94,7 +136,7 @@ macro_rules! as_type_string_array_impl {
         if let Some(first) = $values.first() {
             if let Some(extracted_first) = &*first.clone().borrow() {
                 let string = extracted_first.as_string()?;
-                return Ok(string + format!("<{}>", $values.len()).as_str()); 
+                return Ok(string + format!("<{}>", $values.len()).as_str());
             }
             uninit_cell_error!();
         }
@@ -133,7 +175,7 @@ macro_rules! index_array_impl {
                 )
             })
         }
-        
+
         if $num_val < 0 {
             $num_val = ($values.len() as i128) + $num_val;
         }
