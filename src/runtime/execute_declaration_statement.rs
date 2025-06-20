@@ -10,7 +10,6 @@ use std::sync::Arc;
 use crate::defs::blocks::ScopedBlocks;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
-use crate::runtime::execute_declaration_statement::check_array_assignment::check_array_assignment;
 use crate::runtime::execute_declaration_statement::execute_index_based_decleration::execute_index_based_decleration;
 use crate::runtime::execute_expression::execute_expression;
 use crate::runtime::ExecutionData;
