@@ -8,9 +8,9 @@ use std::ops::Deref;
 use std::rc::Rc;
 use std::sync::Arc;
 use crate::{
-    as_mascal_type_array_impl, 
-    as_string_array_impl, 
-    as_type_string_array_impl, 
+    as_mascal_type_array_impl,
+    as_string_array_impl,
+    as_type_string_array_impl,
     atomic_type_array_impl,
     uninit_cell_error
 };
@@ -139,7 +139,7 @@ impl MascalValue {
                 }
                 Ok(())
             }
-            
+
             _ => {
                 if !sizes.is_empty() {
                     return Err(MascalError {
@@ -185,7 +185,7 @@ impl MascalValue {
 
     pub fn as_string(&self) -> Result<String, MascalError> {
         match self {
-            MascalValue::String(s) => Ok(s.deref().to_string()),
+            MascalValue::String(s) => Ok(format!("\"{}\"", s.deref().to_string())),
             MascalValue::Integer(i) => {Ok(i.as_string())}
             MascalValue::Float(f) => {Ok(f.to_string())}
             MascalValue::Boolean(b) => {if *b {Ok(String::from("TRUE"))} else {Ok(String::from("FALSE"))}}

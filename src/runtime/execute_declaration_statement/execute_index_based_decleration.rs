@@ -13,14 +13,14 @@ use crate::runtime::values::MascalValue;
 use crate::runtime::variable_table::{VariableTable};
 
 pub fn execute_index_based_decleration(
-    variable: MascalExpression, value: MascalExpression, 
+    variable: MascalExpression, value: MascalExpression,
     variable_table: Rc<RefCell<VariableTable>>, scoped_blocks: Rc<RefCell<Vec<ScopedBlocks>>>
 ) -> Result<(), MascalError> {
     let (base, layers) = unwrap_index_layers(
         variable, variable_table.clone(), scoped_blocks.clone()
     )?;
     let (varname, vardata) = extract_variable_data(base, variable_table.clone(), &layers)?;
-    
+
     let rhs: MascalValue = execute_expression(
         value,
         Rc::new(RefCell::new(ExecutionData {
@@ -28,9 +28,9 @@ pub fn execute_index_based_decleration(
             scoped_blocks: scoped_blocks.clone(),
         })),
     )?;
-    
+
     let layers_len: usize = layers.len();
-    let target_value: Rc<RefCell<Option<MascalValue>>> = extract_target_area(&varname, &vardata, &layers)?; 
+    let target_value: Rc<RefCell<Option<MascalValue>>> = extract_target_area(&varname, &vardata, &layers)?;
     check_array_assignment(target_value.clone(), Rc::new(RefCell::new(Some(rhs.clone()))), &vardata, layers_len)?;
     *target_value.borrow_mut() = Some(rhs);
     variable_table.borrow_mut().insert(varname, vardata);
