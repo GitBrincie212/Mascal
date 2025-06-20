@@ -8,7 +8,7 @@ pub mod values;
 mod execute_statement;
 mod execute_builtin_function;
 mod execute_declaration_statement;
-mod utils;
+pub mod utils;
 
 use std::cell::RefCell;
 use std::rc::Rc;
