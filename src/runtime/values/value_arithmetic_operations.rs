@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+use std::rc::Rc;
 use std::sync::Arc;
 use crate::{define_arithmetic_fn, unsupported_operation_error, error_float_overflow};
 use crate::defs::errors::{MascalError, MascalErrorType};
@@ -14,13 +16,9 @@ impl MascalValue {
             },
 
             (MascalValue::DynamicArray(l), MascalValue::DynamicArray(r)) => {
-                if let (Ok(l_vec), Ok(r_vec)) = (Arc::try_unwrap(l.clone()), Arc::try_unwrap(r.clone())) {
-                    let mut l_vec = l_vec;
-                    l_vec.extend(r_vec);
-                    return Ok(MascalValue::DynamicArray(Arc::new(l_vec)));
-                }
-                let merged: Vec<MascalValue> = l.iter().cloned().chain(r.iter().cloned()).collect();
-                Ok(MascalValue::DynamicArray(Arc::new(merged)))
+                let merged: Vec<Rc<RefCell<Option<MascalValue>>>> = l.iter().cloned()
+                .chain(r.iter().cloned()).collect();
+                Ok(MascalValue::DynamicArray(merged))
             }
         )
     }
