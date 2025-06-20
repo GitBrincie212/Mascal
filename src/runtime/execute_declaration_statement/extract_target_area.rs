@@ -1,4 +1,4 @@
-use std::cell::{Ref, RefCell};
+use std::cell::{RefCell};
 use std::rc::Rc;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::runtime::values::MascalValue;
@@ -8,8 +8,10 @@ pub fn extract_target_area(
     varname: &String,
     vardata: &VariableData,
     layers: &Vec<(MascalValue, bool)>
-) -> Result<Rc<RefCell<MascalValue>>, MascalError> {
-    let mut target_value: Rc<RefCell<MascalValue>> = vardata.value.clone().unwrap();
+) -> Result<Rc<RefCell<Option<MascalValue>>>, MascalError> {
+    let mut target_value: Rc<RefCell<Option<MascalValue>>> = Rc::new(RefCell::new(Some(
+        vardata.value.clone().unwrap().borrow().clone()
+    )));
 
     for (idx, (curr_index, is_dynamic)) in layers.into_iter().enumerate() {
         let expected_array_size = vardata.array_dimensions[idx];
@@ -35,7 +37,7 @@ pub fn extract_target_area(
                     error_type: MascalErrorType::TypeError,
                     line: 0,
                     character: 0,
-                    source: format!("Expected integer index, got {}", curr_index.as_type_string()),
+                    source: format!("Expected integer index, got {}", curr_index.as_type_string()?),
                 });
             }
         };
@@ -55,19 +57,32 @@ pub fn extract_target_area(
             });
         }
 
-        let next_value_rc: Rc<RefCell<MascalValue>> = {
-            let target_borrow: Ref<MascalValue> = target_value.borrow();
-
-            match &*target_borrow {
-                MascalValue::StaticArray(values) | MascalValue::DynamicArray(values) => {
+        let next_value_rc: Rc<RefCell<Option<MascalValue>>> = {
+            let target_borrow = target_value.borrow().clone().unwrap();
+            
+            match target_borrow {
+                MascalValue::DynamicArray(values) => {
                     match values.get(normalized_index as usize) {
-                        Some(inner) => Rc::new(RefCell::new(inner.clone())),
+                        Some(inner) => inner.clone(),
                         None => {
                             return Err(MascalError {
                                 error_type: MascalErrorType::IndexError,
                                 line: 0,
                                 character: 0,
-                                source: format!("Index {} out of bounds in array {}", normalized_index, varname),
+                                source: format!("Index {} out of bounds in a dynamic array {}", normalized_index, varname),
+                            });
+                        }
+                    }
+                }
+                MascalValue::StaticArray(values) => {
+                    match values.get(normalized_index as usize) {
+                        Some(inner) => inner.clone(),
+                        None => {
+                            return Err(MascalError {
+                                error_type: MascalErrorType::IndexError,
+                                line: 0,
+                                character: 0,
+                                source: format!("Index {} out of bounds in a static array {}", normalized_index, varname),
                             });
                         }
                     }
@@ -79,7 +94,7 @@ pub fn extract_target_area(
                         character: 0,
                         source: format!(
                             "Trying to index a non-array value (type: {}) in variable {}",
-                            target_borrow.as_type_string(),
+                            target_borrow.as_type_string()?,
                             varname
                         ),
                     });
