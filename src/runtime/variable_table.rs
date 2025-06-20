@@ -8,6 +8,7 @@ use crate::defs::types::{MascalType};
 use crate::runtime::execute_expression::execute_expression;
 use crate::runtime::ExecutionData;
 use crate::runtime::values::MascalValue;
+use crate::runtime::utils::make_array;
 
 
 /*
@@ -31,12 +32,12 @@ pub struct VariableData {
 macro_rules! create_variable_table_for_type {
     ($variable_type: expr, $table: expr, $target_type: expr) => {
         for var in $variable_type {
-            let value: Option<Rc<RefCell<MascalValue>>> = if let Some(unwrapped_val) = var.initial_value {
+            let mut value: Option<Rc<RefCell<MascalValue>>> = if let Some(unwrapped_val) = var.initial_value {
                 let val: MascalValue = execute_expression(unwrapped_val, Rc::new(RefCell::new(ExecutionData {
                     variable_table: Some($table.clone()),
                     scoped_blocks: Rc::new(RefCell::new(Vec::new()))
                 })))?;
-                if !val.is_atomic_type_of(&*$target_type.clone()) {
+                if !(val.is_atomic_type_of(&*$target_type.clone())?) {
                     return Err(MascalError {
                         error_type: MascalErrorType::RuntimeError,
                         line: 0,
@@ -53,7 +54,7 @@ macro_rules! create_variable_table_for_type {
                     scoped_blocks: Rc::new(RefCell::new(Vec::new()))
                 })))?;
 
-                dimensions_val.push(match val {
+                let size = match val {
                     MascalValue::Integer(i) => {
                         if i.is_negative_or_zero() {
                             return Err(MascalError {
@@ -71,17 +72,27 @@ macro_rules! create_variable_table_for_type {
                         character: 0,
                         source: String::from("Evaluated expression is not of type integer to be used in specifying an array size")
                     })}
-                });
+                };
+
+                dimensions_val.push(size);
             }
             
+            value = if !dimensions_val.is_empty() {
+                let dyns: Vec<bool> = var.is_dynamic_array.clone();
+                let arr = make_array(&dimensions_val, &dyns);
+                Some(Rc::new(RefCell::new(arr)))
+            } else {value};
+
             let is_dynamic_array: Rc<[bool]> = Rc::from(var.is_dynamic_array);
             let array_dimensions: Rc<[usize]> = Rc::from(dimensions_val);
+            /*
             if let Some(unwrapped_value) = value.clone() {
                 unwrapped_value.borrow().is_expected_array(
                     array_dimensions.clone(),
                     is_dynamic_array.clone()
                 )?;
             }
+             */
 
             $table.borrow_mut().insert(var.name, VariableData {
                 value,
