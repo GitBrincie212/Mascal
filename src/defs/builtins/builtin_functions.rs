@@ -72,7 +72,7 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
         BuiltinFunction::new_value_based, "Write", map, vec![], true,
         |args, _| {
             for val in args {
-                print!("{}", val.as_string());
+                print!("{}", val.as_string()?);
             }
             print!("\n");
             Ok(None)
