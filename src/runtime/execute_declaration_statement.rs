@@ -3,7 +3,6 @@ mod unwrap_index_layers;
 mod extract_variable_data;
 mod extract_target_area;
 mod check_array_assignment;
-mod rebuild_array;
 
 use std::cell::{RefCell};
 use std::rc::Rc;
