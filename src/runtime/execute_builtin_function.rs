@@ -25,7 +25,7 @@ pub fn execute_builtin_function<'a>(
                     let arg_types = &fixed_argument_types[index];
                     let mut is_atleast_one_type: bool = false;
                     for arg_type in arg_types {
-                        if result.is_type_of(arg_type) {
+                        if arg_type.is_type_of_for_value(&result) {
                             is_atleast_one_type = true;
                             break;
                         }
@@ -37,8 +37,8 @@ pub fn execute_builtin_function<'a>(
                                 line: 0,
                                 character: 0,
                                 source: format!(
-                                    "Expected a type of {:?} but got {:?}", 
-                                    arg_types.first().unwrap().as_string(), 
+                                    "Expected a type of {:?} but got {:?}",
+                                    arg_types.first().unwrap().as_string(),
                                     result.as_type_string()
                                 )
                             })
@@ -48,11 +48,11 @@ pub fn execute_builtin_function<'a>(
                             line: 0,
                             character: 0,
                             source: format!(
-                                "Expected at least one of the types {:?} but got {:?}", 
+                                "Expected at least one of the types {} but got {:?}",
                                 arg_types.iter()
-                                    .map(|x| x.as_string())
+                                    .map(|x| format!("{:?}", x.as_string()))
                                     .collect::<Vec<String>>()
-                                    .concat(), 
+                                    .join(", "),
                                 result.as_type_string()
                             )
                         })
@@ -76,7 +76,7 @@ pub fn execute_builtin_function<'a>(
         BuiltinFunction::ExpressionBased {
             fixed_argument_types,
             supports_dynamic_arguments,
-            execution
+            execution,
         } => {
             let mut args: Vec<&MascalExpression> = Vec::with_capacity(arguments.len());
             for arg in arguments.iter() {
