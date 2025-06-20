@@ -162,3 +162,66 @@ pub enum MascalType {
         size: usize,
     },
 }
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum MascalTypeKind {
+    Integer,
+    Float,
+    Boolean,
+    String,
+    Dynamic,
+    Type,
+    DynamicArray,
+    StaticArray
+}
+
+impl MascalTypeKind {
+    pub fn is_type_of(&self, ty: MascalType) -> bool {
+        match (self, ty) {
+            (MascalTypeKind::Integer, MascalType::Integer) => true,
+            (MascalTypeKind::Float, MascalType::Float) => true,
+            (MascalTypeKind::String, MascalType::String) => true,
+            (MascalTypeKind::Dynamic, MascalType::Dynamic) => true,
+            (MascalTypeKind::Type, MascalType::Type) => true,
+            (MascalTypeKind::Boolean, MascalType::Boolean) => true,
+            (MascalTypeKind::StaticArray, MascalType::StaticArray {..}) => true,
+            (MascalTypeKind::DynamicArray, MascalType::DynamicArray {..}) => true,
+            _ => false
+        }
+    }
+
+    pub fn is_type_of_for_value(&self, v: &MascalValue) -> bool {
+        match (self, v) {
+            (MascalTypeKind::Dynamic, _) => true,
+            (MascalTypeKind::Integer, MascalValue::Integer(..)) => true,
+            (MascalTypeKind::Float, MascalValue::Float(..)) => true,
+            (MascalTypeKind::String, MascalValue::String(..)) => true,
+            (MascalTypeKind::Type, MascalValue::Type(..)) => true,
+            (MascalTypeKind::Boolean, MascalValue::Boolean(..)) => true,
+            (MascalTypeKind::StaticArray, MascalValue::StaticArray {..}) => true,
+            (MascalTypeKind::DynamicArray, MascalValue::DynamicArray {..}) => true,
+            _ => false
+        }
+    }
+    
+    pub fn as_string(&self) -> String {
+        match self {
+            MascalTypeKind::String => String::from("String"),
+            MascalTypeKind::Integer => String::from("Integer"),
+            MascalTypeKind::Float => {String::from("Float")}
+            MascalTypeKind::Boolean => {String::from("Boolean")}
+            MascalTypeKind::DynamicArray => {
+                String::from("DynamicArray")
+            }
+            MascalTypeKind::StaticArray => {
+                String::from("StaticArray")
+            }
+            MascalTypeKind::Dynamic => {
+                String::from("Dynamic")
+            }
+            MascalTypeKind::Type => {
+                String::from("Type")
+            }
+        }
+    }
+}
