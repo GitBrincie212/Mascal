@@ -9,6 +9,7 @@ pub enum MascalErrorType {
     TypeError,
     IndexError,
     ValueError,
+    ArgumentError,
     UndefinedOperation,
     UndefinedErrorType,
     InputError
