@@ -202,6 +202,39 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
     );
 
     define_builtin_function!(
+        BuiltinFunction::new_value_based, "Sum", map, vec![], true,
+        |args, _| {
+            let mut sum: f64 = 0f64;
+            let mut encountered_float: bool = false;
+            for arg in args {
+                match arg {
+                    MascalValue::Integer(i) => {
+                        sum += i.as_f64();
+                    }
+
+                    MascalValue::Float(f) => {
+                        encountered_float = true;
+                        sum += f;
+                    }
+
+                    _ => {
+                        return Err(MascalError {
+                            error_type: MascalErrorType::ArgumentError,
+                            line: 0,
+                            character: 0,
+                            source: format!("Expected a numeric value (i.e float or integer) but got {:?}", arg)
+                        });
+                    }
+                }
+            }
+            if !encountered_float {
+                return Ok(Some(MascalValue::Integer(IntegerNum::new(sum as i128))));
+            }
+            return Ok(Some(MascalValue::Float(sum)))
+        }
+    );
+
+    define_builtin_function!(
         BuiltinFunction::new_value_based, "Tan", map, vec![vec![MascalTypeKind::Float, MascalTypeKind::Integer]], false,
         |args, _| {
             match args.first().unwrap() {
@@ -211,6 +244,100 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
                 MascalValue::Float(f) => Ok(Some(MascalValue::Float(f.tan()))),
                 _ => unreachable!()
             }
+        }
+    );
+
+    define_builtin_function!(
+        BuiltinFunction::new_value_based, "Contains", map,
+        vec![vec![MascalTypeKind::String], vec![MascalTypeKind::String]], false,
+        |args, _| {
+            let MascalValue::String(string) = &args[0] else { unreachable!() };
+            let MascalValue::String(composite) = &args[1] else { unreachable!() };
+            Ok(Some(MascalValue::Boolean(string.contains(&**composite))))
+        }
+    );
+
+    define_builtin_function!(
+        BuiltinFunction::new_value_based, "Index", map,
+        vec![vec![MascalTypeKind::DynamicArray, MascalTypeKind::StaticArray], vec![MascalTypeKind::Dynamic]],
+        false,
+        |args, _| {
+            match &args[0] {
+                MascalValue::StaticArray(values) => {
+                    for (index, value) in values.iter().enumerate() {
+                        if let Some(unwrapped_value) = &*value.borrow() {
+                            if unwrapped_value.is_equal(&args[1]) {
+                                return Ok(Some(MascalValue::Integer(IntegerNum::new(index as i128))));
+                            }
+                        }
+                    }
+                    Ok(Some(MascalValue::Integer(IntegerNum::I8(-1))))
+                }
+                MascalValue::DynamicArray(values) => {
+                    for (index, value) in values.iter().enumerate() {
+                        if let Some(unwrapped_value) = &*value.borrow() {
+                            if unwrapped_value.is_equal(&args[1]) {
+                                return Ok(Some(MascalValue::Integer(IntegerNum::new(index as i128))));
+                            }
+                        }
+                    }
+                    Ok(Some(MascalValue::Integer(IntegerNum::I8(-1))))
+                }
+                _ => {unreachable!()}
+            }
+        }
+    );
+
+    define_builtin_function!(
+        BuiltinFunction::new_value_based, "Count", map,
+        vec![vec![MascalTypeKind::DynamicArray, MascalTypeKind::StaticArray], vec![MascalTypeKind::Dynamic]],
+        false,
+        |args, _| {
+            match &args[0] {
+                MascalValue::StaticArray(values) => {
+                    let mut counter: usize = 0;
+                    for value in values.iter() {
+                        if let Some(unwrapped_value) = &*value.borrow() {
+                            if unwrapped_value.is_equal(&args[1]) {
+                                counter += 1;
+                            }
+                        }
+                    }
+                    Ok(Some(MascalValue::Integer(IntegerNum::new(counter as i128))))
+                }
+                MascalValue::DynamicArray(values) => {
+                    let mut counter: usize = 0;
+                    for value in values.iter() {
+                        if let Some(unwrapped_value) = &*value.borrow() {
+                            if unwrapped_value.is_equal(&args[1]) {
+                                counter += 1;
+                            }
+                        }
+                    }
+                    Ok(Some(MascalValue::Integer(IntegerNum::new(counter as i128))))
+                }
+                _ => {unreachable!()}
+            }
+        }
+    );
+
+    define_builtin_function!(
+        BuiltinFunction::new_value_based, "To_Upper", map,
+        vec![vec![MascalTypeKind::String]],
+        false,
+        |args, _| {
+            let MascalValue::String(inner_str) = &args[0] else {unreachable!()};
+            Ok(Some(MascalValue::String(Arc::from(inner_str.to_uppercase()))))
+        }
+    );
+
+    define_builtin_function!(
+        BuiltinFunction::new_value_based, "To_Lower", map,
+        vec![vec![MascalTypeKind::String]],
+        false,
+        |args, _| {
+            let MascalValue::String(inner_str) = &args[0] else {unreachable!()};
+            Ok(Some(MascalValue::String(Arc::from(inner_str.to_lowercase()))))
         }
     );
 
