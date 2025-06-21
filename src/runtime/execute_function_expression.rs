@@ -5,11 +5,12 @@ use crate::defs::builtins::builtin_functions::{BUILT_IN_FUNCTION_TABLE};
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
 use crate::defs::statements::MascalStatement;
-use crate::defs::types::{to_processed_type, MascalType, MascalUnprocessedType};
+use crate::defs::types::{to_processed_type, to_unprocessed_type, MascalType, MascalUnprocessedType};
 use crate::runtime::execute_expression::execute_expression;
 use crate::runtime::{ExecutionData};
 use crate::runtime::execute_builtin_function::execute_builtin_function;
 use crate::runtime::execute_statement::execute_statement;
+use crate::runtime::execute_typecast::execute_typecast;
 use crate::runtime::values::MascalValue;
 use crate::runtime::variable_table::{create_variable_table, VariableData, VariableTable};
 
@@ -19,13 +20,25 @@ pub fn execute_function_call(
 ) -> Result<MascalValue, MascalError> {
     let fn_name: String;
     match function {
-        MascalExpression::SymbolicExpression(name) => {fn_name = name}
-        _ => {return Err(MascalError {
-            error_type: MascalErrorType::TypeError,
-            line: 0,
-            character: 0,
-            source: String::from("Expected an identifier for the function call but got a expression")
-        });}
+        MascalExpression::SymbolicExpression(target_name) => {
+            fn_name = target_name;
+        }
+        MascalExpression::TypeExpression(t) => {
+            return execute_typecast(t, arguments, exec_data);
+        }
+        expr => {
+            let value: MascalValue = execute_expression(expr, exec_data.clone())?;
+            if value.is_type_of(&MascalType::Type) {
+                let MascalValue::Type(extracted_type) =  value else {unreachable!()};
+                return execute_typecast(Box::new(to_unprocessed_type(extracted_type)?), arguments, exec_data);
+            }
+            return Err(MascalError {
+                error_type: MascalErrorType::TypeError,
+                line: 0,
+                character: 0,
+                source: String::from("Expected an identifier for the function call but got a expression")
+            });
+        }
     }
     if let Some(built_in_func) = BUILT_IN_FUNCTION_TABLE.get(&fn_name)  {
         return execute_builtin_function(built_in_func.clone(), arguments, exec_data.clone());
