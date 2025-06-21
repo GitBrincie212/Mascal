@@ -8,21 +8,20 @@ use crate::defs::types::{to_processed_type, MascalType, MascalUnprocessedType};
 use crate::runtime::execute_expression::execute_expression;
 use crate::runtime::ExecutionData;
 use crate::runtime::values::MascalValue;
+use crate::{type_cast_array_impl};
 
 pub fn execute_typecast(
     function: Box<MascalUnprocessedType>, arguments: Vec<MascalExpression>, 
     exec_data: Rc<RefCell<ExecutionData>>
 ) -> Result<MascalValue, MascalError> {
-    if arguments.len() != 1 {
-        return Err(MascalError {
-            error_type: MascalErrorType::ArgumentError,
-            character: 0,
-            line: 0,
-            source: format!("Expected one value for the type casting but got {:?} arguments", arguments.len())
-        })
-    }
     let value: MascalValue = execute_expression(arguments[0].clone(), exec_data)?;
-    match (to_processed_type(*function.clone())?, value) {
+    execute_processed_typecast(to_processed_type(*function.clone())?, value)
+}
+
+pub fn execute_processed_typecast(
+    mascal_type: MascalType, value: MascalValue,
+) -> Result<MascalValue, MascalError> {
+    match (mascal_type, value) {
         (MascalType::Integer, MascalValue::Float(f)) => {
             Ok(MascalValue::Integer(IntegerNum::new(f.round() as i128)))
         }
@@ -43,10 +42,22 @@ pub fn execute_typecast(
             Ok(MascalValue::Float(if b {1f64} else {0f64}))
         }
 
+        (MascalType::StaticArray {array_type, ..}, MascalValue::DynamicArray(values)) => {
+            type_cast_array_impl!(values, array_type, |x: Vec<Rc<RefCell<Option<MascalValue>>>>| {
+                MascalValue::StaticArray(x.into_boxed_slice())
+            });
+        }
+
+        (MascalType::DynamicArray {array_type, ..}, MascalValue::StaticArray(values)) => {
+            type_cast_array_impl!(values, array_type, |x: Box<[Rc<RefCell<Option<MascalValue>>>]>| {
+                MascalValue::DynamicArray(x.to_vec())
+            });
+        }
+
         (MascalType::Dynamic, v) => {
             Ok(v)
         }
-        
+
         (t, v) => {
             if v.is_type_of(&t) {
                 return Ok(v);
