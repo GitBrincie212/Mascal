@@ -124,6 +124,34 @@ fn is_expected_array_internal(
 }
 
 impl MascalValue {
+    pub fn is_equal(&self, other: &MascalValue) -> bool {
+        match (self, other) {
+            (MascalValue::Integer(i1), MascalValue::Integer(i2)) =>
+                i1.to_i128() == i2.to_i128(),
+            (MascalValue::Float(f1), MascalValue::Float(f2)) => *f1 == *f2,
+            (MascalValue::Boolean(b1), MascalValue::Boolean(b2)) => *b1 == *b2,
+            (MascalValue::String(s1), MascalValue::String(s2)) => s1.eq(&*s2),
+            (MascalValue::Type(t1), MascalValue::Type(t2)) => *t1 == *t2,
+            (MascalValue::NULL, MascalValue::NULL) => true,
+            (MascalValue::DynamicArray(values1), MascalValue::DynamicArray(values2)) => {
+                if values1.len() != values2.len() {return false;}
+                values1
+                    .iter()
+                    .zip(values2.iter())
+                    .all(|(v1, v2)| {
+                        let v1_borrow: &Option<MascalValue> = &*v1.borrow();
+                        let v2_borrow: &Option<MascalValue> = &*v2.borrow();
+                        if let (Some(v1_unwrapped), Some(v2_unwrapped)) = (v1_borrow, v2_borrow) {
+                            return v1_unwrapped.is_equal(v2_unwrapped);
+                        }
+                        if v1_borrow.is_none() && v2_borrow.is_none() {return true}
+                        false
+                    })
+            },
+            (_, _) => false
+        }
+    }
+
     pub fn is_expected_array(&self, sizes: Rc<[usize]>, dynamics: Rc<[bool]>) -> Result<(), MascalError> {
         match self {
             MascalValue::StaticArray(v) => {
