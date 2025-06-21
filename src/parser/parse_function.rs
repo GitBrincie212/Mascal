@@ -1,10 +1,8 @@
 use crate::defs::blocks::{ExecutionBlock, MascalParameter, ScopedBlocks};
 use crate::defs::errors::{MascalError, MascalErrorType};
-use crate::defs::expressions::MascalExpression;
 use crate::defs::token::{Token, TokenType};
 use crate::defs::types::MascalUnprocessedType;
 use crate::parser::parse_executable_block::parse_executable;
-use crate::parser::parse_expression::parse_expression;
 use crate::parser::parse_variables::parse_variable_block;
 use crate::parser::TokenSequence;
 use crate::parser::utils::{extract_braced_block, parse_array_type};
@@ -113,13 +111,13 @@ pub fn parse_function(token_sequence: TokenSequence) -> Result<ScopedBlocks, Mas
             })}
         });
         curr_index += 1;
-        let mut dimensions: Vec<(MascalExpression, bool)> = Vec::new();
-        curr_index = parse_array_type(&token_sequence.tokens, curr_index, |toks, is_dynamic | {
-            dimensions.push((parse_expression(&toks.to_vec())?, is_dynamic));
+        let mut is_dynamics: Vec<bool> = Vec::new();
+        curr_index = parse_array_type(&token_sequence.tokens, curr_index, |_tokens, is_dynamic | {
+            is_dynamics.push(is_dynamic);
             Ok(())
         }, vec![TokenType::OpenBrace])?;
-        if !dimensions.is_empty() {
-            for (dimension, is_dynamic) in dimensions {
+        if !is_dynamics.is_empty() {
+            for is_dynamic in is_dynamics {
                 if is_dynamic {
                     return_type = Some(MascalUnprocessedType::DynamicArray(Box::new(return_type.unwrap())));
                     continue;
