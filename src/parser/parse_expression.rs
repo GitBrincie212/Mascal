@@ -2,7 +2,6 @@ mod parse_primary;
 mod loop_flags;
 mod parse_binary_expression;
 mod parse_callable;
-mod parse_inner_member;
 mod utils;
 mod parse_indexing;
 
@@ -16,7 +15,6 @@ use crate::parser::parse_expression::loop_flags::LoopFlags;
 use crate::parser::parse_expression::parse_binary_expression::parse_binary_expression;
 use crate::parser::parse_expression::parse_callable::parse_callable;
 use crate::parser::parse_expression::parse_indexing::parse_indexing_expression;
-use crate::parser::parse_expression::parse_inner_member::parse_inner_member;
 use crate::parser::parse_expression::parse_primary::parse_primary;
 
 pub fn parse_expression_internal(
@@ -39,7 +37,6 @@ pub fn parse_expression_internal(
         }
 
         define_parsing_step!(parse_indexing_expression, tokens, pos, &min_bp, lhs);
-        define_parsing_step!(parse_inner_member, tokens, pos, &min_bp, lhs);
         define_parsing_step!(parse_callable, tokens, pos, &min_bp, lhs);
         define_parsing_step!(parse_binary_expression, tokens, pos, &min_bp, lhs);
     }

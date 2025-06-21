@@ -23,11 +23,6 @@ pub enum MascalExpression {
         right: Box<MascalExpression>,
     },
 
-    InnerMemberAccessExpression {
-        member: Box<MascalExpression>,
-        value: Box<MascalExpression>,
-    },
-
     CallExpression {
         function: Box<MascalExpression>,
         arguments: Vec<MascalExpression>,
