@@ -410,6 +410,54 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
     );
 
     define_builtin_function!(
+        BuiltinFunction::new_expresion_based, "Swap", map,
+        vec![],
+        true,
+        |args, exec_data| {
+            if args.len() != 2 {
+                return Err(MascalError {
+                    error_type: MascalErrorType::ArgumentError,
+                    line: 0,
+                    character: 0,
+                    source: format!("Expected 2 variable names but got {} arguments instead", args.len())
+                });
+            }
+            let varname1: &String = match args[0] {
+                MascalExpression::SymbolicExpression(s) => s,
+                _ => {return Err(MascalError {
+                    error_type: MascalErrorType::ArgumentError,
+                    line: 0,
+                    character: 0,
+                    source: String::from("Expected a variable name as first argument but got something else instead")
+                });}
+            };
+            let varname2: &String = match args[1] {
+                MascalExpression::SymbolicExpression(s) => s,
+                _ => {return Err(MascalError {
+                    error_type: MascalErrorType::ArgumentError,
+                    line: 0,
+                    character: 0,
+                    source: String::from("Expected a variable name as second argument but got something else instead")
+                });}
+            };
+            if let Some(wrapped_vartable) = &exec_data.borrow().variable_table {
+                let mut vartable = wrapped_vartable.borrow_mut();
+                if let [Some(variable_data1), Some(variable_data2)] = vartable.get_disjoint_mut([varname1, varname2]) {
+                    std::mem::swap(variable_data1, variable_data2);
+                    return Ok(None);
+                }
+                return Err(MascalError {
+                    error_type: MascalErrorType::RuntimeError,
+                    character: 0,
+                    line: 0,
+                    source: String::from("Expected variable names but got at least one unknown")
+                });
+            }
+            unreachable!()
+        }
+    );
+
+    define_builtin_function!(
         BuiltinFunction::new_expresion_based, "Read", map, vec![], true,
         |args, exec_data| {
             for arg in args {
