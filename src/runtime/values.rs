@@ -185,7 +185,7 @@ impl MascalValue {
 
     pub fn as_string(&self) -> Result<String, MascalError> {
         match self {
-            MascalValue::String(s) => Ok(format!("\"{}\"", s.deref().to_string())),
+            MascalValue::String(s) => Ok(s.deref().to_string()),
             MascalValue::Integer(i) => {Ok(i.as_string())}
             MascalValue::Float(f) => {Ok(f.to_string())}
             MascalValue::Boolean(b) => {if *b {Ok(String::from("TRUE"))} else {Ok(String::from("FALSE"))}}
