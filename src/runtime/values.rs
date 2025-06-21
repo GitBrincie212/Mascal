@@ -215,7 +215,7 @@ impl MascalValue {
         match self {
             MascalValue::String(s) => Ok(s.deref().to_string()),
             MascalValue::Integer(i) => {Ok(i.as_string())}
-            MascalValue::Float(f) => {Ok(f.to_string())}
+            MascalValue::Float(f) => {Ok(if f.floor() == *f {format!("{}.0", f)} else {f.to_string()})}
             MascalValue::Boolean(b) => {if *b {Ok(String::from("TRUE"))} else {Ok(String::from("FALSE"))}}
             MascalValue::NULL => {Ok(String::from("NULL"))}
             MascalValue::DynamicArray(values) => {
