@@ -25,29 +25,6 @@ pub enum MascalUnprocessedType {
     },
 }
 
-impl MascalUnprocessedType {
-    pub fn as_string(&self) -> String {
-        match self {
-            MascalUnprocessedType::String => String::from("String"),
-            MascalUnprocessedType::Integer => String::from("Integer"),
-            MascalUnprocessedType::Float => {String::from("Float")}
-            MascalUnprocessedType::Boolean => {String::from("Boolean")}
-            MascalUnprocessedType::DynamicArray {array_type, initial_size} => {
-                todo!()
-            }
-            MascalUnprocessedType::StaticArray {array_type, size} => {
-                todo!()
-            }
-            MascalUnprocessedType::Dynamic => {
-                String::from("Dynamic")
-            }
-            MascalUnprocessedType::Type => {
-                String::from("Type")
-            }
-        }
-    }
-}
-
 impl MascalType {
     pub fn as_string(&self) -> String {
         match self {
