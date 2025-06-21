@@ -8,7 +8,7 @@ mod execute_statement;
 mod execute_builtin_function;
 mod execute_declaration_statement;
 pub mod utils;
-mod execute_typecast;
+pub mod execute_typecast;
 
 use std::cell::RefCell;
 use std::rc::Rc;
