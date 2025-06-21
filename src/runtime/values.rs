@@ -95,6 +95,14 @@ fn is_expected_array_internal(
                 Ok(())
             }
             _ => {
+                if sizes.is_empty() && curr >= 1 {
+                    return Err(MascalError {
+                        error_type: MascalErrorType::TypeError,
+                        line: 0,
+                        character: 0,
+                        source: String::from("Cannot assign an array to a value that hasn't initialized an array size")
+                    })
+                }
                 if curr < sizes.len() {
                     return Err(MascalError {
                         error_type: MascalErrorType::TypeError,
