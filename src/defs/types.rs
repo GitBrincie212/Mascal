@@ -28,10 +28,10 @@ pub enum MascalUnprocessedType {
 impl MascalType {
     pub fn as_string(&self) -> String {
         match self {
-            MascalType::String => String::from("String"),
-            MascalType::Integer => String::from("Integer"),
-            MascalType::Float => {String::from("Float")}
-            MascalType::Boolean => {String::from("Boolean")}
+            MascalType::String => String::from("STRING"),
+            MascalType::Integer => String::from("INTEGER"),
+            MascalType::Float => {String::from("FLOAT")}
+            MascalType::Boolean => {String::from("BOOLEAN")}
             MascalType::DynamicArray {..} => {
                 todo!()
             }
@@ -39,10 +39,10 @@ impl MascalType {
                 todo!()
             }
             MascalType::Dynamic => {
-                String::from("Dynamic")
+                String::from("DYNAMIC")
             }
             MascalType::Type => {
-                String::from("Type")
+                String::from("TYPE")
             }
         }
     }
@@ -170,21 +170,21 @@ impl MascalTypeKind {
     
     pub fn as_string(&self) -> String {
         match self {
-            MascalTypeKind::String => String::from("String"),
-            MascalTypeKind::Integer => String::from("Integer"),
-            MascalTypeKind::Float => {String::from("Float")}
-            MascalTypeKind::Boolean => {String::from("Boolean")}
+            MascalTypeKind::String => String::from("STRING"),
+            MascalTypeKind::Integer => String::from("INTEGER"),
+            MascalTypeKind::Float => {String::from("FLOAT")}
+            MascalTypeKind::Boolean => {String::from("BOOLEAN")}
             MascalTypeKind::DynamicArray => {
-                String::from("DynamicArray")
+                String::from("DYNAMIC_ARRAY")
             }
             MascalTypeKind::StaticArray => {
-                String::from("StaticArray")
+                String::from("STATIC_ARRAY")
             }
             MascalTypeKind::Dynamic => {
-                String::from("Dynamic")
+                String::from("DYNAMIC")
             }
             MascalTypeKind::Type => {
-                String::from("Type")
+                String::from("TYPE")
             }
         }
     }
