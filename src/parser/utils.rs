@@ -127,11 +127,17 @@ pub fn run_per_statement<'a, F>(
 ) -> Result<Vec<Token<'a>>, MascalError> where F: (FnMut(&Vec<Token<'a>>) -> Result<(), MascalError>) {
     let mut statement_token_seq: Vec<Token> = Vec::new();
     let mut depth_counter: usize = 0;
-    for token in token_sequence.tokens.iter() {
+    let mut entered_conditional_stmt: bool = false;
+    for (index, token) in token_sequence.tokens.iter().enumerate() {
         if token.token_type != TokenType::Comment {
             statement_token_seq.push(token.clone())
         }
         match token.token_type {
+            TokenType::If => {
+                if depth_counter == 0 {
+                    entered_conditional_stmt = true;
+                }
+            }
             TokenType::OpenBrace => {
                 depth_counter += 1;
             }
@@ -140,9 +146,21 @@ pub fn run_per_statement<'a, F>(
                 if depth_counter > 0 {
                     continue;
                 }
+                let lookahead = token_sequence.tokens.get(index + 1)
+                    .map(|x| &x.token_type)
+                    .unwrap_or(&TokenType::NULL);
+                if !entered_conditional_stmt {
+                    func(&statement_token_seq)?;
+                    statement_token_seq.clear();
+                    continue;
+                }
+                if *lookahead == TokenType::ElseIf
+                    || *lookahead == TokenType::Else {
+                    continue;
+                }
+                entered_conditional_stmt = false;
                 func(&statement_token_seq)?;
                 statement_token_seq.clear();
-                continue;
             }
             TokenType::Semicolon => {
                 if depth_counter > 0 {
