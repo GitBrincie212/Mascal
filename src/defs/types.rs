@@ -32,10 +32,10 @@ impl MascalType {
             MascalType::Integer => String::from("Integer"),
             MascalType::Float => {String::from("Float")}
             MascalType::Boolean => {String::from("Boolean")}
-            MascalType::DynamicArray {array_type, initial_size} => {
+            MascalType::DynamicArray {..} => {
                 todo!()
             }
-            MascalType::StaticArray {array_type, size} => {
+            MascalType::StaticArray {..} => {
                 todo!()
             }
             MascalType::Dynamic => {
@@ -96,7 +96,7 @@ pub fn to_processed_type(unprocessed: MascalUnprocessedType) -> Result<MascalTyp
         MascalUnprocessedType::Dynamic => Ok(MascalType::Dynamic),
         MascalUnprocessedType::Type => Ok(MascalType::Type),
         MascalUnprocessedType::DynamicArray {array_type, initial_size} => {
-            let mut size_val: Option<usize> = None;
+            let size_val: Option<usize>;
             process_array_size!(initial_size, size_val);
             Ok(MascalType::DynamicArray {
                 array_type: Box::new(to_processed_type(*array_type)?), 
@@ -104,7 +104,7 @@ pub fn to_processed_type(unprocessed: MascalUnprocessedType) -> Result<MascalTyp
             })
         }
         MascalUnprocessedType::StaticArray {array_type, size} => {
-            let mut size_val: Option<usize> = None;
+            let size_val: Option<usize>;
             process_array_size!(size, size_val);
             if size_val.is_none() {
                 return Err(MascalError {
@@ -140,6 +140,7 @@ pub enum MascalType {
     },
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MascalTypeKind {
     Integer,
@@ -153,20 +154,6 @@ pub enum MascalTypeKind {
 }
 
 impl MascalTypeKind {
-    pub fn is_type_of(&self, ty: MascalType) -> bool {
-        match (self, ty) {
-            (MascalTypeKind::Integer, MascalType::Integer) => true,
-            (MascalTypeKind::Float, MascalType::Float) => true,
-            (MascalTypeKind::String, MascalType::String) => true,
-            (MascalTypeKind::Dynamic, MascalType::Dynamic) => true,
-            (MascalTypeKind::Type, MascalType::Type) => true,
-            (MascalTypeKind::Boolean, MascalType::Boolean) => true,
-            (MascalTypeKind::StaticArray, MascalType::StaticArray {..}) => true,
-            (MascalTypeKind::DynamicArray, MascalType::DynamicArray {..}) => true,
-            _ => false
-        }
-    }
-
     pub fn is_type_of_for_value(&self, v: &MascalValue) -> bool {
         match (self, v) {
             (MascalTypeKind::Dynamic, _) => true,

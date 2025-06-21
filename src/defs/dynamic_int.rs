@@ -56,18 +56,6 @@ impl IntegerNum {
         }
     }
 
-    pub fn max(&self, other: &IntegerNum) -> IntegerNum {
-        let num_other: i128 = self.to_i128();
-        let self_num: i128 = other.to_i128();
-        if self_num > num_other  { IntegerNum::new(self_num) } else { IntegerNum::new(num_other) }
-    }
-
-    pub fn min(&self, other: &IntegerNum) -> IntegerNum {
-        let num_other: i128 = self.to_i128();
-        let self_num: i128 = other.to_i128();
-        if self_num < num_other  { IntegerNum::new(self_num) } else { IntegerNum::new(num_other) }
-    }
-
     pub fn add(&self, other: IntegerNum) -> Result<IntegerNum, MascalError> {
         promotion_process(self, &other, i128::overflowing_add)
     }

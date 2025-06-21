@@ -63,32 +63,4 @@ impl VariableBlock {
             .chain(self.types.iter())
             .collect()
     }
-
-    pub fn get_variable_type(&self, var_type: MascalUnprocessedType) -> Option<&Vec<MascalVariableInitialDeclaration>> {
-        match var_type {
-            MascalUnprocessedType::Integer => Some(&self.integers),
-            MascalUnprocessedType::Float => Some(&self.floats),
-            MascalUnprocessedType::Boolean => Some(&self.booleans),
-            MascalUnprocessedType::String => Some(&self.strings),
-            MascalUnprocessedType::Dynamic => Some(&self.dynamics),
-            MascalUnprocessedType::Type => Some(&self.types),
-            _ => None
-        }
-    }
-
-    pub fn get_variable_type_by_index(&self, type_index: usize) -> Option<&Vec<MascalVariableInitialDeclaration>> {
-        self.get_variable_type(self.type_index_to_mascal_type(type_index)?)
-    }
-
-    pub fn type_index_to_mascal_type(&self, type_index: usize) -> Option<MascalUnprocessedType> {
-        match type_index {
-            0 => Some(MascalUnprocessedType::Integer),
-            1 => Some(MascalUnprocessedType::Float),
-            2 => Some(MascalUnprocessedType::Boolean),
-            3 => Some(MascalUnprocessedType::String),
-            4 => Some(MascalUnprocessedType::Dynamic),
-            5 => Some(MascalUnprocessedType::Type),
-            _ => None
-        }
-    }
 }
