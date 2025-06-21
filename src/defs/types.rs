@@ -1,12 +1,5 @@
-use std::cell::RefCell;
-use std::rc::Rc;
-use crate::defs::dynamic_int::IntegerNum;
-use crate::defs::errors::{MascalError, MascalErrorType};
-use crate::defs::expressions::MascalExpression;
-use crate::defs::literal::MascalLiteral;
+use crate::defs::errors::{MascalError};
 use crate::defs::token::TokenType;
-use crate::runtime::execute_expression::execute_expression;
-use crate::runtime::ExecutionData;
 use crate::runtime::values::MascalValue;
 
 #[derive(Debug, Clone)]
@@ -17,14 +10,8 @@ pub enum MascalUnprocessedType {
     String,
     Dynamic,
     Type,
-    DynamicArray {
-        array_type: Box<MascalUnprocessedType>,
-        initial_size: MascalExpression,
-    },
-    StaticArray {
-        array_type: Box<MascalUnprocessedType>,
-        size: MascalExpression,
-    },
+    DynamicArray (Box<MascalUnprocessedType>),
+    StaticArray (Box<MascalUnprocessedType>),
 }
 
 impl MascalType {
@@ -34,10 +21,10 @@ impl MascalType {
             MascalType::Integer => String::from("INTEGER"),
             MascalType::Float => {String::from("FLOAT")}
             MascalType::Boolean => {String::from("BOOLEAN")}
-            MascalType::DynamicArray {array_type, ..} => {
+            MascalType::DynamicArray(array_type) => {
                 format!("{}<>", array_type.as_string())
             }
-            MascalType::StaticArray {array_type, ..} => {
+            MascalType::StaticArray(array_type) => {
                 format!("{}[]", array_type.as_string())
             }
             MascalType::Dynamic => {
@@ -61,34 +48,6 @@ pub fn token_type_to_atom_mascal_type(tt: &TokenType) -> Option<MascalUnprocesse
     }
 }
 
-macro_rules! process_array_size {
-    ($array_size: expr, $mutable_size: expr) => {
-        let size: MascalValue = execute_expression($array_size, Rc::new(RefCell::new(ExecutionData {
-            variable_table: None,
-            scoped_blocks: Rc::new(RefCell::new(Vec::new()))
-        })))?;
-        match size {
-            MascalValue::Integer(int) => {
-                if int.is_negative_or_zero() {
-                    return Err(MascalError {
-                        error_type: MascalErrorType::RuntimeError,
-                        line: 0,
-                        character: 0,
-                        source: format!("Cannot create an array with a value of {:?} (negative or zero)", int.as_string())
-                    })
-                }
-                $mutable_size = Some(int.to_i128() as usize);
-            }
-            _ => return Err(MascalError {
-                error_type: MascalErrorType::TypeError,
-                line: 0,
-                character: 0,
-                source: format!("Cannot determine size of an array with the value {:?}", size.as_string())
-            })
-        };
-    };
-}
-
 pub fn to_processed_type(unprocessed: MascalUnprocessedType) -> Result<MascalType, MascalError> {
     match unprocessed {
         MascalUnprocessedType::Integer => Ok(MascalType::Integer),
@@ -97,29 +56,11 @@ pub fn to_processed_type(unprocessed: MascalUnprocessedType) -> Result<MascalTyp
         MascalUnprocessedType::String => Ok(MascalType::String),
         MascalUnprocessedType::Dynamic => Ok(MascalType::Dynamic),
         MascalUnprocessedType::Type => Ok(MascalType::Type),
-        MascalUnprocessedType::DynamicArray {array_type, initial_size} => {
-            let size_val: Option<usize>;
-            process_array_size!(initial_size, size_val);
-            Ok(MascalType::DynamicArray {
-                array_type: Box::new(to_processed_type(*array_type)?), 
-                initial_size: size_val
-            })
+        MascalUnprocessedType::DynamicArray(array_type) => {
+            Ok(MascalType::DynamicArray(Box::new(to_processed_type(*array_type)?)))
         }
-        MascalUnprocessedType::StaticArray {array_type, size} => {
-            let size_val: Option<usize>;
-            process_array_size!(size, size_val);
-            if size_val.is_none() {
-                return Err(MascalError {
-                    error_type: MascalErrorType::RuntimeError,
-                    line: 0,
-                    character: 0,
-                    source: String::from("Size must be defined for the static array")
-                })
-            }
-            Ok(MascalType::StaticArray {
-                array_type: Box::new(to_processed_type(*array_type)?),
-                size: size_val.unwrap()
-            })
+        MascalUnprocessedType::StaticArray(array_type) => {
+            Ok(MascalType::StaticArray(Box::new(to_processed_type(*array_type)?)))
         }
     }
 }
@@ -132,14 +73,8 @@ pub enum MascalType {
     String,
     Dynamic,
     Type,
-    DynamicArray {
-        array_type: Box<MascalType>,
-        initial_size: Option<usize>,
-    },
-    StaticArray {
-        array_type: Box<MascalType>,
-        size: usize,
-    },
+    DynamicArray (Box<MascalType>),
+    StaticArray(Box<MascalType>),
 }
 
 #[allow(dead_code)]

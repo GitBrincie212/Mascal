@@ -77,15 +77,9 @@ pub fn execute_expression(
             if is_atomic_type_expr {
                 let MascalValue::Type(extract_type) = arr_value else {unreachable!()};
                 if is_dynamic {
-                    return Ok(MascalValue::Type(MascalType::DynamicArray {
-                        array_type: Box::new(extract_type),
-                        initial_size: Some(0)
-                    }))
+                    return Ok(MascalValue::Type(MascalType::DynamicArray(Box::new(extract_type))))
                 }
-                return Ok(MascalValue::Type(MascalType::StaticArray {
-                    array_type: Box::new(extract_type),
-                    size: 0
-                }))
+                return Ok(MascalValue::Type(MascalType::StaticArray(Box::new(extract_type))))
             }
             if !arr_value.is_array() {
                 return Err(MascalError {

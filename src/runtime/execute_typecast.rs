@@ -42,13 +42,13 @@ pub fn execute_processed_typecast(
             Ok(MascalValue::Float(if b {1f64} else {0f64}))
         }
 
-        (MascalType::StaticArray {array_type, ..}, MascalValue::DynamicArray(values)) => {
+        (MascalType::StaticArray(array_type), MascalValue::DynamicArray(values)) => {
             type_cast_array_impl!(values, array_type, |x: Vec<Rc<RefCell<Option<MascalValue>>>>| {
                 MascalValue::StaticArray(x.into_boxed_slice())
             });
         }
 
-        (MascalType::DynamicArray {array_type, ..}, MascalValue::StaticArray(values)) => {
+        (MascalType::DynamicArray(array_type), MascalValue::StaticArray(values)) => {
             type_cast_array_impl!(values, array_type, |x: Box<[Rc<RefCell<Option<MascalValue>>>]>| {
                 MascalValue::DynamicArray(x.to_vec())
             });

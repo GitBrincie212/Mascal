@@ -121,16 +121,10 @@ pub fn parse_function(token_sequence: TokenSequence) -> Result<ScopedBlocks, Mas
         if !dimensions.is_empty() {
             for (dimension, is_dynamic) in dimensions {
                 if is_dynamic {
-                    return_type = Some(MascalUnprocessedType::DynamicArray {
-                        array_type: Box::new(return_type.unwrap()),
-                        initial_size: dimension
-                    });
+                    return_type = Some(MascalUnprocessedType::DynamicArray(Box::new(return_type.unwrap())));
                     continue;
                 }
-                return_type = Some(MascalUnprocessedType::StaticArray {
-                    array_type: Box::new(return_type.unwrap()),
-                    size: dimension
-                });
+                return_type = Some(MascalUnprocessedType::StaticArray(Box::new(return_type.unwrap())));
             }
         }
     }

@@ -285,10 +285,10 @@ impl MascalValue {
             (MascalValue::Boolean(..), MascalType::Boolean) => true,
             (MascalValue::NULL, _) => true,
             (MascalValue::Type(..), MascalType::Type) => true,
-            (MascalValue::StaticArray(..), MascalType::StaticArray {array_type, ..}) => {
+            (MascalValue::StaticArray(..), MascalType::StaticArray (array_type)) => {
                 self.is_type_of(array_type)
             }
-            (MascalValue::DynamicArray(..), MascalType::DynamicArray {array_type, ..}) => {
+            (MascalValue::DynamicArray(..), MascalType::DynamicArray (array_type)) => {
                 self.is_type_of(array_type)
             }
             _ => false
