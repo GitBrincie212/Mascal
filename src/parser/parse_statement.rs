@@ -218,7 +218,7 @@ fn parse_while_loop_statement(tokens: &[Token]) -> Result<MascalStatement, Masca
             error_type: MascalErrorType::ParserError,
             line: tokens[index].line,
             character: tokens[index].start,
-            source: String::from("Expected a opening brace for a for loop block")
+            source: String::from("Expected a opening brace for a while loop block")
         })
     }
 
