@@ -77,10 +77,10 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
     define_builtin_function!(
         BuiltinFunction::new_value_based, "Write", map, vec![], true,
         |args, _| {
-            for val in args {
-                print!("{}", val.as_string()?);
+            for val in &args[..args.len() - 1] {
+                print!("{} ", val.as_string()?);
             }
-            print!("\n");
+            print!("{}\n", args.last().unwrap().as_string()?);
             Ok(None)
         }
     );
