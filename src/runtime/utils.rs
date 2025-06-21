@@ -113,7 +113,7 @@ macro_rules! as_string_array_impl {
         }
         for v in $values[..$values.len() - 1].iter() {
             if let Some(unwrapped_value) = &*v.borrow() {
-                target_string += format!("{}, ", unwrapped_value.as_string()?).as_str();
+                target_string += format!("{}, ", unwrapped_value.as_string_inner(true)?).as_str();
                 continue;
             }
             uninit_cell_error!();
@@ -121,7 +121,7 @@ macro_rules! as_string_array_impl {
         if let Some(last_val) = $values.last() {
             let extracted_final_value = (&*last_val.borrow());
             if let Some(unwrapped_value) = extracted_final_value {
-                target_string += format!("{}", unwrapped_value.as_string()?).as_str();
+                target_string += format!("{}", unwrapped_value.as_string_inner(true)?).as_str();
                 return Ok(target_string + $close);
             }
             uninit_cell_error!();
@@ -240,4 +240,36 @@ macro_rules! array_check_assignment_impl {
         }
         return Ok(());
     };
+}
+
+#[macro_export]
+macro_rules! type_cast_array_impl {
+    ($values: expr, $array_type: expr, $value_type_init: expr) => {{
+        for val in $values.clone() {
+            let mut val_mut_borrow = val.borrow_mut();
+            if let Some(unwrapped_val) = &*val_mut_borrow {
+                let deref_array_type = *$array_type.clone();
+                let is_dynamic_type = &deref_array_type == &MascalType::Dynamic;
+                if !is_dynamic_type && unwrapped_val.is_type_of(&deref_array_type) {
+                    return Err(MascalError {
+                        error_type: MascalErrorType::TypeError,
+                        character: 0,
+                        line: 0,
+                        source: format!(
+                            "Expected an array with type {:?} but got {:?}",
+                            $array_type.as_string(), unwrapped_val.as_string()?
+                        )
+                    })
+                }
+                if is_dynamic_type {
+                    continue;
+                }
+                *val_mut_borrow = Some(
+                    execute_processed_typecast(deref_array_type, unwrapped_val.clone())?
+                );
+                continue;
+            }
+        }
+        return Ok($value_type_init($values));
+    }};
 }
