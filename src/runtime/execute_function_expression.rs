@@ -75,6 +75,7 @@ pub fn execute_function_call(
     let processed_return_type: Option<MascalType> = if let Some(return_type) = func_return_type {
         Some(to_processed_type(return_type)?)
     } else {None};
+    drop(borrowed_mut_vartable);
     for statement in func_exec_block.body.into_iter() {
         match &statement {
             MascalStatement::Declaration {
@@ -102,15 +103,19 @@ pub fn execute_function_call(
                                     )
                                 })
                             }
-                            if !computed_value.is_type_of(&processed_return_type.clone().unwrap()) {
+                            let unwrapped_processed_return_type: MascalType = processed_return_type
+                                .clone()
+                                .unwrap();
+                            if unwrapped_processed_return_type != MascalType::Dynamic && 
+                                !computed_value.is_type_of(&unwrapped_processed_return_type) {
                                 return Err(MascalError {
                                     error_type: MascalErrorType::RuntimeError,
                                     character: 0,
                                     line: 0,
                                     source: format!(
-                                        "Expected value of type {:?} to be returned, but returned {:?}",
-                                        &processed_return_type.unwrap(),
-                                        computed_value.as_type_string()
+                                        "Expected value of type {} to be returned, but returned {}",
+                                        &processed_return_type.unwrap().as_string(),
+                                        computed_value.as_type_string()?
                                     )
                                 })
                             }
