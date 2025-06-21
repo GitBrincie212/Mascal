@@ -34,11 +34,11 @@ impl MascalType {
             MascalType::Integer => String::from("INTEGER"),
             MascalType::Float => {String::from("FLOAT")}
             MascalType::Boolean => {String::from("BOOLEAN")}
-            MascalType::DynamicArray {..} => {
-                todo!()
+            MascalType::DynamicArray {array_type, ..} => {
+                format!("{}<>", array_type.as_string())
             }
-            MascalType::StaticArray {..} => {
-                todo!()
+            MascalType::StaticArray {array_type, ..} => {
+                format!("{}[]", array_type.as_string())
             }
             MascalType::Dynamic => {
                 String::from("DYNAMIC")
@@ -119,37 +119,6 @@ pub fn to_processed_type(unprocessed: MascalUnprocessedType) -> Result<MascalTyp
             Ok(MascalType::StaticArray {
                 array_type: Box::new(to_processed_type(*array_type)?),
                 size: size_val.unwrap()
-            })
-        }
-    }
-}
-
-pub fn to_unprocessed_type(processed: MascalType) -> Result<MascalUnprocessedType, MascalError> {
-    match processed {
-        MascalType::Integer => Ok(MascalUnprocessedType::Integer),
-        MascalType::Float => Ok(MascalUnprocessedType::Float),
-        MascalType::Boolean => Ok(MascalUnprocessedType::Boolean),
-        MascalType::String => Ok(MascalUnprocessedType::String),
-        MascalType::Dynamic => Ok(MascalUnprocessedType::Dynamic),
-        MascalType::Type => Ok(MascalUnprocessedType::Type),
-        MascalType::DynamicArray {array_type, initial_size} => {
-            Ok(MascalUnprocessedType::DynamicArray {
-                array_type: Box::new(to_unprocessed_type(*array_type)?),
-                initial_size: {
-                    if let Some(unwrapped_initial_size) = initial_size {
-                        MascalExpression::LiteralExpression(
-                            MascalLiteral::Integer(IntegerNum::new(unwrapped_initial_size as i128))
-                        )
-                    } else {
-                        MascalExpression::SymbolicExpression(String::from(""))
-                    }
-                }
-            })
-        }
-        MascalType::StaticArray {array_type, size} => {
-            Ok(MascalUnprocessedType::StaticArray {
-                array_type: Box::new(to_unprocessed_type(*array_type)?),
-                size: MascalExpression::LiteralExpression(MascalLiteral::Integer(IntegerNum::new(size as i128)))
             })
         }
     }

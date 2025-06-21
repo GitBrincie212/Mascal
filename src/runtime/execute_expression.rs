@@ -5,7 +5,7 @@ use crate::defs::dynamic_int::IntegerNum;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
 use crate::defs::literal::MascalLiteral;
-use crate::defs::types::to_processed_type;
+use crate::defs::types::{to_processed_type, MascalType};
 use crate::runtime::execute_binary_expression::execute_binary_expression;
 use crate::runtime::execute_function_expression::execute_function_call;
 use crate::runtime::execute_unary_expression::execute_unary_expression;
@@ -71,7 +71,22 @@ pub fn execute_expression(
             array,
             is_dynamic
         } => {
-            let arr_value: MascalValue = execute_expression(*array, exec_data.clone())?;
+            let arr_expr: MascalExpression = *array;
+            let is_atomic_type_expr: bool = matches!(arr_expr, MascalExpression::TypeExpression(_));
+            let arr_value: MascalValue = execute_expression(arr_expr, exec_data.clone())?;
+            if is_atomic_type_expr {
+                let MascalValue::Type(extract_type) = arr_value else {unreachable!()};
+                if is_dynamic {
+                    return Ok(MascalValue::Type(MascalType::DynamicArray {
+                        array_type: Box::new(extract_type),
+                        initial_size: Some(0)
+                    }))
+                }
+                return Ok(MascalValue::Type(MascalType::StaticArray {
+                    array_type: Box::new(extract_type),
+                    size: 0
+                }))
+            }
             if !arr_value.is_array() {
                 return Err(MascalError {
                     error_type: MascalErrorType::TypeError,
@@ -89,7 +104,7 @@ pub fn execute_expression(
                         error_type: MascalErrorType::TypeError,
                         line: 0,
                         character: 0,
-                        source: format!("Expected an index type (integer) but got {:?}", index_value.as_type_string())
+                        source: format!("Expected an index type (integer) but got {:?}", index_value.as_type_string()?)
                     })
                 }
             }?;
@@ -130,5 +145,12 @@ pub fn execute_expression(
         MascalExpression::CallExpression { arguments, function } => {
             execute_function_call(*function, arguments, exec_data)
         }
+        
+        MascalExpression::BlankExpression => {Err(MascalError {
+            error_type: MascalErrorType::ValueError,
+            line: 0,
+            character: 0,
+            source: String::from("Detected an unknown blank expression")
+        })}
     }
 }
