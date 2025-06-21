@@ -107,6 +107,70 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
     );
 
     define_builtin_function!(
+        BuiltinFunction::new_value_based, "Min", map, vec![
+            vec![MascalTypeKind::Float, MascalTypeKind::Integer],
+            vec![MascalTypeKind::Float, MascalTypeKind::Integer]
+        ], false,
+        |args, _| {
+            match (args.first().unwrap(), args.last().unwrap()) {
+                (MascalValue::Float(f), MascalValue::Integer(i)) => {
+                    return if *f < i.as_f64() {Ok(Some(MascalValue::Float(*f)))} else {
+                        Ok(Some(MascalValue::Integer(i.clone())))
+                    }
+                }
+                (MascalValue::Integer(i), MascalValue::Float(f)) => {
+                    return if *f < i.as_f64() {Ok(Some(MascalValue::Float(*f)))} else {
+                        Ok(Some(MascalValue::Integer(i.clone())))
+                    }
+                }
+                (MascalValue::Float(f1), MascalValue::Float(f2)) => {
+                    return if *f1 < *f2 {Ok(Some(MascalValue::Float(*f1)))} else {
+                        Ok(Some(MascalValue::Float(*f2)))
+                    }
+                }
+                (MascalValue::Integer(i1), MascalValue::Integer(i2)) => {
+                    return if i1.to_i128() < i2.to_i128() {Ok(Some(MascalValue::Integer(i1.clone())))} else {
+                        Ok(Some(MascalValue::Integer(i2.clone())))
+                    }
+                }
+                (_, _) => unreachable!()
+            }
+        }
+    );
+
+    define_builtin_function!(
+        BuiltinFunction::new_value_based, "Max", map, vec![
+            vec![MascalTypeKind::Float, MascalTypeKind::Integer],
+            vec![MascalTypeKind::Float, MascalTypeKind::Integer]
+        ], false,
+        |args, _| {
+            match (args.first().unwrap(), args.last().unwrap()) {
+                (MascalValue::Float(f), MascalValue::Integer(i)) => {
+                    return if *f > i.as_f64() {Ok(Some(MascalValue::Float(*f)))} else {
+                        Ok(Some(MascalValue::Integer(i.clone())))
+                    }
+                }
+                (MascalValue::Integer(i), MascalValue::Float(f)) => {
+                    return if *f > i.as_f64() {Ok(Some(MascalValue::Float(*f)))} else {
+                        Ok(Some(MascalValue::Integer(i.clone())))
+                    }
+                }
+                (MascalValue::Float(f1), MascalValue::Float(f2)) => {
+                    return if *f1 > *f2 {Ok(Some(MascalValue::Float(*f1)))} else {
+                        Ok(Some(MascalValue::Float(*f2)))
+                    }
+                }
+                (MascalValue::Integer(i1), MascalValue::Integer(i2)) => {
+                    return if i1.to_i128() > i2.to_i128() {Ok(Some(MascalValue::Integer(i1.clone())))} else {
+                        Ok(Some(MascalValue::Integer(i2.clone())))
+                    }
+                }
+                (_, _) => unreachable!()
+            }
+        }
+    );
+    
+    define_builtin_function!(
         BuiltinFunction::new_value_based, "Log", map, vec![vec![MascalTypeKind::Float, MascalTypeKind::Integer]], false,
         |args, _| {
             match args.first().unwrap() {
