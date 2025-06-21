@@ -5,12 +5,12 @@ use crate::defs::builtins::builtin_functions::{BUILT_IN_FUNCTION_TABLE};
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
 use crate::defs::statements::MascalStatement;
-use crate::defs::types::{to_processed_type, to_unprocessed_type, MascalType, MascalUnprocessedType};
+use crate::defs::types::{to_processed_type, MascalType, MascalUnprocessedType};
 use crate::runtime::execute_expression::execute_expression;
 use crate::runtime::{ExecutionData};
 use crate::runtime::execute_builtin_function::execute_builtin_function;
 use crate::runtime::execute_statement::execute_statement;
-use crate::runtime::execute_typecast::execute_typecast;
+use crate::runtime::execute_typecast::{execute_processed_typecast, execute_typecast};
 use crate::runtime::values::MascalValue;
 use crate::runtime::variable_table::{create_variable_table, VariableData, VariableTable};
 
@@ -30,7 +30,16 @@ pub fn execute_function_call(
             let value: MascalValue = execute_expression(expr, exec_data.clone())?;
             if value.is_type_of(&MascalType::Type) {
                 let MascalValue::Type(extracted_type) =  value else {unreachable!()};
-                return execute_typecast(Box::new(to_unprocessed_type(extracted_type)?), arguments, exec_data);
+                if arguments.len() != 1 {
+                    return Err(MascalError {
+                        error_type: MascalErrorType::ArgumentError,
+                        line: 0,
+                        character: 0,
+                        source: String::from("Expected one value but got none or multiple values")
+                    });
+                }
+                let value: MascalValue = execute_expression(arguments[0].clone(), exec_data)?;
+                return execute_processed_typecast(extracted_type, value);
             }
             return Err(MascalError {
                 error_type: MascalErrorType::TypeError,
