@@ -84,7 +84,7 @@ macro_rules! uninit_cell_error {
 }
 
 #[macro_export]
-macro_rules! as_mascal_type_array_impl {
+macro_rules! as_mascal_atomic_type_array_impl {
     ($values: expr) => {
         let mut mascal_type: MascalType = MascalType::Dynamic;
         let mut has_run_once: bool = false;
@@ -101,6 +101,31 @@ macro_rules! as_mascal_type_array_impl {
             uninit_cell_error!();
         }
         return Ok(mascal_type)
+    };
+}
+
+#[macro_export]
+macro_rules! as_mascal_type_array_impl {
+    ($values: expr, $is_dynamic: expr) => {
+        let mut mascal_type: MascalType = MascalType::Dynamic;
+        let mut has_run_once: bool = false;
+        for value in $values.iter() {
+            if let Some(unwrapped_value) = &*value.borrow() {
+                let val_type: MascalType = unwrapped_value.as_atomic_mascal_type()?;
+                if has_run_once && mascal_type != val_type {
+                    mascal_type = MascalType::Dynamic;
+                    break;
+                }
+                mascal_type = val_type;
+                has_run_once = true;
+                continue;
+            }
+            uninit_cell_error!();
+        }
+        if $is_dynamic {
+            return Ok(MascalType::DynamicArray(Box::new(mascal_type)))
+        }
+        return Ok(MascalType::StaticArray(Box::new(mascal_type)))
     };
 }
 
