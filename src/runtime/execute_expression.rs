@@ -8,7 +8,6 @@ use crate::defs::literal::MascalLiteral;
 use crate::defs::types::to_processed_type;
 use crate::runtime::execute_binary_expression::execute_binary_expression;
 use crate::runtime::execute_function_expression::execute_function_call;
-use crate::runtime::execute_inner_member_expression::execute_inner_member_expression;
 use crate::runtime::execute_unary_expression::execute_unary_expression;
 use crate::runtime::ExecutionData;
 use crate::runtime::values::MascalValue;
@@ -126,10 +125,6 @@ pub fn execute_expression(
         
         MascalExpression::BinaryExpression { left, operator, right } => {
             execute_binary_expression(left, operator, right, exec_data)
-        }
-        
-        MascalExpression::InnerMemberAccessExpression { member, value } => {
-            execute_inner_member_expression(*member, *value, exec_data)
         }
         
         MascalExpression::CallExpression { arguments, function } => {
