@@ -7,13 +7,7 @@ use std::cell::RefCell;
 use std::ops::Deref;
 use std::rc::Rc;
 use std::sync::Arc;
-use crate::{
-    as_mascal_type_array_impl,
-    as_string_array_impl,
-    as_type_string_array_impl,
-    atomic_type_array_impl,
-    uninit_cell_error
-};
+use crate::{as_mascal_atomic_type_array_impl, as_mascal_type_array_impl, as_string_array_impl, as_type_string_array_impl, atomic_type_array_impl, uninit_cell_error};
 use crate::defs::dynamic_int::IntegerNum;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::types::{MascalType};
@@ -188,6 +182,29 @@ impl MascalValue {
         }
     }
 
+    pub fn as_atomic_mascal_type(&self) -> Result<MascalType, MascalError> {
+        match self {
+            MascalValue::String(_) => Ok(MascalType::String),
+            MascalValue::Integer(_) => Ok(MascalType::Integer),
+            MascalValue::Float(_) => Ok(MascalType::Float),
+            MascalValue::Boolean(_) => Ok(MascalType::Boolean),
+            MascalValue::Type(_) => Ok(MascalType::Type),
+            MascalValue::StaticArray(values) => {
+                as_mascal_atomic_type_array_impl!(values);
+            }
+            MascalValue::DynamicArray(values) => {
+                as_mascal_atomic_type_array_impl!(values);
+            }
+
+            MascalValue::NULL => Err(MascalError {
+                error_type: MascalErrorType::TypeError,
+                line: 0,
+                character: 0,
+                source: String::from("NULL is not a type in of itself")
+            }),
+        }
+    }
+
     pub fn as_mascal_type(&self) -> Result<MascalType, MascalError> {
         match self {
             MascalValue::String(_) => Ok(MascalType::String),
@@ -196,10 +213,10 @@ impl MascalValue {
             MascalValue::Boolean(_) => Ok(MascalType::Boolean),
             MascalValue::Type(_) => Ok(MascalType::Type),
             MascalValue::StaticArray(values) => {
-                as_mascal_type_array_impl!(values);
+                as_mascal_type_array_impl!(values, false);
             }
             MascalValue::DynamicArray(values) => {
-                as_mascal_type_array_impl!(values);
+                as_mascal_type_array_impl!(values, true);
             }
 
             MascalValue::NULL => Err(MascalError {
