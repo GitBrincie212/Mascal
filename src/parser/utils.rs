@@ -137,6 +137,12 @@ pub fn run_per_statement<'a, F>(
             }
             TokenType::CloseBrace => {
                 depth_counter -= 1;
+                if depth_counter > 0 {
+                    continue;
+                }
+                func(&statement_token_seq)?;
+                statement_token_seq.clear();
+                continue;
             }
             TokenType::Semicolon => {
                 if depth_counter > 0 {

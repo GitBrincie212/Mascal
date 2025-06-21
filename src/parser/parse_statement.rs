@@ -244,16 +244,7 @@ fn parse_while_loop_statement(tokens: &[Token]) -> Result<MascalStatement, Masca
 }
 
 pub fn parse_statement(token_sequence: &Vec<Token>) -> Result<MascalStatement, MascalError> {
-    let last_token: &Token = token_sequence.last().unwrap();
     let first_token: &Token = token_sequence.first().unwrap();
-    if last_token.token_type != TokenType::Semicolon {
-        return Err(MascalError {
-            error_type: MascalErrorType::ParserError,
-            line: last_token.line,
-            character: last_token.start,
-            source: String::from("Expected an ending semicolon to finish the statement")
-        })
-    }
 
     match first_token.token_type {
         TokenType::Throw => {
