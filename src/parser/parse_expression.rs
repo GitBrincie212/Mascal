@@ -21,7 +21,7 @@ pub fn parse_expression_internal(
     tokens: &[Token], pos: &mut usize, min_bp: BindingPower
 ) -> Result<MascalExpression, MascalError> {
     if tokens.is_empty() {
-        return Ok(MascalExpression::SymbolicExpression("ligma".to_string()));
+        return Ok(MascalExpression::BlankExpression);
     }
     let mut lhs: MascalExpression = parse_prefix(tokens, pos)?;
 
