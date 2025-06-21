@@ -90,7 +90,7 @@ macro_rules! as_mascal_atomic_type_array_impl {
         let mut has_run_once: bool = false;
         for value in $values.iter() {
             if let Some(unwrapped_value) = &*value.borrow() {
-                let val_type: MascalType = unwrapped_value.as_mascal_type()?;
+                let val_type: MascalType = unwrapped_value.as_atomic_mascal_type()?;
                 if has_run_once && mascal_type != val_type {
                     return Ok(MascalType::Dynamic);
                 }
@@ -111,7 +111,7 @@ macro_rules! as_mascal_type_array_impl {
         let mut has_run_once: bool = false;
         for value in $values.iter() {
             if let Some(unwrapped_value) = &*value.borrow() {
-                let val_type: MascalType = unwrapped_value.as_atomic_mascal_type()?;
+                let val_type: MascalType = unwrapped_value.as_mascal_type()?;
                 if has_run_once && mascal_type != val_type {
                     mascal_type = MascalType::Dynamic;
                     break;
