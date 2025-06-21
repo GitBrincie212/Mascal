@@ -270,7 +270,7 @@ pub fn parse_statement(token_sequence: &Vec<Token>) -> Result<MascalStatement, M
 
         TokenType::ElseIf => {
             Err(MascalError {
-                error_type: MascalErrorType::LexerError,
+                error_type: MascalErrorType::ParserError,
                 character: first_token.start,
                 line: first_token.line,
                 source: String::from("Expected an IF condition before this ELIF condition"),
@@ -279,7 +279,7 @@ pub fn parse_statement(token_sequence: &Vec<Token>) -> Result<MascalStatement, M
 
         TokenType::Else => {
             Err(MascalError {
-                error_type: MascalErrorType::LexerError,
+                error_type: MascalErrorType::ParserError,
                 character: first_token.start,
                 line: first_token.line,
                 source: String::from("Expected an IF statement before this ELSE condition"),
