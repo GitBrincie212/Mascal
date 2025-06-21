@@ -99,6 +99,15 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
     );
 
     define_builtin_function!(
+        BuiltinFunction::new_value_based, "Atomic_Type", map, vec![
+            vec![MascalTypeKind::Dynamic, MascalTypeKind::StaticArray, MascalTypeKind::DynamicArray]
+        ], true,
+        |args, _| {
+            Ok(Some(MascalValue::Type(args[0].as_atomic_mascal_type()?)))
+        }
+    );
+
+    define_builtin_function!(
         BuiltinFunction::new_value_based, "Ln", map, vec![vec![MascalTypeKind::Float]], false,
         |args, _| {
             match args.first().unwrap() {
