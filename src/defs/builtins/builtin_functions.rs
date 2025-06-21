@@ -14,6 +14,7 @@ use crate::min_max_common_operation;
 use crate::runtime::ExecutionData;
 use crate::runtime::values::MascalValue;
 use crate::runtime::utils::{get_dimensions, get_sizes};
+use crate::runtime::execute_typecast::execute_processed_typecast;
 
 #[derive(Clone)]
 pub enum BuiltinFunction {
@@ -82,6 +83,18 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
             }
             print!("{}\n", args.last().unwrap().as_string()?);
             Ok(None)
+        }
+    );
+
+    define_builtin_function!(
+        BuiltinFunction::new_value_based, "Type_cast", map, vec![
+            vec![MascalTypeKind::Type],
+            vec![MascalTypeKind::Dynamic]
+        ], true,
+        |args, _| {
+            let MascalValue::Type(extract_type) = args[0].clone() else {unreachable!()};
+            let value: MascalValue = execute_processed_typecast(extract_type, args[1].clone())?;
+            Ok(Some(value))
         }
     );
 
