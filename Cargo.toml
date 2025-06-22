@@ -10,3 +10,4 @@ categories = ["parsing", "compilers", "parser-implementations"]
 regex = "1.11.1"
 once_cell = "1.18"
 num-traits = "0.2.19"
+rand = "0.9.1"
