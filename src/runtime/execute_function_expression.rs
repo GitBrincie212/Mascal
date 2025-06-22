@@ -146,7 +146,7 @@ pub fn execute_function_call(
     drop(borrowed_mut_vartable);
     for statement in func_exec_block.body.into_iter() {
         let statement_results: StatementResults = execute_statement(
-            statement, 
+            statement,
             Rc::new(SemanticContext {
                 variable_table: scoped_variable_table.clone(),
                 scoped_blocks: exec_data.borrow().scoped_blocks.clone(),
@@ -169,7 +169,7 @@ pub fn execute_function_call(
             let unwrapped_processed_return_type: MascalType = processed_return_type
                 .clone()
                 .unwrap();
-            if unwrapped_processed_return_type != MascalType::Dynamic &&
+            if unwrapped_processed_return_type.get_atomic_type() != MascalType::Dynamic &&
                 !value.is_type_of(&unwrapped_processed_return_type) {
                 return Err(MascalError {
                     error_type: MascalErrorType::RuntimeError,

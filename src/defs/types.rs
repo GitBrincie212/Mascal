@@ -15,6 +15,18 @@ pub enum MascalUnprocessedType {
 }
 
 impl MascalType {
+    pub fn get_atomic_type(&self) -> MascalType {
+        match self {
+            MascalType::DynamicArray(t) => {
+                t.get_atomic_type()
+            }
+            MascalType::StaticArray(t) => {
+                t.get_atomic_type()
+            }
+            _ => self.clone(),
+        }
+    }
+
     pub fn as_string(&self) -> String {
         let mut modifiers: Vec<&str> = Vec::new();
         let mut ty: &MascalType = self;
