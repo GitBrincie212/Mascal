@@ -6,6 +6,7 @@ use crate::defs::dynamic_int::IntegerNum;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
 use crate::defs::literal::MascalLiteral;
+use crate::defs::loop_flags::LoopFlags;
 use crate::defs::statements::MascalStatement;
 use crate::defs::types::MascalType;
 use crate::runtime::execute_declaration_statement::execute_declaration_statement;
@@ -13,6 +14,38 @@ use crate::runtime::execute_expression::execute_expression;
 use crate::runtime::ExecutionData;
 use crate::runtime::values::MascalValue;
 use crate::runtime::variable_table::{VariableData, VariableTable};
+
+pub struct SemanticContext {
+    pub variable_table: Rc<RefCell<VariableTable>>,
+    pub scoped_blocks: Rc<RefCell<Vec<ScopedBlocks>>>,
+    pub function_name: Option<Rc<str>>,
+    pub in_loop: bool
+}
+
+impl SemanticContext {
+    pub fn create_from(semantic_context: Rc<SemanticContext>, function_name: Option<Rc<str>>) -> Rc<Self> {
+        Rc::new(SemanticContext {
+            function_name,
+            variable_table: semantic_context.variable_table.clone(),
+            scoped_blocks: semantic_context.scoped_blocks.clone(),
+            in_loop: semantic_context.in_loop
+        })
+    }
+
+    pub fn create_for_loop_from(semantic_context: Rc<SemanticContext>, function_name: Option<Rc<str>>) -> Rc<Self> {
+        Rc::new(SemanticContext {
+            function_name,
+            variable_table: semantic_context.variable_table.clone(),
+            scoped_blocks: semantic_context.scoped_blocks.clone(),
+            in_loop: true
+        })
+    }
+}
+
+pub struct StatementResults {
+    pub return_value: Option<MascalValue>,
+    pub loop_flag: LoopFlags
+}
 
 fn error_check_expression(
     variable_table: Rc<RefCell<VariableTable>>, mut val: MascalExpression, variable_data: &VariableData,
@@ -70,16 +103,15 @@ fn error_check_expression(
 }
 
 pub fn execute_statement(
-    statement: MascalStatement, variable_table: Rc<RefCell<VariableTable>>,
-    scoped_blocks: Rc<RefCell<Vec<ScopedBlocks>>>, function_name: Option<&str>,
-) -> Result<Option<MascalValue>, MascalError> {
+    statement: MascalStatement, semantic_context: Rc<SemanticContext>
+) -> Result<StatementResults, MascalError> {
     match statement {
         MascalStatement::ConditionalStatement(branches) => {
             for branch in branches {
                 let cond: bool = if let Some(cond) = branch.condition {
                     let value: MascalValue = execute_expression(cond, Rc::new(RefCell::new(ExecutionData {
-                        variable_table: Some(variable_table.clone()),
-                        scoped_blocks: scoped_blocks.clone(),
+                        variable_table: Some(semantic_context.variable_table.clone()),
+                        scoped_blocks: semantic_context.scoped_blocks.clone(),
                     })))?;
                     match value {
                         MascalValue::Boolean(b) => Ok(b),
@@ -87,20 +119,21 @@ pub fn execute_statement(
                             line: 0,
                             character: 0,
                             error_type: MascalErrorType::RuntimeError,
-                            source: format!("Expected a boolean variable to indicate {:?}",value)
+                            source: format!("Expected a boolean variable on the condition but got {:?}",value.as_string()?)
                         })
                     }?
                 } else {true};
 
                 if !cond {continue;}
                 for stmt in branch.statements {
-                    let return_notif: Option<MascalValue> = execute_statement(
+                    let statement_results: StatementResults = execute_statement(
                         stmt,
-                        variable_table.clone(),
-                        scoped_blocks.clone(),
-                        function_name
+                        SemanticContext::create_from(
+                            semantic_context.clone(), semantic_context.function_name.clone()
+                        )
                     )?;
-                    if return_notif.is_some() {return Ok(return_notif);}
+                    if statement_results.return_value.is_some() {return Ok(statement_results);}
+                    if statement_results.loop_flag != LoopFlags::NONE {return Ok(statement_results);}
                 }
                 break;
             }
@@ -114,8 +147,8 @@ pub fn execute_statement(
                  changes to the entire codebase which I am not willing to do
                 */
                 let value: MascalValue = execute_expression(cond_expr.clone(), Rc::new(RefCell::new(ExecutionData {
-                    variable_table: Some(variable_table.clone()),
-                    scoped_blocks: scoped_blocks.clone(),
+                    variable_table: Some(semantic_context.variable_table.clone()),
+                    scoped_blocks: semantic_context.scoped_blocks.clone(),
                 })))?;
                 match value {
                     MascalValue::Boolean(b) => Ok(b),
@@ -123,18 +156,23 @@ pub fn execute_statement(
                         line: 0,
                         character: 0,
                         error_type: MascalErrorType::RuntimeError,
-                        source: format!("Expected a boolean variable to indicate {:?}",value)
+                        source: format!("Expected a boolean variable on the condition but got {:?}",value)
                     })
                 }
             }? {
                 for stmt in &condition.statements {
-                    let return_notif: Option<MascalValue> = execute_statement(
+                    let statement_results: StatementResults = execute_statement(
                         stmt.clone(),
-                        variable_table.clone(),
-                        scoped_blocks.clone(),
-                        function_name
+                        SemanticContext::create_for_loop_from(
+                            semantic_context.clone(), semantic_context.function_name.clone()
+                        )
                     )?;
-                    if return_notif.is_some() {return Ok(return_notif);}
+                    if statement_results.loop_flag == LoopFlags::BREAK {
+                        return Ok(StatementResults {return_value: None, loop_flag: LoopFlags::NONE})
+                    } else if statement_results.loop_flag == LoopFlags::CONTINUE {
+                        break;
+                    }
+                    if statement_results.return_value.is_some() {return Ok(statement_results);}
                 }
             }
         }
@@ -146,8 +184,7 @@ pub fn execute_statement(
             statements
         } => {
             let variable_metadata = {
-                variable_table.borrow_mut();
-                let borrowed_vartable = variable_table.borrow();
+                let borrowed_vartable = semantic_context.variable_table.borrow();
                 let variable_data = borrowed_vartable.get(&variable).ok_or_else(||
                     MascalError {
                         error_type: MascalErrorType::RuntimeError,
@@ -174,15 +211,18 @@ pub fn execute_statement(
                 atomic_variable_type
             ) = variable_metadata;
             let from_num: MascalValue = error_check_expression(
-                variable_table.clone(), from, &variable_data, &variable, scoped_blocks.clone()
+                semantic_context.variable_table.clone(), from, &variable_data,
+                &variable, semantic_context.scoped_blocks.clone()
             )?;
 
             let to_num: MascalValue = error_check_expression(
-                variable_table.clone(), to, &variable_data, &variable, scoped_blocks.clone()
+                semantic_context.variable_table.clone(), to, &variable_data,
+                &variable, semantic_context.scoped_blocks.clone()
             )?;
 
             let step_num: MascalValue = error_check_expression(
-                variable_table.clone(), step, &variable_data, &variable, scoped_blocks.clone()
+                semantic_context.variable_table.clone(), step, &variable_data,
+                &variable, semantic_context.scoped_blocks.clone()
             )?;
 
             match (&from_num, &to_num, &step_num) {
@@ -192,7 +232,7 @@ pub fn execute_statement(
                     let mut curr: i128 = from_num.extract_as_int().unwrap();
                     while curr <= int_to_num {
                         {
-                            let mut mutable_borrow_vartable = variable_table.borrow_mut();
+                            let mut mutable_borrow_vartable = semantic_context.variable_table.borrow_mut();
                             mutable_borrow_vartable.insert(variable.clone(), VariableData {
                                 value: Some(Rc::new(RefCell::new(MascalValue::Integer(IntegerNum::new(curr))))),
                                 is_constant,
@@ -203,11 +243,18 @@ pub fn execute_statement(
                             });
                         }
                         for statement in &statements {
-                            let return_notif: Option<MascalValue> = execute_statement(
-                                statement.clone(), variable_table.clone(), 
-                                scoped_blocks.clone(), function_name
+                            let statement_results: StatementResults = execute_statement(
+                                statement.clone(),
+                                SemanticContext::create_for_loop_from(
+                                    semantic_context.clone(), semantic_context.function_name.clone()
+                                )
                             )?;
-                            if return_notif.is_some() {return Ok(return_notif)};
+                            if statement_results.loop_flag == LoopFlags::BREAK {
+                                return Ok(StatementResults {return_value: None, loop_flag: LoopFlags::NONE})
+                            } else if statement_results.loop_flag == LoopFlags::CONTINUE {
+                                break;
+                            }
+                            if statement_results.return_value.is_some() {return Ok(statement_results)};
                         }
                         curr += int_step_num;
                     }
@@ -219,7 +266,7 @@ pub fn execute_statement(
                     let mut curr: f64 = from_num.extract_as_float().unwrap();
                     while curr <= float_to_num {
                         {
-                            let mut mutable_borrow_vartable = variable_table.borrow_mut();
+                            let mut mutable_borrow_vartable = semantic_context.variable_table.borrow_mut();
                             mutable_borrow_vartable.insert(variable.clone(), VariableData {
                                 value: Some(Rc::new(RefCell::new(MascalValue::Float(curr)))),
                                 is_constant,
@@ -230,11 +277,13 @@ pub fn execute_statement(
                             });
                         }
                         for statement in &statements {
-                            let return_notif: Option<MascalValue> = execute_statement(
-                                statement.clone(), variable_table.clone(), 
-                                scoped_blocks.clone(), function_name
+                            let statement_results: StatementResults = execute_statement(
+                                statement.clone(),
+                                SemanticContext::create_for_loop_from(
+                                    semantic_context.clone(), semantic_context.function_name.clone()
+                                )
                             )?;
-                            if return_notif.is_some() {return Ok(return_notif)};
+                            if statement_results.return_value.is_some() {return Ok(statement_results)};
                         }
                         curr += float_step_num;
                     }
@@ -242,16 +291,19 @@ pub fn execute_statement(
                 _ => {unreachable!()}
             }
 
-            return Ok(None);
+            return Ok(StatementResults {return_value: None, loop_flag: LoopFlags::NONE})
         }
         MascalStatement::ExpressionStatement(expression) => {
             execute_expression(expression, Rc::new(RefCell::new(ExecutionData {
-                variable_table: Some(variable_table.clone()),
-                scoped_blocks,
+                variable_table: Some(semantic_context.variable_table.clone()),
+                scoped_blocks: semantic_context.scoped_blocks.clone(),
             })))?;
         }
         MascalStatement::Declaration { variable, value } => {
-            return execute_declaration_statement(variable, value, variable_table.clone(), scoped_blocks.clone());
+            return execute_declaration_statement(
+                variable, value, semantic_context.variable_table.clone(),
+                semantic_context.scoped_blocks.clone()
+            );
         }
         MascalStatement::Throw {
             error_type,
@@ -282,7 +334,30 @@ pub fn execute_statement(
                 source: message
             })
         }
+        MascalStatement::Break => {
+            if !semantic_context.in_loop {
+                return Err(MascalError {
+                    error_type: MascalErrorType::ContextError,
+                    character: 0,
+                    line: 0,
+                    source: String::from("Break statement is not allowed outside of a loop statement"),
+                })
+            }
+            return Ok(StatementResults {return_value: None, loop_flag: LoopFlags::BREAK});
+        }
+
+        MascalStatement::Continue => {
+            if !semantic_context.in_loop {
+                return Err(MascalError {
+                    error_type: MascalErrorType::ContextError,
+                    character: 0,
+                    line: 0,
+                    source: String::from("Continue statement is not allowed outside of a loop statement"),
+                })
+            }
+            return Ok(StatementResults {return_value: None, loop_flag: LoopFlags::CONTINUE});
+        }
     };
 
-    Ok(None)
+    Ok(StatementResults {return_value: None, loop_flag: LoopFlags::NONE})
 }

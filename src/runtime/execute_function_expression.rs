@@ -8,7 +8,7 @@ use crate::defs::types::{to_processed_type, MascalType, MascalUnprocessedType};
 use crate::runtime::execute_expression::execute_expression;
 use crate::runtime::{ExecutionData};
 use crate::runtime::execute_builtin_function::execute_builtin_function;
-use crate::runtime::execute_statement::execute_statement;
+use crate::runtime::execute_statement::{execute_statement, SemanticContext, StatementResults};
 use crate::runtime::execute_typecast::{execute_processed_typecast, execute_typecast};
 use crate::runtime::values::MascalValue;
 use crate::runtime::variable_table::{create_variable_table, VariableData, VariableTable};
@@ -145,12 +145,16 @@ pub fn execute_function_call(
     } else {None};
     drop(borrowed_mut_vartable);
     for statement in func_exec_block.body.into_iter() {
-        let return_notif: Option<MascalValue> = execute_statement(
-            statement, scoped_variable_table.clone(), 
-            exec_data.borrow().scoped_blocks.clone(),
-            Some(fn_name.as_str())
+        let statement_results: StatementResults = execute_statement(
+            statement, 
+            Rc::new(SemanticContext {
+                variable_table: scoped_variable_table.clone(),
+                scoped_blocks: exec_data.borrow().scoped_blocks.clone(),
+                function_name: Some(Rc::from(fn_name.clone())),
+                in_loop: false
+            })
         )?;
-        if let Some(value) = return_notif {
+        if let Some(value) = statement_results.return_value {
             if processed_return_type.is_none() {
                 return Err(MascalError {
                     error_type: MascalErrorType::RuntimeError,

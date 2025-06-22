@@ -17,7 +17,7 @@ use std::sync::{LazyLock, Mutex};
 use crate::ast::AbstractSyntaxTree;
 use crate::defs::blocks::{ExecutionBlock, ScopedBlocks};
 use crate::defs::errors::MascalError;
-use crate::runtime::execute_statement::execute_statement;
+use crate::runtime::execute_statement::{execute_statement, SemanticContext};
 use crate::runtime::variable_table::{create_variable_table, VariableTable};
 
 pub struct ExecutionData {
@@ -39,11 +39,14 @@ pub fn interpert(abstract_syntax_tree: AbstractSyntaxTree) -> Result<(), MascalE
     let scoped_variable_table: Rc<RefCell<VariableTable>>;
     (scoped_variable_table, exec_block) = create_variable_table(exec_block)?;
     let containerized_scoped_blocks: Rc<RefCell<Vec<ScopedBlocks>>> =  Rc::new(RefCell::new(scoped_blocks));
+    let semantic_context: Rc<SemanticContext> = Rc::new(SemanticContext {
+        variable_table: scoped_variable_table.clone(),
+        scoped_blocks: containerized_scoped_blocks.clone(),
+        in_loop: false,
+        function_name: None
+    });
     for statement in exec_block.body.into_iter() {
-        execute_statement(
-            statement, scoped_variable_table.clone(),
-            containerized_scoped_blocks.clone(), None
-        )?;
+        execute_statement(statement, semantic_context.clone())?;
     }
     Ok(())
 }

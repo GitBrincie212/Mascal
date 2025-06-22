@@ -10,23 +10,28 @@ use std::sync::Arc;
 use crate::defs::blocks::ScopedBlocks;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
+use crate::defs::loop_flags::LoopFlags;
 use crate::runtime::execute_declaration_statement::execute_index_based_decleration::execute_index_based_decleration;
 use crate::runtime::execute_expression::execute_expression;
 use crate::runtime::{ExecutionData, FUNCTION_HASHSET};
+use crate::runtime::execute_statement::StatementResults;
 use crate::runtime::values::MascalValue;
 use crate::runtime::variable_table::{VariableData, VariableTable};
 
 pub fn execute_declaration_statement(
     variable: MascalExpression, value: MascalExpression,
     variable_table: Rc<RefCell<VariableTable>>, scoped_blocks: Rc<RefCell<Vec<ScopedBlocks>>>
-) -> Result<Option<MascalValue>, MascalError> {
+) -> Result<StatementResults, MascalError> {
     match variable {
         MascalExpression::SymbolicExpression(varname) => {
             if FUNCTION_HASHSET.lock().unwrap().get(&varname).is_some() {
-                return Ok(Some(execute_expression(value, Rc::new(RefCell::new(ExecutionData {
-                    variable_table: Some(variable_table.clone()),
-                    scoped_blocks,
-                })))?));
+                return Ok(StatementResults {
+                    return_value: Some(execute_expression(value, Rc::new(RefCell::new(ExecutionData {
+                        variable_table: Some(variable_table.clone()),
+                        scoped_blocks,
+                    })))?),
+                    loop_flag: LoopFlags::NONE,
+                });
             }
             let variable_table_borrow = variable_table.borrow();
             if let Some(vardata) = variable_table_borrow.get(&varname) {
@@ -63,7 +68,7 @@ pub fn execute_declaration_statement(
                 };
 
                 vartable_mutable_borrow.insert(varname, owned_data);
-                return Ok(None);
+                return Ok(StatementResults {return_value: None, loop_flag: LoopFlags::NONE});
             }
 
             Err(MascalError {
@@ -76,7 +81,7 @@ pub fn execute_declaration_statement(
 
         MascalExpression::IndexExpression {..} => {
             execute_index_based_decleration(variable, value, variable_table, scoped_blocks)?;
-            Ok(None)
+            Ok(StatementResults {return_value: None, loop_flag: LoopFlags::NONE})
         }
 
         _ => {unreachable!()}
