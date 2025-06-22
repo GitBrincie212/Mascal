@@ -2,7 +2,7 @@ use crate::defs::binding_power::BindingPower;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
 use crate::defs::token::{Token, TokenType};
-use crate::parser::parse_expression::loop_flags::LoopFlags;
+use crate::defs::loop_flags::LoopFlags;
 use crate::parser::parse_expression::parse_expression_internal;
 
 pub fn parse_callable(
