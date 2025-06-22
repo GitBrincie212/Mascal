@@ -39,7 +39,7 @@ pub fn execute_builtin_function<'a>(
                                 source: format!(
                                     "Expected a type of {:?} but got {:?}",
                                     arg_types.first().unwrap().as_string(),
-                                    result.as_type_string()
+                                    result.as_type_string()?
                                 )
                             })
                         }
@@ -53,7 +53,7 @@ pub fn execute_builtin_function<'a>(
                                     .map(|x| format!("{:?}", x.as_string()))
                                     .collect::<Vec<String>>()
                                     .join(", "),
-                                result.as_type_string()
+                                result.as_type_string()?
                             )
                         })
                     }
