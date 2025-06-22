@@ -89,8 +89,8 @@ macro_rules! unsupported_operation_error {
             error_type: MascalErrorType::UndefinedOperation,
             source: format!(
                 "Cannot operate between the values {:?} and {:?}",
-                $left.as_string(),
-                $right.as_string()
+                $left.as_string()?,
+                $right.as_string()?
             ),
         })
     };

@@ -89,8 +89,8 @@ impl MascalValue {
                 line: 0,
                 source: format!(
                     "Cannot operate the \"greater than(>)\" operation between the types {:?} and {:?}",
-                    v1.as_type_string(),
-                    v2.as_type_string()
+                    v1.as_type_string()?,
+                    v2.as_type_string()?
                 )
             })
         })
@@ -107,8 +107,8 @@ impl MascalValue {
                 line: 0,
                 source: format!(
                     "Cannot operate the \"less than(<)\" operation between the types {:?} and {:?}",
-                    v1.as_type_string(),
-                    v2.as_type_string()
+                    v1.as_type_string()?,
+                    v2.as_type_string()?
                 )
             })
         })
@@ -125,8 +125,8 @@ impl MascalValue {
                 line: 0,
                 source: format!(
                     "Cannot operate the \"less than or equal(<=)\" operation between the types {:?} and {:?}",
-                    v1.as_type_string(),
-                    v2.as_type_string()
+                    v1.as_type_string()?,
+                    v2.as_type_string()?
                 )
             })
         })
@@ -143,8 +143,8 @@ impl MascalValue {
                 line: 0,
                 source: format!(
                     "Cannot operate the \"less than or equal(>=)\" operation between the types {:?} and {:?}",
-                    v1.as_type_string(),
-                    v2.as_type_string()
+                    v1.as_type_string()?,
+                    v2.as_type_string()?
                 )
             })
         })
