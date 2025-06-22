@@ -61,3 +61,17 @@ macro_rules! min_max_common_operation {
         }
     };
 }
+
+#[macro_export]
+macro_rules! check_boundaries {
+    ($val1: expr, $val2: expr) => {
+        if $val1 > $val2 {
+            return Err(MascalError {
+                error_type: MascalErrorType::ValueError,
+                character: 0,
+                line: 0,
+                source: String::from("Unallowed range between maximum value and minimum value")
+            })
+        }
+    };
+}

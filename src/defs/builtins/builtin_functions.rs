@@ -10,7 +10,7 @@ use crate::defs::dynamic_int::IntegerNum;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
 use crate::defs::types::{MascalType, MascalTypeKind};
-use crate::min_max_common_operation;
+use crate::{check_boundaries, min_max_common_operation};
 use crate::runtime::ExecutionData;
 use crate::runtime::values::MascalValue;
 use crate::runtime::utils::{get_dimensions, get_sizes};
@@ -83,6 +83,38 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
             }
             print!("{}\n", args.last().unwrap().as_string()?);
             Ok(None)
+        }
+    );
+
+    define_builtin_function!(
+        BuiltinFunction::new_value_based, "RAND_FROM", map, vec![
+            vec![MascalTypeKind::Integer, MascalTypeKind::Float],
+            vec![MascalTypeKind::Integer, MascalTypeKind::Float],
+        ], false,
+        |args, _| {
+            match (args.first().unwrap(), args.last().unwrap()) {
+                (MascalValue::Float(f1), MascalValue::Float(f2)) => {
+                    check_boundaries!(*f1, *f2);
+                    Ok(Some(MascalValue::Float(rand::random_range((*f1)..(*f2)))))
+                }
+
+                (MascalValue::Integer(i), MascalValue::Float(f)) => {
+                    check_boundaries!(i.as_f64(), *f);
+                    Ok(Some(MascalValue::Float(rand::random_range(i.as_f64()..(*f)))))
+                }
+
+                (MascalValue::Float(f), MascalValue::Integer(i)) => {
+                    check_boundaries!(*f, i.as_f64());
+                    Ok(Some(MascalValue::Float(rand::random_range((*f)..i.as_f64()))))
+                }
+
+                (MascalValue::Integer(i1), MascalValue::Integer(i2)) => {
+                    check_boundaries!(i1.to_i128(), i2.to_i128());
+                    Ok(Some(MascalValue::Integer(IntegerNum::new(rand::random_range(i1.to_i128()..i2.to_i128())))))
+                }
+
+                (_, _) => unreachable!(),
+            }
         }
     );
 
@@ -244,7 +276,7 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
                             error_type: MascalErrorType::ArgumentError,
                             line: 0,
                             character: 0,
-                            source: format!("Expected a numeric value (i.e float or integer) but got {:?}", arg)
+                            source: format!("Expected a numeric value (i.e float or integer) but got {:?}", arg.as_string()?)
                         });
                     }
                 }
