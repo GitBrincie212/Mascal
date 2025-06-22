@@ -187,8 +187,8 @@ macro_rules! atomic_type_array_impl {
 
 #[macro_export]
 macro_rules! index_array_impl {
-    ($values: expr, $is_dynamic: expr, $num_val: expr) => {
-        if $is_dynamic {
+    ($values: expr, $is_dynamic: expr, $num_val: expr, $expected_is_dynamic: expr) => {
+        if $is_dynamic != $expected_is_dynamic {
             return Err(MascalError {
                 error_type: MascalErrorType::IndexError,
                 line: 0,
