@@ -140,7 +140,7 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
     );
 
     define_builtin_function!(
-        BuiltinFunction::new_value_based, "Ln", map, vec![vec![MascalTypeKind::Float]], false,
+        BuiltinFunction::new_value_based, "Ln", map, vec![vec![MascalTypeKind::Float, MascalTypeKind::Integer]], false,
         |args, _| {
             match args.first().unwrap() {
                 MascalValue::Integer(i) => Ok(Some(MascalValue::Integer(i.ln()?))),
@@ -262,8 +262,8 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
             let mut encountered_float: bool = false;
             for arg in args {
                 encountered_float = encountered_float || sum_internal(
-                    Rc::new(RefCell::new(Some(arg))), 
-                    &mut sum, 
+                    Rc::new(RefCell::new(Some(arg))),
+                    &mut sum,
                     encountered_float
                 )?;
             }
@@ -299,7 +299,7 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
 
     define_builtin_function!(
         BuiltinFunction::new_value_based, "Index", map,
-        vec![vec![MascalTypeKind::DynamicArray, MascalTypeKind::StaticArray], vec![MascalTypeKind::Dynamic]],
+        vec![vec![MascalTypeKind::DynamicArray, MascalTypeKind::StaticArray, MascalTypeKind::String], vec![MascalTypeKind::Dynamic]],
         false,
         |args, _| {
             match &args[0] {
@@ -313,6 +313,7 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
                     }
                     Ok(Some(MascalValue::Integer(IntegerNum::I8(-1))))
                 }
+
                 MascalValue::DynamicArray(values) => {
                     for (index, value) in values.iter().enumerate() {
                         if let Some(unwrapped_value) = &*value.borrow() {
@@ -323,6 +324,14 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
                     }
                     Ok(Some(MascalValue::Integer(IntegerNum::I8(-1))))
                 }
+
+                MascalValue::String(s) => {
+                    if let Some(result) = s.find(&args[1].as_string()?) {
+                        return Ok(Some(MascalValue::Integer(IntegerNum::new(result as i128))));
+                    }
+                    Ok(Some(MascalValue::Integer(IntegerNum::I8(-1))))
+                }
+
                 _ => {unreachable!()}
             }
         }
@@ -330,7 +339,7 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
 
     define_builtin_function!(
         BuiltinFunction::new_value_based, "Count", map,
-        vec![vec![MascalTypeKind::DynamicArray, MascalTypeKind::StaticArray], vec![MascalTypeKind::Dynamic]],
+        vec![vec![MascalTypeKind::DynamicArray, MascalTypeKind::StaticArray, MascalTypeKind::String], vec![MascalTypeKind::Dynamic]],
         false,
         |args, _| {
             match &args[0] {
@@ -356,6 +365,11 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
                     }
                     Ok(Some(MascalValue::Integer(IntegerNum::new(counter as i128))))
                 }
+
+                MascalValue::String(s) => {
+                    Ok(Some(MascalValue::Integer(IntegerNum::new(s.matches(&args[1].as_string()?).count() as i128))))
+                }
+
                 _ => {unreachable!()}
             }
         }
