@@ -105,10 +105,10 @@ pub fn execute_expression(
             let mut num_val: i128 = num.to_i128();
             match arr_value {
                 MascalValue::DynamicArray(elements) => {
-                    index_array_impl!(elements, is_dynamic, num_val);
+                    index_array_impl!(elements, is_dynamic, num_val, true);
                 }
                 MascalValue::StaticArray(elements) => {
-                    index_array_impl!(elements, is_dynamic, num_val);
+                    index_array_impl!(elements, is_dynamic, num_val, false);
                 }
                 _ => unreachable!()
             }
@@ -139,7 +139,7 @@ pub fn execute_expression(
         MascalExpression::CallExpression { arguments, function } => {
             execute_function_call(*function, arguments, exec_data)
         }
-        
+
         MascalExpression::BlankExpression => {Err(MascalError {
             error_type: MascalErrorType::ValueError,
             line: 0,
