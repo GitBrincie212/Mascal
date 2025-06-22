@@ -25,7 +25,7 @@ impl MascalType {
                     ty = inner;
                 }
                 MascalType::DynamicArray(inner) => {
-                    modifiers.push("<>");
+                    modifiers.push("<<>>");
                     ty = inner;
                 }
                 _ => break,
