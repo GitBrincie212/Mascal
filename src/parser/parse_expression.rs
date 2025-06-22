@@ -1,5 +1,4 @@
 mod parse_primary;
-mod loop_flags;
 mod parse_binary_expression;
 mod parse_callable;
 mod utils;
@@ -11,7 +10,7 @@ use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
 use crate::defs::operators::{token_type_to_unary_operator};
 use crate::defs::token::{Token, TokenType};
-use crate::parser::parse_expression::loop_flags::LoopFlags;
+use crate::defs::loop_flags::LoopFlags;
 use crate::parser::parse_expression::parse_binary_expression::parse_binary_expression;
 use crate::parser::parse_expression::parse_callable::parse_callable;
 use crate::parser::parse_expression::parse_indexing::parse_indexing_expression;
@@ -29,7 +28,7 @@ pub fn parse_expression_internal(
         match tokens.get(*pos).map(|t| &t.token_type) {
             Some(TokenType::Comma)
             | Some(TokenType::CloseBracket)
-            | Some(TokenType::CloseArrow)
+            | Some(TokenType::CloseDynamicArray)
             | Some(TokenType::CloseParen)
             | None
             => break 'pratt,
@@ -63,7 +62,7 @@ pub fn parse_prefix(
             value: Box::new(rhs),
         });
     }
-    
+
     parse_primary(tokens, pos)
 }
 
