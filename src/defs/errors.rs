@@ -12,7 +12,8 @@ pub enum MascalErrorType {
     ArgumentError,
     UndefinedOperation,
     UndefinedErrorType,
-    InputError
+    InputError,
+    ContextError
 }
 
 #[derive(Debug)]
