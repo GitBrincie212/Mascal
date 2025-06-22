@@ -5,7 +5,7 @@ use std::num::{ParseFloatError, ParseIntError};
 use std::rc::Rc;
 use std::sync::{Arc};
 use once_cell::sync::Lazy;
-use crate::defs::builtins::utils::flatten_impl;
+use crate::defs::builtins::utils::{flatten_impl, sum_internal};
 use crate::defs::dynamic_int::IntegerNum;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
@@ -261,30 +261,16 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
             let mut sum: f64 = 0f64;
             let mut encountered_float: bool = false;
             for arg in args {
-                match arg {
-                    MascalValue::Integer(i) => {
-                        sum += i.as_f64();
-                    }
-
-                    MascalValue::Float(f) => {
-                        encountered_float = true;
-                        sum += f;
-                    }
-
-                    _ => {
-                        return Err(MascalError {
-                            error_type: MascalErrorType::ArgumentError,
-                            line: 0,
-                            character: 0,
-                            source: format!("Expected a numeric value (i.e float or integer) but got {:?}", arg.as_string()?)
-                        });
-                    }
-                }
+                encountered_float = encountered_float || sum_internal(
+                    Rc::new(RefCell::new(Some(arg))), 
+                    &mut sum, 
+                    encountered_float
+                )?;
             }
             if !encountered_float {
                 return Ok(Some(MascalValue::Integer(IntegerNum::new(sum as i128))));
             }
-            return Ok(Some(MascalValue::Float(sum)))
+            Ok(Some(MascalValue::Float(sum)))
         }
     );
 
@@ -533,7 +519,12 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
                                 v.push(Rc::new(RefCell::new(val.borrow().clone())));
                             }
                         }
-                        _ => unreachable!()
+                        MascalValue::StaticArray(v_inner) => {
+                            for val in v_inner {
+                                v.push(Rc::new(RefCell::new(val.borrow().clone())));
+                            }
+                        }
+                        _ => v.push(Rc::new(RefCell::new(Some(arr_val))))
                     }
                 }
                 return Ok(Some(MascalValue::DynamicArray(v)));

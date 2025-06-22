@@ -75,3 +75,46 @@ macro_rules! check_boundaries {
         }
     };
 }
+
+pub fn sum_internal(value: Rc<RefCell<Option<MascalValue>>>, sum: &mut f64, encountered_float: bool) -> Result<bool, MascalError> {
+    match &*value.borrow() {
+        Some(MascalValue::Integer(i)) => {
+            *sum += i.as_f64();
+            Ok(encountered_float)
+        }
+
+        Some(MascalValue::Float(f)) => {
+            *sum += *f;
+            Ok(true)
+        }
+
+        Some(MascalValue::StaticArray(v)) => {
+            let mut main_result: bool = false;
+            for value in v {
+                main_result = main_result || sum_internal(value.clone(), sum, encountered_float)?;
+            }
+            Ok(main_result)
+        }
+
+        Some(MascalValue::DynamicArray(v)) => {
+            let mut main_result: bool = false;
+            for value in v {
+                main_result = main_result || sum_internal(value.clone(), sum, encountered_float)?;
+            }
+            Ok(main_result)
+        }
+
+        Some(val) => {
+            Err(MascalError {
+                error_type: MascalErrorType::ArgumentError,
+                line: 0,
+                character: 0,
+                source: format!("Expected a numeric value (i.e float or integer) but got {:?}", val.as_string()?)
+            })
+        }
+
+        None => {
+            uninit_cell_error!()
+        }
+    }
+}
