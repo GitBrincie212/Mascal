@@ -14,6 +14,27 @@ use crate::runtime::execute_typecast::{execute_processed_typecast, execute_typec
 use crate::runtime::values::MascalValue;
 use crate::runtime::variable_table::{create_variable_table, VariableData, VariableTable};
 
+fn notify_mutable_params(
+    mutable_parameters: Vec<(String, String)>, scoped_variable_table: Rc<RefCell<VariableTable>>, 
+    exec_data: Rc<RefCell<ExecutionData>>
+) {
+    let outer_vartable = exec_data.borrow().variable_table.clone();
+    if let Some(unwrapped_outer_vartable) = outer_vartable {
+        let scope_borrow_vartable = scoped_variable_table.borrow();
+        let mut outer_borrow_mut_vartable = unwrapped_outer_vartable
+            .borrow_mut();
+        for (param_name, var_name) in mutable_parameters {
+            let mutable_vardata = outer_borrow_mut_vartable
+                .get_mut(&var_name)
+                .unwrap();
+            let parameter_vardata = scope_borrow_vartable
+                .get(&param_name)
+                .unwrap();
+            mutable_vardata.value = parameter_vardata.value.clone();
+        }
+    }
+}
+
 #[allow(dead_code)]
 pub fn execute_function_call(
     function: MascalExpression, arguments: Vec<MascalExpression>, exec_data: Rc<RefCell<ExecutionData>>
@@ -55,8 +76,8 @@ pub fn execute_function_call(
     let mut func_parameters: &Vec<MascalParameter> = &Vec::new();
     let mut func_return_type: Option<MascalUnprocessedType> = None;
     let mut wrapped_func_exec_block: Option<ExecutionBlock> = None;
-    let exedata_binding = &*exec_data.borrow();
-    let borrowed_scoped_blocks = &*exedata_binding.scoped_blocks.borrow();
+    let exedata_binding: &ExecutionData = &*exec_data.borrow();
+    let borrowed_scoped_blocks: &Vec<ScopedBlocks> = &*exedata_binding.scoped_blocks.borrow();
     for scoped_block in borrowed_scoped_blocks.iter() {
         match scoped_block {
             ScopedBlocks::PROGRAM(..) => {unreachable!()}
@@ -83,14 +104,40 @@ pub fn execute_function_call(
             source: format!("Unidentified function with the name of {:?}", fn_name)
         })
     }
+    if func_parameters.len() != arguments.len() {
+        return Err(MascalError {
+            error_type: MascalErrorType::ArgumentError,
+            line: 0,
+            character: 0,
+            source: format!("Expected {} argument(s) but got {} argument(s) instead", func_parameters.len(), arguments.len())
+        })
+    }
     let mut func_exec_block: ExecutionBlock = wrapped_func_exec_block.unwrap();
     let scoped_variable_table: Rc<RefCell<VariableTable>>;
     (scoped_variable_table, func_exec_block) = create_variable_table(func_exec_block)?;
     let mut borrowed_mut_vartable = scoped_variable_table.borrow_mut();
+    let mut mutable_parameters: Vec<(String, String)> = Vec::with_capacity(func_parameters.len());
     for (index, parameter) in func_parameters.into_iter().enumerate() {
         let data: &mut VariableData = borrowed_mut_vartable
             .get_mut(&parameter.name)
             .unwrap();
+        if parameter.is_mutable {
+            match &arguments[index] {
+                MascalExpression::SymbolicExpression(varname) => {
+                    mutable_parameters.push((parameter.name.clone(), varname.clone()));
+                }
+                
+                _ => {
+                    return Err(MascalError {
+                        error_type: MascalErrorType::ArgumentError,
+                        line: 0,
+                        character: 0,
+                        source: String::from("Expected a variable name in order to update to, but got something else")
+                    })
+                }
+            }
+            continue;
+        }
         let result: MascalValue = execute_expression(arguments[index].clone(), exec_data.clone())?;
         data.value = Some(Rc::new(RefCell::new(result)));
     }
@@ -141,6 +188,7 @@ pub fn execute_function_call(
                                     )
                                 })
                             }
+                            notify_mutable_params(mutable_parameters, scoped_variable_table, exec_data.clone());
                             return Ok(computed_value);
                         }
                     }
@@ -169,6 +217,8 @@ pub fn execute_function_call(
             source: String::from("Expected a value to be returned, but nothing was returned")
         });
     }
+
+    notify_mutable_params(mutable_parameters, scoped_variable_table, exec_data.clone());
 
     Ok(MascalValue::NULL)
 }
