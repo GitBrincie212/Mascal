@@ -4,7 +4,6 @@ use crate::defs::blocks::{ExecutionBlock, MascalParameter, ScopedBlocks};
 use crate::defs::builtins::builtin_functions::{BUILT_IN_FUNCTION_TABLE};
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
-use crate::defs::statements::MascalStatement;
 use crate::defs::types::{to_processed_type, MascalType, MascalUnprocessedType};
 use crate::runtime::execute_expression::execute_expression;
 use crate::runtime::{ExecutionData};
@@ -15,7 +14,7 @@ use crate::runtime::values::MascalValue;
 use crate::runtime::variable_table::{create_variable_table, VariableData, VariableTable};
 
 fn notify_mutable_params(
-    mutable_parameters: Vec<(String, String)>, scoped_variable_table: Rc<RefCell<VariableTable>>, 
+    mutable_parameters: Vec<(String, String)>, scoped_variable_table: Rc<RefCell<VariableTable>>,
     exec_data: Rc<RefCell<ExecutionData>>
 ) {
     let outer_vartable = exec_data.borrow().variable_table.clone();
@@ -126,7 +125,7 @@ pub fn execute_function_call(
                 MascalExpression::SymbolicExpression(varname) => {
                     mutable_parameters.push((parameter.name.clone(), varname.clone()));
                 }
-                
+
                 _ => {
                     return Err(MascalError {
                         error_type: MascalErrorType::ArgumentError,
@@ -146,68 +145,42 @@ pub fn execute_function_call(
     } else {None};
     drop(borrowed_mut_vartable);
     for statement in func_exec_block.body.into_iter() {
-        match &statement {
-            MascalStatement::Declaration {
-                variable,
-                value
-            } => {
-                match variable {
-                    MascalExpression::SymbolicExpression(name) => {
-                        if name == &fn_name {
-                            let computed_value: MascalValue = execute_expression(
-                                value.clone(),
-                                Rc::new(RefCell::new(ExecutionData {
-                                    variable_table: Some(scoped_variable_table.clone()),
-                                    scoped_blocks: exec_data.borrow().scoped_blocks.clone()
-                                }
-                                )))?;
-                            if processed_return_type.is_none() {
-                                return Err(MascalError {
-                                    error_type: MascalErrorType::RuntimeError,
-                                    character: 0,
-                                    line: 0,
-                                    source: format!(
-                                        "Expected no value to be returned, but returned {:?}",
-                                        computed_value
-                                    )
-                                })
-                            }
-                            let unwrapped_processed_return_type: MascalType = processed_return_type
-                                .clone()
-                                .unwrap();
-                            if unwrapped_processed_return_type != MascalType::Dynamic && 
-                                !computed_value.is_type_of(&unwrapped_processed_return_type) {
-                                return Err(MascalError {
-                                    error_type: MascalErrorType::RuntimeError,
-                                    character: 0,
-                                    line: 0,
-                                    source: format!(
-                                        "Expected value of type {} to be returned, but returned {}",
-                                        &processed_return_type.unwrap().as_string(),
-                                        computed_value.as_type_string()?
-                                    )
-                                })
-                            }
-                            notify_mutable_params(mutable_parameters, scoped_variable_table, exec_data.clone());
-                            return Ok(computed_value);
-                        }
-                    }
-                    _ => {
-                        return Err(MascalError {
-                            error_type: MascalErrorType::RuntimeError,
-                            character: 0,
-                            line: 0,
-                            source: String::from("Callables do not support using expressions for the name other than an identifier")
-                        })
-                    }
-                }
-            }
-
-            _ => {}
-        }
-        execute_statement(
-            statement, scoped_variable_table.clone(), exec_data.borrow().scoped_blocks.clone()
+        let return_notif: Option<MascalValue> = execute_statement(
+            statement, scoped_variable_table.clone(), 
+            exec_data.borrow().scoped_blocks.clone(),
+            Some(fn_name.as_str())
         )?;
+        if let Some(value) = return_notif {
+            if processed_return_type.is_none() {
+                return Err(MascalError {
+                    error_type: MascalErrorType::RuntimeError,
+                    character: 0,
+                    line: 0,
+                    source: format!(
+                        "Expected no value to be returned, but returned {:?}",
+                        value.as_string()?
+                    )
+                })
+            }
+            let unwrapped_processed_return_type: MascalType = processed_return_type
+                .clone()
+                .unwrap();
+            if unwrapped_processed_return_type != MascalType::Dynamic &&
+                !value.is_type_of(&unwrapped_processed_return_type) {
+                return Err(MascalError {
+                    error_type: MascalErrorType::RuntimeError,
+                    character: 0,
+                    line: 0,
+                    source: format!(
+                        "Expected value of type {} to be returned, but returned {}",
+                        &processed_return_type.unwrap().as_string(),
+                        value.as_type_string()?
+                    )
+                })
+            }
+            notify_mutable_params(mutable_parameters, scoped_variable_table, exec_data.clone());
+            return Ok(value);
+        }
     }
     if processed_return_type.clone().is_some() {
         return Err(MascalError {

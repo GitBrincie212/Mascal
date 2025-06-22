@@ -11,7 +11,9 @@ pub mod utils;
 pub mod execute_typecast;
 
 use std::cell::RefCell;
+use std::collections::HashSet;
 use std::rc::Rc;
+use std::sync::{LazyLock, Mutex};
 use crate::ast::AbstractSyntaxTree;
 use crate::defs::blocks::{ExecutionBlock, ScopedBlocks};
 use crate::defs::errors::MascalError;
@@ -22,6 +24,10 @@ pub struct ExecutionData {
     pub variable_table: Option<Rc<RefCell<VariableTable>>>,
     pub scoped_blocks: Rc<RefCell<Vec<ScopedBlocks>>>
 }
+
+pub static FUNCTION_HASHSET: LazyLock<Mutex<HashSet<String>>> = LazyLock::new(|| {
+    Mutex::new(HashSet::new())
+});
 
 pub fn interpert(abstract_syntax_tree: AbstractSyntaxTree) -> Result<(), MascalError> {
     let mut scoped_blocks: Vec<ScopedBlocks> = abstract_syntax_tree.blocks;
@@ -35,7 +41,8 @@ pub fn interpert(abstract_syntax_tree: AbstractSyntaxTree) -> Result<(), MascalE
     let containerized_scoped_blocks: Rc<RefCell<Vec<ScopedBlocks>>> =  Rc::new(RefCell::new(scoped_blocks));
     for statement in exec_block.body.into_iter() {
         execute_statement(
-            statement, scoped_variable_table.clone(), containerized_scoped_blocks.clone()
+            statement, scoped_variable_table.clone(),
+            containerized_scoped_blocks.clone(), None
         )?;
     }
     Ok(())

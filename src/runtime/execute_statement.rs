@@ -71,8 +71,8 @@ fn error_check_expression(
 
 pub fn execute_statement(
     statement: MascalStatement, variable_table: Rc<RefCell<VariableTable>>,
-    scoped_blocks: Rc<RefCell<Vec<ScopedBlocks>>>
-) -> Result<(), MascalError> {
+    scoped_blocks: Rc<RefCell<Vec<ScopedBlocks>>>, function_name: Option<&str>,
+) -> Result<Option<MascalValue>, MascalError> {
     match statement {
         MascalStatement::ConditionalStatement(branches) => {
             for branch in branches {
@@ -94,11 +94,13 @@ pub fn execute_statement(
 
                 if !cond {continue;}
                 for stmt in branch.statements {
-                    execute_statement(
+                    let return_notif: Option<MascalValue> = execute_statement(
                         stmt,
                         variable_table.clone(),
-                        scoped_blocks.clone()
+                        scoped_blocks.clone(),
+                        function_name
                     )?;
+                    if return_notif.is_some() {return Ok(return_notif);}
                 }
                 break;
             }
@@ -126,11 +128,13 @@ pub fn execute_statement(
                 }
             }? {
                 for stmt in &condition.statements {
-                    execute_statement(
+                    let return_notif: Option<MascalValue> = execute_statement(
                         stmt.clone(),
                         variable_table.clone(),
-                        scoped_blocks.clone()
+                        scoped_blocks.clone(),
+                        function_name
                     )?;
+                    if return_notif.is_some() {return Ok(return_notif);}
                 }
             }
         }
@@ -199,9 +203,11 @@ pub fn execute_statement(
                             });
                         }
                         for statement in &statements {
-                            execute_statement(
-                                statement.clone(), variable_table.clone(), scoped_blocks.clone()
+                            let return_notif: Option<MascalValue> = execute_statement(
+                                statement.clone(), variable_table.clone(), 
+                                scoped_blocks.clone(), function_name
                             )?;
+                            if return_notif.is_some() {return Ok(return_notif)};
                         }
                         curr += int_step_num;
                     }
@@ -224,9 +230,11 @@ pub fn execute_statement(
                             });
                         }
                         for statement in &statements {
-                            execute_statement(
-                                statement.clone(), variable_table.clone(), scoped_blocks.clone()
+                            let return_notif: Option<MascalValue> = execute_statement(
+                                statement.clone(), variable_table.clone(), 
+                                scoped_blocks.clone(), function_name
                             )?;
+                            if return_notif.is_some() {return Ok(return_notif)};
                         }
                         curr += float_step_num;
                     }
@@ -234,7 +242,7 @@ pub fn execute_statement(
                 _ => {unreachable!()}
             }
 
-            return Ok(());
+            return Ok(None);
         }
         MascalStatement::ExpressionStatement(expression) => {
             execute_expression(expression, Rc::new(RefCell::new(ExecutionData {
@@ -243,7 +251,7 @@ pub fn execute_statement(
             })))?;
         }
         MascalStatement::Declaration { variable, value } => {
-            execute_declaration_statement(variable, value, variable_table.clone(), scoped_blocks.clone())?;
+            return execute_declaration_statement(variable, value, variable_table.clone(), scoped_blocks.clone());
         }
         MascalStatement::Throw {
             error_type,
@@ -276,5 +284,5 @@ pub fn execute_statement(
         }
     };
 
-    Ok(())
+    Ok(None)
 }
