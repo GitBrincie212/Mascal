@@ -1,4 +1,4 @@
-#[derive(Eq, PartialEq)]
+#[derive(Eq, PartialEq, Debug)]
 pub enum LoopFlags {
     CONTINUE,
     BREAK,

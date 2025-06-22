@@ -10,3 +10,5 @@ pub mod declerations;
 pub mod binding_power;
 pub mod dynamic_int;
 pub mod builtins;
+
+pub mod loop_flags;
