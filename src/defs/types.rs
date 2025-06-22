@@ -16,24 +16,37 @@ pub enum MascalUnprocessedType {
 
 impl MascalType {
     pub fn as_string(&self) -> String {
-        match self {
-            MascalType::String => String::from("STRING"),
-            MascalType::Integer => String::from("INTEGER"),
-            MascalType::Float => {String::from("FLOAT")}
-            MascalType::Boolean => {String::from("BOOLEAN")}
-            MascalType::DynamicArray(array_type) => {
-                format!("{}<>", array_type.as_string())
-            }
-            MascalType::StaticArray(array_type) => {
-                format!("{}[]", array_type.as_string())
-            }
-            MascalType::Dynamic => {
-                String::from("DYNAMIC")
-            }
-            MascalType::Type => {
-                String::from("TYPE")
+        let mut modifiers: Vec<&str> = Vec::new();
+        let mut ty: &MascalType = self;
+        loop {
+            match ty {
+                MascalType::StaticArray(inner) => {
+                    modifiers.push("[]");
+                    ty = inner;
+                }
+                MascalType::DynamicArray(inner) => {
+                    modifiers.push("<>");
+                    ty = inner;
+                }
+                _ => break,
             }
         }
+
+        let mut s: String = String::from(match ty {
+            MascalType::String => "STRING",
+            MascalType::Integer => "INTEGER",
+            MascalType::Float => "FLOAT",
+            MascalType::Boolean => "BOOLEAN",
+            MascalType::Dynamic => "DYNAMIC",
+            MascalType::Type => "TYPE",
+            _ => unreachable!(),
+        });
+
+        for &m in &modifiers {
+            s.push_str(m);
+        }
+        
+        s
     }
 }
 
