@@ -3,7 +3,7 @@ use crate::defs::errors::MascalError;
 use crate::defs::expressions::MascalExpression;
 use crate::defs::operators::{token_type_to_binary_operator, MascalBinaryOperators};
 use crate::defs::token::Token;
-use crate::parser::parse_expression::loop_flags::LoopFlags;
+use crate::defs::loop_flags::LoopFlags;
 use crate::parser::parse_expression::parse_expression_internal;
 
 pub fn parse_binary_expression(
