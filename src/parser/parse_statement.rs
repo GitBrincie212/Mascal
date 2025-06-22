@@ -285,6 +285,32 @@ pub fn parse_statement(token_sequence: &Vec<Token>) -> Result<MascalStatement, M
                 source: String::from("Expected an IF statement before this ELSE condition"),
             })
         }
+        
+        TokenType::Break => {
+            let index: usize = locate_semicolon(token_sequence)?;
+            if token_sequence[..index].len() > 1 {
+                return Err(MascalError {
+                    error_type: MascalErrorType::ParserError,
+                    character: 0,
+                    line: 0,
+                    source: String::from("Expected nothing else to be supplied but contents inside the break statement"),
+                })
+            }
+            Ok(MascalStatement::Break)
+        }
+
+        TokenType::Continue => {
+            let index: usize = locate_semicolon(token_sequence)?;
+            if token_sequence[..index].len() > 1 {
+                return Err(MascalError {
+                    error_type: MascalErrorType::ParserError,
+                    character: 0,
+                    line: 0,
+                    source: String::from("Expected nothing else to be supplied but contents inside the continue statement"),
+                })
+            }
+            Ok(MascalStatement::Continue)
+        }
 
         _ => {
             let index: usize = locate_semicolon(token_sequence)?;

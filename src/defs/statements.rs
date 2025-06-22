@@ -54,5 +54,11 @@ pub enum MascalStatement {
     Throw {
         error_type: String,
         message: String,
-    }
+    },
+    
+    /* BREAK; */
+    Break,
+    
+    /* CONTINUE */
+    Continue
 }
