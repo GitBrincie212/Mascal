@@ -76,6 +76,19 @@ macro_rules! check_boundaries {
     };
 }
 
+#[macro_export]
+macro_rules! from_string_to_array_impl {
+    ($val: expr) => {{
+        let mut array_vec: Vec<Rc<RefCell<Option<MascalValue>>>> = Vec::with_capacity($val.len());
+        for char in $val.chars() {
+            array_vec.push(Rc::new(RefCell::new(
+                Some(MascalValue::String(Arc::from(char.to_string())))
+            )));
+        }
+        array_vec
+    }};
+}
+
 pub fn sum_internal(value: Rc<RefCell<Option<MascalValue>>>, sum: &mut f64, encountered_float: bool) -> Result<bool, MascalError> {
     match &*value.borrow() {
         Some(MascalValue::Integer(i)) => {

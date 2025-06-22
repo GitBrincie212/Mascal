@@ -8,7 +8,7 @@ use crate::defs::types::{to_processed_type, MascalType, MascalUnprocessedType};
 use crate::runtime::execute_expression::execute_expression;
 use crate::runtime::ExecutionData;
 use crate::runtime::values::MascalValue;
-use crate::{type_cast_array_impl};
+use crate::{from_string_to_array_impl, type_cast_array_impl};
 
 pub fn execute_typecast(
     function: Box<MascalUnprocessedType>, arguments: Vec<MascalExpression>, 
@@ -52,6 +52,16 @@ pub fn execute_processed_typecast(
             type_cast_array_impl!(values, array_type, |x: Box<[Rc<RefCell<Option<MascalValue>>>]>| {
                 MascalValue::DynamicArray(x.to_vec())
             });
+        }
+
+        (MascalType::StaticArray(_), MascalValue::String(val)) => {
+            let arr_val: Vec<Rc<RefCell<Option<MascalValue>>>> = from_string_to_array_impl!(val);
+            Ok(MascalValue::StaticArray(arr_val.into_boxed_slice()))
+        }
+
+        (MascalType::DynamicArray(_), MascalValue::String(val)) => {
+            let arr_val: Vec<Rc<RefCell<Option<MascalValue>>>> = from_string_to_array_impl!(val);
+            Ok(MascalValue::DynamicArray(arr_val))
         }
 
         (MascalType::Dynamic, v) => {
