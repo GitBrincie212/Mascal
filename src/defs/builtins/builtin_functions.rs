@@ -87,7 +87,7 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>> 
     );
 
     define_builtin_function!(
-        BuiltinFunction::new_value_based, "RAND_FROM", map, vec![
+        BuiltinFunction::new_value_based, "Rand_From", map, vec![
             vec![MascalTypeKind::Integer, MascalTypeKind::Float],
             vec![MascalTypeKind::Integer, MascalTypeKind::Float],
         ], false,
