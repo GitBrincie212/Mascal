@@ -2,7 +2,7 @@ use crate::defs::binding_power::{BindingPower};
 use crate::defs::errors::{MascalError};
 use crate::defs::expressions::MascalExpression;
 use crate::defs::token::{Token, TokenType};
-use crate::parser::parse_expression::loop_flags::LoopFlags;
+use crate::defs::loop_flags::LoopFlags;
 use crate::parser::parse_expression::parse_expression_internal;
 
 pub fn parse_indexing_expression(
@@ -11,7 +11,7 @@ pub fn parse_indexing_expression(
     _min_bp: &BindingPower,
     lhs: MascalExpression,
 ) -> Result<(LoopFlags, MascalExpression), MascalError> {
-    if tokens.get(*pos).map(|t| &t.token_type) != Some(&TokenType::OpenArrow) {
+    if tokens.get(*pos).map(|t| &t.token_type) != Some(&TokenType::OpenDynamicArray) {
         return Ok((LoopFlags::NONE, lhs));
     }
 
@@ -19,8 +19,8 @@ pub fn parse_indexing_expression(
     let mut match_idx = None;
     for (i, tok) in tokens.iter().enumerate().skip(*pos) {
         match tok.token_type {
-            TokenType::OpenArrow  => depth += 1,
-            TokenType::CloseArrow => {
+            TokenType::OpenDynamicArray  => depth += 1,
+            TokenType::CloseDynamicArray => {
                 depth -= 1;
                 if depth == 0 {
                     match_idx = Some(i);
@@ -48,8 +48,8 @@ pub fn parse_indexing_expression(
         return Ok((LoopFlags::NONE, lhs));
     }
 
-    let open_tt = TokenType::OpenArrow;
-    let close_tt = TokenType::CloseArrow;
+    let open_tt = TokenType::OpenDynamicArray;
+    let close_tt = TokenType::CloseDynamicArray;
     let is_dynamic = true;
 
     *pos += 1;
