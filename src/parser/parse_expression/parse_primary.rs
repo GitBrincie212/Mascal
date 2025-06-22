@@ -177,19 +177,19 @@ pub fn parse_primary(tokens: &[Token], pos: &mut usize) -> Result<MascalExpressi
             Ok(MascalExpression::StaticArrayExpression(elems))
         }
 
-        TokenType::OpenArrow => {
+        TokenType::OpenDynamicArray => {
             let elems: Vec<MascalExpression> = parse_delimited_array(
-                tokens, pos, TokenType::OpenArrow, "<",
-                TokenType::CloseArrow, ">"
+                tokens, pos, TokenType::OpenDynamicArray, "<<",
+                TokenType::CloseDynamicArray, ">>"
             )?;
             Ok(MascalExpression::DynamicArrayExpression(elems))
         }
 
-        TokenType::CloseArrow => Err(MascalError {
+        TokenType::CloseDynamicArray => Err(MascalError {
             error_type: MascalErrorType::ParserError,
             character: tok.start,
             line: tok.line,
-            source: String::from("Expected an opening arrow '<' in dynamic array literal"),
+            source: String::from("Expected an opening arrow '<<' in dynamic array literal"),
         }),
 
         TokenType::CloseBracket => Err(MascalError {

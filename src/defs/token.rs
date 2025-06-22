@@ -39,8 +39,8 @@ pub enum TokenType {
     Colon,
     ReturnIndicator,
     QuestionMark,
-    OpenArrow,
-    CloseArrow,
+    LessThan,
+    GreaterThan,
 
     Comment,
 
@@ -69,6 +69,10 @@ pub enum TokenType {
     True,
     False,
     Throw,
+    Break,
+    Continue,
+    OpenDynamicArray,
+    CloseDynamicArray,
 
     // Special Stuff Regarding Mascal
     Unknown,
@@ -90,6 +94,8 @@ pub static TOKEN_REGEX_MAP: Lazy<TokenRegexMap> = Lazy::new(|| {
     map.push((Regex::new(r"^[a-zA-Z_][a-zA-Z0-9_]*").unwrap(), TokenType::Identifier));
     map.push((Regex::new(r"TRUE|true|True").unwrap(), TokenType::True));
     map.push((Regex::new(r"FALSE|false|False").unwrap(), TokenType::False));
+    map.push((Regex::new(r"BREAK|break|Break").unwrap(), TokenType::Break));
+    map.push((Regex::new(r"CONTINUE|continue|Continue").unwrap(), TokenType::Continue));
     map.push((Regex::new(r"NULL").unwrap(), TokenType::NULL));
     map.push((Regex::new(r"FOR|for|For").unwrap(), TokenType::For));
     map.push((Regex::new(r"If|if|IF").unwrap(), TokenType::If));
@@ -142,9 +148,10 @@ pub static TOKEN_REGEX_MAP: Lazy<TokenRegexMap> = Lazy::new(|| {
     map.push((Regex::new(r"<-").unwrap(), TokenType::VariableInitializer));
     map.push((Regex::new(r">=").unwrap(), TokenType::GreaterThanEqual));
     map.push((Regex::new(r"<=").unwrap(), TokenType::LesserThanEqual));
-    map.push((Regex::new(r"<").unwrap(), TokenType::OpenArrow));
-    map.push((Regex::new(r">").unwrap(), TokenType::CloseArrow));
-
+    map.push((Regex::new(r"<").unwrap(), TokenType::LessThan));
+    map.push((Regex::new(r">").unwrap(), TokenType::GreaterThan));
+    map.push((Regex::new(r">>").unwrap(), TokenType::CloseDynamicArray));
+    map.push((Regex::new(r"<<").unwrap(), TokenType::OpenDynamicArray));
     map
 });
 

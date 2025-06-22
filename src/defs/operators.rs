@@ -39,8 +39,8 @@ pub fn token_type_to_binary_operator(tt: &TokenType) -> Option<MascalBinaryOpera
         TokenType::And => Some(MascalBinaryOperators::And),
         TokenType::Or => Some(MascalBinaryOperators::Or),
         TokenType::NotEquals => Some(MascalBinaryOperators::NotEqual),
-        TokenType::OpenArrow => Some(MascalBinaryOperators::LessThan),
-        TokenType::CloseArrow => Some(MascalBinaryOperators::GreaterThan),
+        TokenType::LessThan => Some(MascalBinaryOperators::LessThan),
+        TokenType::GreaterThan => Some(MascalBinaryOperators::GreaterThan),
         _ => None
     }
 }

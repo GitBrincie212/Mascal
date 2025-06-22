@@ -190,7 +190,7 @@ pub fn parse_array_type<F>(
     let mut open_index: usize = 0;
     let mut is_curr_array_dynamic: Option<bool> = None;
     let is_array_open: bool = first_token.token_type == TokenType::OpenBracket
-        || first_token.token_type == TokenType::OpenArrow;
+        || first_token.token_type == TokenType::OpenDynamicArray;
     let mut token_sequence: Vec<&Token> = Vec::new();
     while curr_index < tokens.len() && is_array_open {
         let token: &Token = &tokens[curr_index];
@@ -212,7 +212,7 @@ pub fn parse_array_type<F>(
                 bracket_depth -= 1;
             }
 
-            TokenType::OpenArrow => {
+            TokenType::OpenDynamicArray => {
                 if bracket_depth == 0 && is_curr_array_dynamic.is_none() {
                     open_index = curr_index + 1;
                     is_curr_array_dynamic = Some(true);
@@ -220,7 +220,7 @@ pub fn parse_array_type<F>(
                 arrow_depth += 1;
             }
 
-            TokenType::CloseArrow => {
+            TokenType::CloseDynamicArray => {
                 if arrow_depth == 1 && is_curr_array_dynamic.unwrap_or(false) {
                     let tokens_inside = &tokens[open_index..curr_index];
                     on_creation(tokens_inside, true)?;
