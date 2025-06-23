@@ -16,3 +16,7 @@ rustc-hash = "2.1.1"
 [profile.profiling]
 inherits = "release"
 debug = 1
+
+[profile.release]
+lto = true
+codegen-units = 1
