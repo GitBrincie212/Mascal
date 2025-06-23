@@ -79,12 +79,12 @@ macro_rules! create_variable_table_for_type {
             }
 
             value = if !dimensions_val.is_empty() && !has_defined_value  {
-                let dyns: Vec<bool> = var.is_dynamic_array.clone();
+                let dyns: Vec<bool> = var.is_dynamic_array.to_vec();
                 let arr = make_array(&dimensions_val, &dyns);
                 Some(Rc::new(RefCell::new(arr)))
             } else {value};
 
-            let is_dynamic_array: Rc<[bool]> = Rc::from(var.is_dynamic_array);
+            let is_dynamic_array: Rc<[bool]> = var.is_dynamic_array.into();
             let array_dimensions: Rc<[usize]> = Rc::from(dimensions_val);
             /*
             if let Some(unwrapped_value) = value.clone() {

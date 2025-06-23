@@ -3,7 +3,7 @@ use crate::defs::declerations::MascalVariableInitialDeclaration;
 use crate::defs::errors::{MascalError, MascalErrorType};
 
 pub(crate) fn check_per_variable(
-    variable_type: &Vec<MascalVariableInitialDeclaration>, mut defined_var_names: HashSet<String>,
+    variable_type: &Box<[MascalVariableInitialDeclaration]>, mut defined_var_names: HashSet<String>,
 ) -> Result<HashSet<String>, MascalError> {
     for var_decl in variable_type {
         let name: String = var_decl.name.clone();
