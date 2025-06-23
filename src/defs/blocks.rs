@@ -4,12 +4,12 @@ use crate::defs::types::MascalUnprocessedType;
 
 #[derive(Debug, Clone)]
 pub struct VariableBlock {
-    pub integers: Vec<MascalVariableInitialDeclaration>,
-    pub floats: Vec<MascalVariableInitialDeclaration>,
-    pub strings: Vec<MascalVariableInitialDeclaration>,
-    pub booleans: Vec<MascalVariableInitialDeclaration>,
-    pub dynamics: Vec<MascalVariableInitialDeclaration>,
-    pub types: Vec<MascalVariableInitialDeclaration>,
+    pub integers: Box<[MascalVariableInitialDeclaration]>,
+    pub floats: Box<[MascalVariableInitialDeclaration]>,
+    pub strings: Box<[MascalVariableInitialDeclaration]>,
+    pub booleans: Box<[MascalVariableInitialDeclaration]>,
+    pub dynamics: Box<[MascalVariableInitialDeclaration]>,
+    pub types: Box<[MascalVariableInitialDeclaration]>,
 }
 
 #[derive(Debug, Clone)]
@@ -38,19 +38,19 @@ pub enum ScopedBlocks {
 impl VariableBlock {
     pub fn new(
         integers: Vec<MascalVariableInitialDeclaration>,
-               floats: Vec<MascalVariableInitialDeclaration>,
-               booleans: Vec<MascalVariableInitialDeclaration>,
-               strings: Vec<MascalVariableInitialDeclaration>,
-               dynamics: Vec<MascalVariableInitialDeclaration>,
-               types: Vec<MascalVariableInitialDeclaration>
+        floats: Vec<MascalVariableInitialDeclaration>,
+        booleans: Vec<MascalVariableInitialDeclaration>,
+        strings: Vec<MascalVariableInitialDeclaration>,
+        dynamics: Vec<MascalVariableInitialDeclaration>,
+        types: Vec<MascalVariableInitialDeclaration>
     ) -> Self {
         VariableBlock {
-            integers,
-            floats,
-            booleans,
-            strings,
-            dynamics,
-            types
+            integers: integers.into_boxed_slice(),
+            floats: floats.into_boxed_slice(),
+            booleans: booleans.into_boxed_slice(),
+            strings: strings.into_boxed_slice(),
+            dynamics: dynamics.into_boxed_slice(),
+            types: types.into_boxed_slice()
         }
     }
 
