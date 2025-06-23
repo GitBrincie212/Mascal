@@ -267,6 +267,20 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<FxHashMap<String, Arc<BuiltinFunction>>
     );
 
     define_builtin_function!(
+        BuiltinFunction::new_value_based, "Replace", map, vec![
+            vec![MascalTypeKind::String],
+            vec![MascalTypeKind::String],
+            vec![MascalTypeKind::String],
+        ], false,
+        |args, _| {
+            let MascalValue::String(main_str) = &args[0] else {unreachable!()};
+            let MascalValue::String(target_str) = &args[2] else {unreachable!()};
+            let MascalValue::String(sub_str) = &args[2] else {unreachable!()};
+            Ok(Some(MascalValue::String(Arc::from(main_str.replace(&*target_str.clone(), &*sub_str.clone())))))
+        }
+    );
+
+    define_builtin_function!(
         BuiltinFunction::new_value_based, "Log", map, vec![vec![MascalTypeKind::Float, MascalTypeKind::Integer]], false,
         |args, _| {
             match args.first().unwrap() {
