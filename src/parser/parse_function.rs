@@ -137,12 +137,12 @@ pub fn parse_function(token_sequence: TokenSequence) -> Result<ScopedBlocks, Mas
     let program_body = parse_executable(inner_token_sequence)?;
 
     Ok(ScopedBlocks::FUNCTION {
-        parameters,
+        parameters: parameters.into_boxed_slice(),
         name,
         return_type,
         execution_block: ExecutionBlock {
             variables: variable_block,
-            body: program_body,
+            body: program_body.into_boxed_slice(),
         }
     })
 }

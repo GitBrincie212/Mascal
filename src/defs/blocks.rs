@@ -15,7 +15,7 @@ pub struct VariableBlock {
 #[derive(Debug, Clone)]
 pub struct ExecutionBlock {
     pub variables: VariableBlock,
-    pub body: Vec<MascalStatement>
+    pub body: Box<[MascalStatement]>
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -28,7 +28,7 @@ pub struct MascalParameter {
 pub enum ScopedBlocks {
     PROGRAM(ExecutionBlock),
     FUNCTION {
-        parameters: Vec<MascalParameter>,
+        parameters: Box<[MascalParameter]>,
         name: String,
         return_type: Option<MascalUnprocessedType>,
         execution_block: ExecutionBlock,

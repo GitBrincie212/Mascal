@@ -72,7 +72,7 @@ pub fn execute_function_call(
     if let Some(built_in_func) = BUILT_IN_FUNCTION_TABLE.get(&fn_name)  {
         return execute_builtin_function(built_in_func.clone(), arguments, exec_data.clone());
     }
-    let mut func_parameters: &Vec<MascalParameter> = &Vec::new();
+    let mut func_parameters: &Box<[MascalParameter]> = &Vec::new().into_boxed_slice();
     let mut func_return_type: Option<MascalUnprocessedType> = None;
     let mut wrapped_func_exec_block: Option<ExecutionBlock> = None;
     let exedata_binding: &ExecutionData = &*exec_data.borrow();
@@ -88,7 +88,7 @@ pub fn execute_function_call(
             } => {
                 if name == &fn_name {
                     func_return_type = return_type.clone();
-                    func_parameters = &parameters;
+                    func_parameters = parameters;
                     wrapped_func_exec_block = Some(execution_block.clone());
                     break;
                 }

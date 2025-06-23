@@ -18,6 +18,6 @@ pub fn parse_program(token_sequence: TokenSequence) -> Result<ScopedBlocks, Masc
     
     Ok(ScopedBlocks::PROGRAM(ExecutionBlock {
         variables: variable_block,
-        body: program_body,
+        body: program_body.into_boxed_slice(),
     }))
 }
