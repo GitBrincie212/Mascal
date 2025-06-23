@@ -116,7 +116,7 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<FxHashMap<String, Arc<BuiltinFunction>>
         |args, _| {
             match args.first().unwrap() {
                 MascalValue::StaticArray(v) => {
-                    let idx: &Rc<RefCell<Option<MascalValue>>> = &v[rand::rng().random_range(0..v.len())];
+                    let idx: &Rc<RefCell<Option<MascalValue>>> = &v[rand::rng().random_range(0..=v.len())];
                     if let Some(value) = &*idx.clone().borrow() {
                         return Ok(Some(value.clone()));
                     }
@@ -124,7 +124,7 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<FxHashMap<String, Arc<BuiltinFunction>>
                 }
 
                 MascalValue::DynamicArray(v) => {
-                    let idx: &Rc<RefCell<Option<MascalValue>>> = &v[rand::rng().random_range(0..v.len())];
+                    let idx: &Rc<RefCell<Option<MascalValue>>> = &v[rand::rng().random_range(0..=v.len())];
                     if let Some(value) = &*idx.clone().borrow() {
                         return Ok(Some(value.clone()));
                     }
@@ -145,22 +145,22 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<FxHashMap<String, Arc<BuiltinFunction>>
             match (args.first().unwrap(), args.last().unwrap()) {
                 (MascalValue::Float(f1), MascalValue::Float(f2)) => {
                     check_boundaries!(*f1, *f2);
-                    Ok(Some(MascalValue::Float(rand::random_range((*f1)..(*f2)))))
+                    Ok(Some(MascalValue::Float(rand::random_range((*f1)..=(*f2)))))
                 }
 
                 (MascalValue::Integer(i), MascalValue::Float(f)) => {
                     check_boundaries!(i.as_f64(), *f);
-                    Ok(Some(MascalValue::Float(rand::random_range(i.as_f64()..(*f)))))
+                    Ok(Some(MascalValue::Float(rand::random_range(i.as_f64()..=(*f)))))
                 }
 
                 (MascalValue::Float(f), MascalValue::Integer(i)) => {
                     check_boundaries!(*f, i.as_f64());
-                    Ok(Some(MascalValue::Float(rand::random_range((*f)..i.as_f64()))))
+                    Ok(Some(MascalValue::Float(rand::random_range((*f)..=i.as_f64()))))
                 }
 
                 (MascalValue::Integer(i1), MascalValue::Integer(i2)) => {
                     check_boundaries!(i1.to_i128(), i2.to_i128());
-                    Ok(Some(MascalValue::Integer(IntegerNum::new(rand::random_range(i1.to_i128()..i2.to_i128())))))
+                    Ok(Some(MascalValue::Integer(IntegerNum::new(rand::random_range(i1.to_i128()..=i2.to_i128())))))
                 }
 
                 (_, _) => unreachable!(),
