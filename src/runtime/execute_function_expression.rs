@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::str::Chars;
 use crate::defs::blocks::{ExecutionBlock, MascalParameter, ScopedBlocks};
 use crate::defs::builtins::builtin_functions::{BUILT_IN_FUNCTION_TABLE};
 use crate::defs::errors::{MascalError, MascalErrorType};
@@ -31,6 +32,15 @@ fn notify_mutable_params(
                 .unwrap();
             mutable_vardata.value = parameter_vardata.value.clone();
         }
+    }
+}
+
+fn is_titlecase(s: &str) -> bool {
+    let mut chars: Chars = s.chars();
+    if let Some(first) = chars.next() {
+        first.is_uppercase() && chars.clone().all(|c| c.is_lowercase())
+    } else {
+        false
     }
 }
 
@@ -69,8 +79,11 @@ pub fn execute_function_call(
             });
         }
     }
-    if let Some(built_in_func) = BUILT_IN_FUNCTION_TABLE.get(&fn_name)  {
-        return execute_builtin_function(built_in_func.clone(), arguments, exec_data.clone());
+    let lowercased: &String = &fn_name.to_lowercase();
+    if &fn_name == &fn_name.to_uppercase() || &fn_name == lowercased || is_titlecase(&fn_name) {
+        if let Some(built_in_func) = BUILT_IN_FUNCTION_TABLE.get(lowercased)  {
+            return execute_builtin_function(built_in_func.clone(), arguments, exec_data.clone());
+        }
     }
     let mut func_parameters: &Box<[MascalParameter]> = &Vec::new().into_boxed_slice();
     let mut func_return_type: Option<MascalUnprocessedType> = None;
