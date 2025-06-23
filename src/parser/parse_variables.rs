@@ -22,8 +22,8 @@ pub fn parse_variable_type_block<'a>(
                 name: token_sequence.get(0).unwrap().value.to_string(),
                 initial_value: None,
                 is_constant: false,
-                is_dynamic_array: Vec::new(),
-                dimensions: Vec::new(),
+                is_dynamic_array: Box::new([]),
+                dimensions: Box::new([]),
                 is_nullable: false,
             });
             return Ok(());

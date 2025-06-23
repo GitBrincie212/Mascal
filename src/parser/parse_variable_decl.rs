@@ -83,8 +83,8 @@ pub fn parse_variable_decl<'a>(
         name,
         is_constant,
         is_nullable,
-        dimensions,
-        is_dynamic_array,
+        dimensions: dimensions.into_boxed_slice(),
+        is_dynamic_array: is_dynamic_array.into_boxed_slice(),
         initial_value,
     })
 }
