@@ -3,7 +3,7 @@ use crate::defs::expressions::MascalExpression;
 #[derive(Debug, Clone)]
 pub struct MascalConditionalBranch {
     pub condition: Option<MascalExpression>,
-    pub statements: Vec<MascalStatement>,
+    pub statements: Box<[MascalStatement]>,
 }
 
 #[derive(Debug, Clone)]

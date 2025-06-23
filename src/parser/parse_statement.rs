@@ -52,7 +52,7 @@ fn parse_branch(token_sequence: &[Token], is_else: bool) -> Result<MascalConditi
 
     Ok(MascalConditionalBranch {
         condition: condition_expression,
-        statements,
+        statements: statements.into_boxed_slice(),
     })
 }
 
@@ -239,7 +239,7 @@ fn parse_while_loop_statement(tokens: &[Token]) -> Result<MascalStatement, Masca
 
     Ok(MascalStatement::While(MascalConditionalBranch {
         condition: Some(condition_expression),
-        statements
+        statements: statements.into_boxed_slice()
     }))
 }
 
