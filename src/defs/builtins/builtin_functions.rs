@@ -4,13 +4,15 @@ use std::num::{ParseFloatError, ParseIntError};
 use std::rc::Rc;
 use std::sync::{Arc};
 use once_cell::sync::Lazy;
+use rand::Rng;
+use rand::seq::SliceRandom;
 use rustc_hash::FxHashMap;
 use crate::defs::builtins::utils::{flatten_impl, sum_internal};
 use crate::defs::dynamic_int::IntegerNum;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
 use crate::defs::types::{MascalType, MascalTypeKind};
-use crate::{check_boundaries, min_max_common_operation};
+use crate::{check_boundaries, min_max_common_operation, uninit_cell_error};
 use crate::runtime::ExecutionData;
 use crate::runtime::values::MascalValue;
 use crate::runtime::utils::{get_dimensions, get_sizes};
@@ -67,8 +69,6 @@ macro_rules! define_builtin_function {
             $fixed_args,
             Arc::new($func),
         ));
-        $map.insert(String::from($name).to_uppercase(), Arc::clone(&func));
-        $map.insert(String::from($name), Arc::clone(&func));
         $map.insert(String::from($name).to_lowercase(), Arc::clone(&func));
     };
 }
@@ -83,6 +83,56 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<FxHashMap<String, Arc<BuiltinFunction>>
             }
             print!("{}\n", args.last().unwrap().as_string()?);
             Ok(None)
+        }
+    );
+
+    define_builtin_function!(
+        BuiltinFunction::new_value_based, "Shuffle", map, vec![
+            vec![MascalTypeKind::StaticArray, MascalTypeKind::DynamicArray],
+        ], false,
+        |args, _| {
+            match args.first().unwrap() {
+                (MascalValue::StaticArray(v)) => {
+                    let mut idx: Vec<usize> = (0..v.len()).collect();
+                    idx.shuffle(&mut rand::rng());
+                    Ok(Some(MascalValue::StaticArray(idx.into_iter().map(|i| v[i].clone()).collect())))
+                }
+
+                (MascalValue::DynamicArray(v)) => {
+                    let mut idx: Vec<usize> = (0..v.len()).collect();
+                    idx.shuffle(&mut rand::rng());
+                    Ok(Some(MascalValue::DynamicArray(idx.into_iter().map(|i| v[i].clone()).collect())))
+                }
+
+                _ => unreachable!(),
+            }
+        }
+    );
+
+    define_builtin_function!(
+        BuiltinFunction::new_value_based, "Choose", map, vec![
+            vec![MascalTypeKind::StaticArray, MascalTypeKind::DynamicArray],
+        ], false,
+        |args, _| {
+            match args.first().unwrap() {
+                MascalValue::StaticArray(v) => {
+                    let idx: &Rc<RefCell<Option<MascalValue>>> = &v[rand::rng().random_range(0..v.len())];
+                    if let Some(value) = &*idx.clone().borrow() {
+                        return Ok(Some(value.clone()));
+                    }
+                    uninit_cell_error!()
+                }
+
+                MascalValue::DynamicArray(v) => {
+                    let idx: &Rc<RefCell<Option<MascalValue>>> = &v[rand::rng().random_range(0..v.len())];
+                    if let Some(value) = &*idx.clone().borrow() {
+                        return Ok(Some(value.clone()));
+                    }
+                    uninit_cell_error!()
+                }
+
+                _ => unreachable!(),
+            }
         }
     );
 
