@@ -174,7 +174,7 @@ pub fn parse_primary(tokens: &[Token], pos: &mut usize) -> Result<MascalExpressi
                 tokens, pos, TokenType::OpenBracket, "[",
                 TokenType::CloseBracket, "]"
             )?;
-            Ok(MascalExpression::StaticArrayExpression(elems))
+            Ok(MascalExpression::StaticArrayExpression(elems.into_boxed_slice()))
         }
 
         TokenType::OpenDynamicArray => {
@@ -182,7 +182,7 @@ pub fn parse_primary(tokens: &[Token], pos: &mut usize) -> Result<MascalExpressi
                 tokens, pos, TokenType::OpenDynamicArray, "<<",
                 TokenType::CloseDynamicArray, ">>"
             )?;
-            Ok(MascalExpression::DynamicArrayExpression(elems))
+            Ok(MascalExpression::DynamicArrayExpression(elems.into_boxed_slice()))
         }
 
         TokenType::CloseDynamicArray => Err(MascalError {

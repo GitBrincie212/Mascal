@@ -7,8 +7,8 @@ pub enum MascalExpression {
     // === Simple Expressions ===
     LiteralExpression(MascalLiteral),
     SymbolicExpression(String),
-    DynamicArrayExpression(Vec<MascalExpression>),
-    StaticArrayExpression(Vec<MascalExpression>),
+    DynamicArrayExpression(Box<[MascalExpression]>),
+    StaticArrayExpression(Box<[MascalExpression]>),
     TypeExpression(Box<MascalUnprocessedType>),
     BlankExpression,
 
