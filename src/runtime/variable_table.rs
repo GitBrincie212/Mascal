@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 use std::rc::Rc;
 use std::sync::Arc;
 use crate::defs::blocks::ExecutionBlock;
@@ -17,7 +17,7 @@ use crate::runtime::utils::make_array;
  just make a toy language, investing in deep system level design will be way harder
 */
 #[allow(dead_code)]
-pub type VariableTable = HashMap<String, VariableData>;
+pub type VariableTable = FxHashMap<String, VariableData>;
 
 #[derive(Debug, Clone)]
 pub struct VariableData {
@@ -109,7 +109,7 @@ macro_rules! create_variable_table_for_type {
 
 #[allow(dead_code)]
 pub fn create_variable_table(mut block: ExecutionBlock) -> Result<(Rc<RefCell<VariableTable>>, ExecutionBlock), MascalError> {
-    let table: Rc<RefCell<VariableTable>> = Rc::new(RefCell::new(HashMap::new()));
+    let table: Rc<RefCell<VariableTable>> = Rc::new(RefCell::new(FxHashMap::default()));
 
     let integers = std::mem::take(&mut block.variables.integers);
     let floats = std::mem::take(&mut block.variables.floats);

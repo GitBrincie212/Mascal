@@ -1,10 +1,10 @@
 use std::cell::{RefCell};
-use std::collections::HashMap;
 use std::io;
 use std::num::{ParseFloatError, ParseIntError};
 use std::rc::Rc;
 use std::sync::{Arc};
 use once_cell::sync::Lazy;
+use rustc_hash::FxHashMap;
 use crate::defs::builtins::utils::{flatten_impl, sum_internal};
 use crate::defs::dynamic_int::IntegerNum;
 use crate::defs::errors::{MascalError, MascalErrorType};
@@ -73,8 +73,8 @@ macro_rules! define_builtin_function {
     };
 }
 
-pub static BUILT_IN_FUNCTION_TABLE: Lazy<HashMap<String, Arc<BuiltinFunction>>>  = Lazy::new(|| {
-    let mut map: HashMap<String, Arc<BuiltinFunction>> = HashMap::new();
+pub static BUILT_IN_FUNCTION_TABLE: Lazy<FxHashMap<String, Arc<BuiltinFunction>>>  = Lazy::new(|| {
+    let mut map: FxHashMap<String, Arc<BuiltinFunction>> = FxHashMap::default();
     define_builtin_function!(
         BuiltinFunction::new_value_based, "Write", map, vec![], true,
         |args, _| {
