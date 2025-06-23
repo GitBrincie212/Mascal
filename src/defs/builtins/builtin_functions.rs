@@ -274,9 +274,37 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<FxHashMap<String, Arc<BuiltinFunction>>
         ], false,
         |args, _| {
             let MascalValue::String(main_str) = &args[0] else {unreachable!()};
-            let MascalValue::String(target_str) = &args[2] else {unreachable!()};
+            let MascalValue::String(target_str) = &args[1] else {unreachable!()};
             let MascalValue::String(sub_str) = &args[2] else {unreachable!()};
             Ok(Some(MascalValue::String(Arc::from(main_str.replace(&*target_str.clone(), &*sub_str.clone())))))
+        }
+    );
+
+    define_builtin_function!(
+        BuiltinFunction::new_value_based, "Sub_String", map, vec![
+            vec![MascalTypeKind::String],
+            vec![MascalTypeKind::Integer],
+            vec![MascalTypeKind::Integer],
+        ], false,
+        |args, _| {
+            let MascalValue::String(main_str) = &args[0] else {unreachable!()};
+            let MascalValue::Integer(min_index) = &args[1] else {unreachable!()};
+            let MascalValue::Integer(max_index) = &args[2] else {unreachable!()};
+            let mut min: i128 = min_index.to_i128();
+            let mut max: i128 = max_index.to_i128();
+            let main_str_len: i128 = main_str.len() as i128;
+            if min < 0 {min += main_str.len() as i128;}
+            if max < 0 {max += main_str.len() as i128;}
+            if (min < 0 || min >= main_str_len) || (max < 0 || max >= main_str_len) || min > max {
+                return Err(MascalError {
+                    error_type: MascalErrorType::IndexError,
+                    line: 0,
+                    character: 0,
+                    source: format!("Cannot take a substring in the range of from {} to {}", min, max)
+                })
+            }
+            let slice: &str = &main_str[min as usize ..= max as usize];
+            return Ok(Some(MascalValue::String(Arc::from(slice))))
         }
     );
 
