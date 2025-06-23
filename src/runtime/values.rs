@@ -248,7 +248,7 @@ impl MascalValue {
             MascalValue::Boolean(b) => {if *b {Ok(String::from("TRUE"))} else {Ok(String::from("FALSE"))}}
             MascalValue::NULL => {Ok(String::from("NULL"))}
             MascalValue::DynamicArray(values) => {
-                as_string_array_impl!(values, "<", ">");
+                as_string_array_impl!(values, "<<", ">>");
             }
             MascalValue::StaticArray(values) => {
                 as_string_array_impl!(values, "[", "]");
