@@ -13,7 +13,7 @@ pub mod execute_typecast;
 use std::cell::RefCell;
 use std::collections::HashSet;
 use std::rc::Rc;
-use std::sync::{LazyLock, Mutex};
+use std::sync::{Arc, LazyLock, Mutex};
 use crate::ast::AbstractSyntaxTree;
 use crate::defs::blocks::{ExecutionBlock, ScopedBlocks};
 use crate::defs::errors::MascalError;
@@ -25,7 +25,7 @@ pub struct ExecutionData {
     pub scoped_blocks: Rc<RefCell<Vec<ScopedBlocks>>>
 }
 
-pub static FUNCTION_HASHSET: LazyLock<Mutex<HashSet<String>>> = LazyLock::new(|| {
+pub static FUNCTION_HASHSET: LazyLock<Mutex<HashSet<Arc<str>>>> = LazyLock::new(|| {
     Mutex::new(HashSet::new())
 });
 

@@ -2,6 +2,7 @@ mod variable_check_stage;
 mod check_parameters_declaration;
 
 use std::collections::HashSet;
+use std::sync::Arc;
 use crate::ast::AbstractSyntaxTree;
 use crate::defs::blocks::{ScopedBlocks, VariableBlock};
 use crate::defs::errors::{MascalError};
@@ -18,7 +19,8 @@ pub fn conduct_semantic_analysis(abstract_syntax_tree: AbstractSyntaxTree) -> Re
                 name, 
                 ..
             } => {
-                FUNCTION_HASHSET.lock().unwrap().insert(name.clone());
+                let converted_name: Arc<str> = Arc::from(name.as_str());
+                FUNCTION_HASHSET.lock().unwrap().insert(converted_name);
                 check_for_param_declaration(execution_block, parameters)?;
                 execution_block
             }

@@ -24,7 +24,7 @@ pub fn execute_declaration_statement(
 ) -> Result<StatementResults, MascalError> {
     match variable {
         MascalExpression::SymbolicExpression(varname) => {
-            if FUNCTION_HASHSET.lock().unwrap().get(&varname).is_some() {
+            if FUNCTION_HASHSET.lock().unwrap().get(varname.as_str()).is_some() {
                 return Ok(StatementResults {
                     return_value: Some(execute_expression(value, Rc::new(RefCell::new(ExecutionData {
                         variable_table: Some(variable_table.clone()),
