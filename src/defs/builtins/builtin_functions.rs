@@ -232,6 +232,41 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<FxHashMap<String, Arc<BuiltinFunction>>
     );
 
     define_builtin_function!(
+        BuiltinFunction::new_value_based, "Clamp", map, vec![
+            vec![MascalTypeKind::Float, MascalTypeKind::Integer],
+            vec![MascalTypeKind::Float, MascalTypeKind::Integer],
+            vec![MascalTypeKind::Float, MascalTypeKind::Integer]
+        ], false,
+        |args, _| {
+            let (min, max) = match (&args[1], &args[2]) {
+                (MascalValue::Integer(i1), MascalValue::Integer(i2)) => {
+                    (i1.as_f64(), i2.as_f64())
+                }
+                (MascalValue::Float(f), MascalValue::Integer(i)) => {
+                    (*f, i.as_f64())
+                }
+                (MascalValue::Integer(i), MascalValue::Float(f)) => {
+                    (i.as_f64(), *f)
+                }
+                (MascalValue::Float(f1), MascalValue::Float(f2)) => {
+                    (*f1, *f2)
+                }
+                (_, _) => unreachable!()
+            }
+            
+            Ok(Some(match &args[0] {
+                MascalValue::Integer(i) => MascalValue::Integer(IntegerNum::new(
+                    i.as_f64().clamp(min, max).round() as i128
+                ))
+                
+                MascalValue::Float(f) => MascalValue::Float(f.clamp(min, max))
+                
+                _ => unreachable!()
+            }))
+        }
+    );
+
+    define_builtin_function!(
         BuiltinFunction::new_value_based, "Log", map, vec![vec![MascalTypeKind::Float, MascalTypeKind::Integer]], false,
         |args, _| {
             match args.first().unwrap() {
