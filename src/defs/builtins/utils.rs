@@ -131,3 +131,27 @@ pub fn sum_internal(value: Rc<RefCell<Option<MascalValue>>>, sum: &mut f64, enco
         }
     }
 }
+
+#[macro_export]
+macro_rules! join_array_impl {
+    ($v: expr, $sep: expr) => {
+        let mut result: String = String::from("");
+        for (index, value) in $v.into_iter().enumerate() {
+            let val_borrow = &*value.borrow();
+            match val_borrow {
+                Some(val) => {
+                    result += val.as_string()?.as_str();
+                    if index != $v.len() - 1 {
+                        result += $sep;
+                    }
+                    continue;
+                }
+                
+                None => {
+                    uninit_cell_error!()
+                }
+            }
+        }
+        return Ok(Some(MascalValue::String(Arc::from(result))));
+    };
+}

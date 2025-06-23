@@ -12,7 +12,7 @@ use crate::defs::dynamic_int::IntegerNum;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
 use crate::defs::types::{MascalType, MascalTypeKind};
-use crate::{check_boundaries, min_max_common_operation, uninit_cell_error};
+use crate::{check_boundaries, join_array_impl, min_max_common_operation, uninit_cell_error};
 use crate::runtime::ExecutionData;
 use crate::runtime::values::MascalValue;
 use crate::runtime::utils::{get_dimensions, get_sizes};
@@ -92,13 +92,13 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<FxHashMap<String, Arc<BuiltinFunction>>
         ], false,
         |args, _| {
             match args.first().unwrap() {
-                (MascalValue::StaticArray(v)) => {
+                MascalValue::StaticArray(v) => {
                     let mut idx: Vec<usize> = (0..v.len()).collect();
                     idx.shuffle(&mut rand::rng());
                     Ok(Some(MascalValue::StaticArray(idx.into_iter().map(|i| v[i].clone()).collect())))
                 }
 
-                (MascalValue::DynamicArray(v)) => {
+                MascalValue::DynamicArray(v) => {
                     let mut idx: Vec<usize> = (0..v.len()).collect();
                     idx.shuffle(&mut rand::rng());
                     Ok(Some(MascalValue::DynamicArray(idx.into_iter().map(|i| v[i].clone()).collect())))
@@ -252,15 +252,15 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<FxHashMap<String, Arc<BuiltinFunction>>
                     (*f1, *f2)
                 }
                 (_, _) => unreachable!()
-            }
-            
+            };
+
             Ok(Some(match &args[0] {
                 MascalValue::Integer(i) => MascalValue::Integer(IntegerNum::new(
                     i.as_f64().clamp(min, max).round() as i128
-                ))
-                
-                MascalValue::Float(f) => MascalValue::Float(f.clamp(min, max))
-                
+                )),
+
+                MascalValue::Float(f) => MascalValue::Float(f.clamp(min, max)),
+
                 _ => unreachable!()
             }))
         }
@@ -277,6 +277,27 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<FxHashMap<String, Arc<BuiltinFunction>>
             let MascalValue::String(target_str) = &args[2] else {unreachable!()};
             let MascalValue::String(sub_str) = &args[2] else {unreachable!()};
             Ok(Some(MascalValue::String(Arc::from(main_str.replace(&*target_str.clone(), &*sub_str.clone())))))
+        }
+    );
+
+    define_builtin_function!(
+        BuiltinFunction::new_value_based, "Join", map, vec![
+            vec![MascalTypeKind::DynamicArray, MascalTypeKind::StaticArray],
+            vec![MascalTypeKind::String],
+        ], false,
+        |args, _| {
+            let MascalValue::String(sep) = &args[1] else {unreachable!()};
+            match &args[0] {
+                MascalValue::StaticArray(v) => {
+                    join_array_impl!(v, sep);
+                }
+
+                MascalValue::DynamicArray(v) => {
+                    join_array_impl!(v, sep);
+                }
+
+                _ => unreachable!()
+            }
         }
     );
 
