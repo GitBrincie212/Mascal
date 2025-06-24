@@ -33,15 +33,9 @@ the variables block in an effort not to bloat the program
 - <b>Nullables</b> By default, all variables cannot be nor contain **``NULl``**, however with ``?`` you can
 allow that to happen
 
-Creating a "Hello World" program is straightforward as creating a file with the extension ``.mascal`` and dropping this code
-```pest
-DEFINE_PROGRAM {
-    IMPLEMENTATION {
-        WRITE("Hello World");
-    }
-}
-```
+> Feel free to read upon the [documentation](docs/Getting Started.md) here
 
-This language is in early development and thus needs more testing as well as optimizations to hit the production stage 
-(tho this language won't be taken as seriously as my other projects which have higher priority, even if it's an impressive 
+This language is in early development and thus needs more testing as well as optimizations to hit the production stage
+(tho this language won't be taken as seriously as my other projects which have higher priority, even if it's an impressive
 achievement)
+<br />
