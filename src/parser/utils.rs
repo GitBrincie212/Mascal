@@ -104,6 +104,7 @@ pub fn extract_braced_block_from_tokens<'a>(
     )
 }
 
+#[inline(always)]
 pub fn locate_block<'a>(
     token_sequence: TokenSequence<'a>,
     token_type: TokenType,

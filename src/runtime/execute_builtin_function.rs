@@ -7,6 +7,7 @@ use crate::runtime::values::MascalValue;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+#[inline(always)]
 pub fn execute_builtin_function(
     built_in_func: &BuiltinFunction,
     arguments: Vec<MascalExpression>,

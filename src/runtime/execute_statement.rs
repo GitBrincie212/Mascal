@@ -53,6 +53,7 @@ pub struct StatementResults {
     pub loop_flag: LoopFlags,
 }
 
+#[inline(always)]
 fn error_check_expression(
     variable_table: Rc<RefCell<VariableTable>>,
     mut val: MascalExpression,

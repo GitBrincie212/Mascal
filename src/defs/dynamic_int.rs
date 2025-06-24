@@ -9,6 +9,7 @@ pub enum IntegerNum {
     I128(i128),
 }
 
+#[inline(always)]
 fn promotion_process<F>(
     num1: &IntegerNum,
     num2: &IntegerNum,
@@ -45,18 +46,22 @@ impl IntegerNum {
         }
     }
 
+    #[inline(always)]
     pub fn as_string(&self) -> String {
         self.to_i128().to_string()
     }
 
+    #[inline(always)]
     pub fn as_f64(&self) -> f64 {
         self.to_i128() as f64
     }
 
+    #[inline(always)]
     pub fn is_negative_or_zero(&self) -> bool {
         self.to_i128().is_negative() || self.to_i128() == 0
     }
 
+    #[inline(always)]
     pub fn to_i128(&self) -> i128 {
         match self {
             IntegerNum::I8(v) => *v as i128,
@@ -153,16 +158,19 @@ impl IntegerNum {
         Ok(num)
     }
 
+    #[inline(always)]
     pub fn log2(&self) -> Result<IntegerNum, MascalError> {
         let num: i128 = self.logarithm_operation_pipeline()?;
         Ok(IntegerNum::new(num.ilog2() as i128))
     }
 
+    #[inline(always)]
     pub fn log10(&self) -> Result<IntegerNum, MascalError> {
         let num: i128 = self.logarithm_operation_pipeline()?;
         Ok(IntegerNum::new(num.ilog10() as i128))
     }
 
+    #[inline(always)]
     pub fn ln(&self) -> Result<IntegerNum, MascalError> {
         let num: i128 = self.logarithm_operation_pipeline()?;
         Ok(IntegerNum::new((num as f32).ln().round() as i128))

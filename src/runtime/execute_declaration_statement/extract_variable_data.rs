@@ -5,6 +5,7 @@ use crate::runtime::variable_table::{VariableData, VariableTable};
 use std::cell::RefCell;
 use std::rc::Rc;
 
+#[inline(always)]
 pub fn extract_variable_data(
     base: MascalExpression,
     variable_table: Rc<RefCell<VariableTable>>,

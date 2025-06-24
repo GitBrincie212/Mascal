@@ -4,6 +4,7 @@ use crate::runtime::variable_table::VariableData;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+#[inline(always)]
 pub fn extract_target_area(
     varname: &String,
     vardata: &VariableData,

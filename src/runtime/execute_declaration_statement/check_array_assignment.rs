@@ -5,6 +5,7 @@ use crate::runtime::variable_table::VariableData;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+#[inline(always)]
 pub fn check_array_assignment(
     target_value: Rc<RefCell<Option<MascalValue>>>,
     assignment_value: Rc<RefCell<Option<MascalValue>>>,

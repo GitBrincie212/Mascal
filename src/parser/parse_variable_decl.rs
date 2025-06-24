@@ -8,6 +8,7 @@ use crate::parser::parse_expression::parse_expression;
 use crate::parser::utils::parse_array_type;
 use std::rc::Rc;
 
+#[inline(always)]
 pub fn parse_variable_decl<'a>(
     tokens: &'a Vec<Token<'a>>,
 ) -> Result<MascalVariableInitialDeclaration, MascalError> {

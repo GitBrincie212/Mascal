@@ -318,6 +318,7 @@ impl MascalValue {
         }
     }
 
+    #[inline(always)]
     pub fn extract_as_float(&self) -> Option<f64> {
         match self {
             MascalValue::Integer(i) => Some(i.as_f64()),
@@ -326,6 +327,7 @@ impl MascalValue {
         }
     }
 
+    #[inline(always)]
     pub fn extract_as_int(&self) -> Option<i128> {
         match self {
             MascalValue::Integer(i) => Some(i.to_i128()),
@@ -334,6 +336,7 @@ impl MascalValue {
         }
     }
 
+    #[inline(always)]
     pub fn is_array(&self) -> bool {
         matches!(
             self,

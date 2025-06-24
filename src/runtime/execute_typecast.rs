@@ -10,6 +10,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::Arc;
 
+#[inline(never)]
 pub fn execute_typecast(
     function: Box<MascalUnprocessedType>,
     arguments: Vec<MascalExpression>,
@@ -19,6 +20,7 @@ pub fn execute_typecast(
     execute_processed_typecast(to_processed_type(*function.clone())?, value)
 }
 
+#[inline(always)]
 pub fn execute_processed_typecast(
     mascal_type: MascalType,
     value: MascalValue,

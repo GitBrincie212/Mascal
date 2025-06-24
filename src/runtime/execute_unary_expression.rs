@@ -8,6 +8,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 #[allow(dead_code)]
+#[inline(always)]
 pub fn execute_unary_expression(
     target: MascalExpression,
     operator: MascalUnaryOperators,

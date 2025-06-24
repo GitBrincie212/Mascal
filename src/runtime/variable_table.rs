@@ -107,6 +107,7 @@ macro_rules! create_variable_table_for_type {
 }
 
 #[allow(dead_code)]
+#[inline(always)]
 pub fn create_variable_table(
     mut block: ExecutionBlock,
 ) -> Result<(Rc<RefCell<VariableTable>>, ExecutionBlock), MascalError> {

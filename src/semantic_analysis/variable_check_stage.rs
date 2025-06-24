@@ -3,6 +3,7 @@ use crate::defs::errors::{MascalError, MascalErrorType};
 use std::collections::HashSet;
 use std::rc::Rc;
 
+#[inline(always)]
 pub(crate) fn check_per_variable(
     variable_type: &[MascalVariableInitialDeclaration],
     mut defined_var_names: HashSet<Rc<str>>,

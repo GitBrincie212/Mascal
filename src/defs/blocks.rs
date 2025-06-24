@@ -55,6 +55,7 @@ impl VariableBlock {
         }
     }
 
+    #[inline(always)]
     pub fn iter_all(&self) -> Vec<&MascalVariableInitialDeclaration> {
         self.integers
             .iter()

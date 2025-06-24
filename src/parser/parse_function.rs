@@ -8,6 +8,7 @@ use crate::parser::parse_variables::parse_variable_block;
 use crate::parser::utils::{extract_braced_block, parse_array_type};
 use std::rc::Rc;
 
+#[inline(always)]
 fn get_parameters_of_func(
     token_sequence: &TokenSequence,
     mut curr_index: usize,

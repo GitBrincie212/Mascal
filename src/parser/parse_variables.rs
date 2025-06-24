@@ -7,6 +7,7 @@ use crate::parser::parse_variable_decl::parse_variable_decl;
 use crate::parser::utils::{extract_braced_block, run_per_statement};
 use std::rc::Rc;
 
+#[inline(always)]
 pub fn parse_variable_type_block(
     subsection_tokens: TokenSequence,
     var_inits: &mut Vec<MascalVariableInitialDeclaration>,

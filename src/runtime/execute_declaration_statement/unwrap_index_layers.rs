@@ -8,6 +8,7 @@ use crate::runtime::variable_table::VariableTable;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+#[inline(always)]
 pub fn unwrap_index_layers(
     variable: MascalExpression,
     variable_table: Rc<RefCell<VariableTable>>,

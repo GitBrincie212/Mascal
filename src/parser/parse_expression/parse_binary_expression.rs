@@ -6,6 +6,7 @@ use crate::defs::operators::{MascalBinaryOperators, token_type_to_binary_operato
 use crate::defs::token::Token;
 use crate::parser::parse_expression::parse_expression_internal;
 
+#[inline(always)]
 pub fn parse_binary_expression(
     tokens: &[Token],
     pos: &mut usize,
