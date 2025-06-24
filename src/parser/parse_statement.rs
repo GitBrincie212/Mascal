@@ -44,11 +44,20 @@ fn parse_branch(token_sequence: &[Token], is_else: bool) -> Result<MascalConditi
 
     let mut statements: Vec<MascalStatement> = Vec::new();
 
-    run_per_statement(&statements_parser, |token_sequence| {
+    let final_toks: Vec<Token> = run_per_statement(&statements_parser, |token_sequence| {
         let stmt = parse_statement(token_sequence)?;
         statements.push(stmt);
         Ok(())
     })?;
+    
+    if !final_toks.is_empty() {
+        return Err(MascalError {
+            error_type: MascalErrorType::ParserError,
+            line: final_toks[0].line,
+            character: final_toks[0].start,
+            source: String::from("Unexpected characters found inside conditional statement, perhaps forgot a semicolon?")
+        })
+    }
 
     Ok(MascalConditionalBranch {
         condition: condition_expression,
@@ -191,11 +200,20 @@ fn parse_for_loop_statement(tokens: &[Token]) -> Result<MascalStatement, MascalE
 
     let mut statements: Vec<MascalStatement> = Vec::new();
 
-    run_per_statement(&statements_parser, |token_sequence| {
+    let final_toks: Vec<Token> = run_per_statement(&statements_parser, |token_sequence| {
         let stmt = parse_statement(token_sequence)?;
         statements.push(stmt);
         Ok(())
     })?;
+
+    if !final_toks.is_empty() {
+        return Err(MascalError {
+            error_type: MascalErrorType::ParserError,
+            line: final_toks[0].line,
+            character: final_toks[0].start,
+            source: String::from("Unexpected characters found inside for loop statement, perhaps forgot a semicolon?")
+        })
+    }
 
     Ok(MascalStatement::For {
         variable: variable_name,
@@ -231,11 +249,20 @@ fn parse_while_loop_statement(tokens: &[Token]) -> Result<MascalStatement, Masca
 
     let mut statements: Vec<MascalStatement> = Vec::new();
 
-    run_per_statement(&statements_parser, |token_sequence| {
+    let final_toks: Vec<Token> = run_per_statement(&statements_parser, |token_sequence| {
         let stmt = parse_statement(token_sequence)?;
         statements.push(stmt);
         Ok(())
     })?;
+
+    if !final_toks.is_empty() {
+        return Err(MascalError {
+            error_type: MascalErrorType::ParserError,
+            line: final_toks[0].line,
+            character: final_toks[0].start,
+            source: String::from("Unexpected characters found inside while loop statement, perhaps forgot a semicolon?")
+        })
+    }
 
     Ok(MascalStatement::While(MascalConditionalBranch {
         condition: Some(condition_expression),

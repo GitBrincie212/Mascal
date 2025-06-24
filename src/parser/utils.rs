@@ -122,18 +122,18 @@ pub fn run_per_statement<'a, F>(
     let mut depth_counter: usize = 0;
     let mut entered_conditional_stmt: bool = false;
     for (index, token) in token_sequence.tokens.iter().enumerate() {
-        if token.token_type != TokenType::Comment {
-            statement_token_seq.push(token.clone())
-        }
+        statement_token_seq.push(token.clone());
         match token.token_type {
             TokenType::If => {
                 if depth_counter == 0 {
                     entered_conditional_stmt = true;
                 }
             }
+            
             TokenType::OpenBrace => {
                 depth_counter += 1;
             }
+            
             TokenType::CloseBrace => {
                 depth_counter -= 1;
                 if depth_counter > 0 {
@@ -155,6 +155,7 @@ pub fn run_per_statement<'a, F>(
                 func(&statement_token_seq)?;
                 statement_token_seq.clear();
             }
+            
             TokenType::Semicolon => {
                 if depth_counter > 0 {
                     continue;
