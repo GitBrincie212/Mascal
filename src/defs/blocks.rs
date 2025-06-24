@@ -1,7 +1,7 @@
-use std::rc::Rc;
 use crate::defs::declerations::MascalVariableInitialDeclaration;
 use crate::defs::statements::MascalStatement;
 use crate::defs::types::MascalUnprocessedType;
+use std::rc::Rc;
 
 #[derive(Debug, Clone)]
 pub struct VariableBlock {

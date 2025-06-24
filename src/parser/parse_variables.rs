@@ -1,4 +1,3 @@
-use std::rc::Rc;
 use crate::defs::blocks::VariableBlock;
 use crate::defs::declerations::MascalVariableInitialDeclaration;
 use crate::defs::errors::{MascalError, MascalErrorType};
@@ -6,6 +5,7 @@ use crate::defs::token::{Token, TokenType};
 use crate::parser::TokenSequence;
 use crate::parser::parse_variable_decl::parse_variable_decl;
 use crate::parser::utils::{extract_braced_block, run_per_statement};
+use std::rc::Rc;
 
 pub fn parse_variable_type_block(
     subsection_tokens: TokenSequence,

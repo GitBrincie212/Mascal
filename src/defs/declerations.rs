@@ -1,5 +1,5 @@
-use std::rc::Rc;
 use crate::defs::expressions::MascalExpression;
+use std::rc::Rc;
 
 #[derive(Debug, Clone)]
 pub struct MascalVariableInitialDeclaration {

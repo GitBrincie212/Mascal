@@ -1,4 +1,3 @@
-use std::rc::Rc;
 use crate::defs::blocks::{ExecutionBlock, MascalParameter, ScopedBlocks};
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::token::{Token, TokenType};
@@ -7,6 +6,7 @@ use crate::parser::TokenSequence;
 use crate::parser::parse_executable_block::parse_executable;
 use crate::parser::parse_variables::parse_variable_block;
 use crate::parser::utils::{extract_braced_block, parse_array_type};
+use std::rc::Rc;
 
 fn get_parameters_of_func(
     token_sequence: &TokenSequence,

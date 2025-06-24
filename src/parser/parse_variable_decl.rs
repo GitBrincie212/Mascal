@@ -1,4 +1,3 @@
-use std::rc::Rc;
 use crate::defs::declerations::MascalVariableInitialDeclaration;
 use crate::defs::dynamic_int::IntegerNum;
 use crate::defs::errors::{MascalError, MascalErrorType};
@@ -7,6 +6,7 @@ use crate::defs::literal::MascalLiteral;
 use crate::defs::token::{Token, TokenType};
 use crate::parser::parse_expression::parse_expression;
 use crate::parser::utils::parse_array_type;
+use std::rc::Rc;
 
 pub fn parse_variable_decl<'a>(
     tokens: &'a Vec<Token<'a>>,
