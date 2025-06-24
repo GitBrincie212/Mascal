@@ -37,6 +37,10 @@ pub fn tokenize(input: &str) -> Vec<Token> {
         match best_capture_group {
             Some((captures, token_type)) => {
                 let m: Match = captures.get(0).unwrap();
+                if token_type == &TokenType::Comment {
+                    current_index += m.len();
+                    continue;
+                }
                 let first_capture: Option<Match> = captures.get(1);
                 tokens.push(Token {
                     value: if first_capture.is_some() {first_capture.unwrap().as_str()} else {m.as_str()},
