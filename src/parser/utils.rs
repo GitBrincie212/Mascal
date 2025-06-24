@@ -102,7 +102,7 @@ pub fn locate_block<'a>(
 ) -> Result<Option<TokenSequence<'a>>, MascalError> {
     for (index, token) in token_sequence.tokens.iter().enumerate() {
         if token.token_type != token_type { continue }
-        let subset_tokens = extract_braced_block(
+        let subset_tokens: TokenSequence = extract_braced_block(
             token_sequence.subsection_from(index + 1..),
             block_name,
             allow_nested,
@@ -113,13 +113,6 @@ pub fn locate_block<'a>(
     }
 
     Ok(None)
-}
-
-pub fn locate_block_from<'a>(
-    tokens: &'a [Token<'a>], token_type: TokenType, block_name: &'static str,
-    allow_nested: &[TokenType], require_inside: &[TokenType]
-) -> Result<Option<TokenSequence<'a>>, MascalError> {
-    locate_block(TokenSequence::new(tokens.to_vec()), token_type, block_name, allow_nested, require_inside)
 }
 
 pub fn run_per_statement<'a, F>(
