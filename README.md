@@ -30,7 +30,7 @@ arrays the same way)
 - <b>Initial Values</b> Forgot any variables to initialize on the program? Well, you can initialize them in
 the variables block in an effort not to bloat the program
 - <b>Constants</b> You want to prevent any modification of a variable? Then feel free to initialize a constant with ``const``
-- <b>Nullables</b> By default, all variables cannot be nor contain **``NULl``**, however with ``?`` you can
+- <b>Nullables</b> By default, all variables cannot be nor contain **``NULL``**, however with ``?`` you can
 allow that to happen
 
 > Feel free to read upon the <a href="docs/Getting Started.md">documentation</a> here
