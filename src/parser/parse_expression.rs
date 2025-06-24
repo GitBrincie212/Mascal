@@ -24,14 +24,16 @@ pub fn parse_expression_internal(
     }
     let mut lhs: MascalExpression = parse_prefix(tokens, pos)?;
 
-    'pratt: loop {
-        match tokens.get(*pos).map(|t| &t.token_type) {
+    loop {
+        let curr: Option<&Token> = tokens.get(*pos);
+        match curr.map(|t| &t.token_type) {
             Some(TokenType::Comma)
             | Some(TokenType::CloseBracket)
             | Some(TokenType::CloseDynamicArray)
             | Some(TokenType::CloseParen)
             | None
-            => break 'pratt,
+            => { break },
+            
             _ => {}
         }
 
