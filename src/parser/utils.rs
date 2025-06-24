@@ -33,13 +33,13 @@ pub fn extract_braced_block<'a>(
             TokenType::CloseBrace => {
                 depth -= 1;
                 if depth == 0 {
-                    if !require_inside.iter().all(|r| found_required.contains(r)) {
-                        let missing: Vec<_> = require_inside
-                            .iter()
-                            .filter(|r| !found_required.contains(r))
-                            .map(|r| format!("{:?}", r))
-                            .collect();
-
+                    let missing: Vec<String> = require_inside
+                        .iter()
+                        .filter(|r| !found_required.contains(r))
+                        .map(|r| format!("{:?}", r))
+                        .collect();
+                    
+                    if !missing.is_empty() {
                         return Err(MascalError {
                             error_type: MascalErrorType::ParserError,
                             line: token.line,
