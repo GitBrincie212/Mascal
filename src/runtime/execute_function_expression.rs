@@ -81,7 +81,7 @@ pub fn execute_function_call(
     let lowercased: &String = &fn_name.to_lowercase();
     if fn_name == fn_name.to_uppercase() || &fn_name == lowercased || is_titlecase(&fn_name) {
         if let Some(built_in_func) = BUILT_IN_FUNCTION_TABLE.get(lowercased) {
-            return execute_builtin_function(built_in_func.clone(), arguments, exec_data.clone());
+            return execute_builtin_function(built_in_func, arguments, exec_data.clone());
         }
     }
     let mut func_parameters: &[MascalParameter] = &Vec::new();

@@ -6,14 +6,13 @@ use crate::runtime::execute_expression::execute_expression;
 use crate::runtime::values::MascalValue;
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::sync::Arc;
 
 pub fn execute_builtin_function(
-    built_in_func: Arc<BuiltinFunction>,
+    built_in_func: &BuiltinFunction,
     arguments: Vec<MascalExpression>,
     exec_data: Rc<RefCell<ExecutionData>>,
 ) -> Result<MascalValue, MascalError> {
-    match built_in_func.as_ref() {
+    match built_in_func {
         BuiltinFunction::ValueBased {
             fixed_argument_types,
             supports_dynamic_arguments,
