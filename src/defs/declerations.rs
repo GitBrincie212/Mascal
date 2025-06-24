@@ -1,8 +1,9 @@
+use std::rc::Rc;
 use crate::defs::expressions::MascalExpression;
 
 #[derive(Debug, Clone)]
 pub struct MascalVariableInitialDeclaration {
-    pub name: String,
+    pub name: Rc<str>,
     pub is_constant: bool,
     pub is_nullable: bool,
     pub dimensions: Box<[MascalExpression]>,

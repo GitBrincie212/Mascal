@@ -50,7 +50,7 @@ pub fn execute_expression(
             };
             let vardata: Option<VariableData> = {
                 let var_table = unwrapped_var_table.borrow();
-                var_table.get(&symbolic_expr).cloned()
+                var_table.get(symbolic_expr.as_str()).cloned()
             };
 
             match vardata {

@@ -1,3 +1,4 @@
+use std::rc::Rc;
 use crate::defs::declerations::MascalVariableInitialDeclaration;
 use crate::defs::dynamic_int::IntegerNum;
 use crate::defs::errors::{MascalError, MascalErrorType};
@@ -10,7 +11,7 @@ use crate::parser::utils::parse_array_type;
 pub fn parse_variable_decl<'a>(
     tokens: &'a Vec<Token<'a>>,
 ) -> Result<MascalVariableInitialDeclaration, MascalError> {
-    let name: String;
+    let name: Rc<str>;
     let mut is_constant: bool = false;
     let mut is_nullable: bool = false;
     let mut dimensions: Vec<MascalExpression> = Vec::new();
@@ -24,7 +25,7 @@ pub fn parse_variable_decl<'a>(
     }
 
     if curr_index < tokens.len() && tokens[curr_index].token_type == TokenType::Identifier {
-        name = tokens[curr_index].value.to_string();
+        name = Rc::from(tokens[curr_index].value);
         curr_index += 1;
     } else {
         return Err(MascalError {

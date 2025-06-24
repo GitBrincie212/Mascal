@@ -15,7 +15,7 @@ use std::rc::Rc;
 use std::str::Chars;
 
 fn notify_mutable_params(
-    mutable_parameters: Vec<(String, String)>,
+    mutable_parameters: Vec<(Rc<str>, Rc<str>)>,
     scoped_variable_table: Rc<RefCell<VariableTable>>,
     exec_data: Rc<RefCell<ExecutionData>>,
 ) {
@@ -133,13 +133,13 @@ pub fn execute_function_call(
     let scoped_variable_table: Rc<RefCell<VariableTable>>;
     (scoped_variable_table, func_exec_block) = create_variable_table(func_exec_block)?;
     let mut borrowed_mut_vartable = scoped_variable_table.borrow_mut();
-    let mut mutable_parameters: Vec<(String, String)> = Vec::with_capacity(func_parameters.len());
+    let mut mutable_parameters: Vec<(Rc<str>, Rc<str>)> = Vec::with_capacity(func_parameters.len());
     for (index, parameter) in func_parameters.iter().enumerate() {
         let data: &mut VariableData = borrowed_mut_vartable.get_mut(&parameter.name).unwrap();
         if parameter.is_mutable {
             match &arguments[index] {
                 MascalExpression::Symbolic(varname) => {
-                    mutable_parameters.push((parameter.name.clone(), varname.clone()));
+                    mutable_parameters.push((parameter.name.clone(), Rc::from(varname.as_str())));
                 }
 
                 _ => {

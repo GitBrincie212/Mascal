@@ -1015,7 +1015,7 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<FxHashMap<String, Arc<BuiltinFunction>>
                 if let Some(wrapped_vartable) = &exec_data.borrow().variable_table {
                     let mut vartable = wrapped_vartable.borrow_mut();
                     if let [Some(variable_data1), Some(variable_data2)] =
-                        vartable.get_disjoint_mut([varname1, varname2])
+                        vartable.get_disjoint_mut([varname1.as_str(), varname2.as_str()])
                     {
                         std::mem::swap(variable_data1, variable_data2);
                         return Ok(None);

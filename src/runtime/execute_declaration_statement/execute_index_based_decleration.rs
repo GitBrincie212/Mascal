@@ -40,6 +40,6 @@ pub fn execute_index_based_decleration(
         layers_len,
     )?;
     *target_value.borrow_mut() = Some(rhs);
-    variable_table.borrow_mut().insert(varname, vardata);
+    variable_table.borrow_mut().insert(Rc::from(varname), vardata);
     Ok(())
 }

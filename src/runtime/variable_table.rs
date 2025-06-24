@@ -16,7 +16,7 @@ use std::sync::Arc;
  just make a toy language, investing in deep system level design will be way harder
 */
 #[allow(dead_code)]
-pub type VariableTable = FxHashMap<String, VariableData>;
+pub type VariableTable = FxHashMap<Rc<str>, VariableData>;
 
 #[derive(Debug, Clone)]
 pub struct VariableData {

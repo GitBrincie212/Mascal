@@ -1,3 +1,4 @@
+use std::rc::Rc;
 use crate::defs::declerations::MascalVariableInitialDeclaration;
 use crate::defs::statements::MascalStatement;
 use crate::defs::types::MascalUnprocessedType;
@@ -20,7 +21,7 @@ pub struct ExecutionBlock {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct MascalParameter {
-    pub name: String,
+    pub name: Rc<str>,
     pub is_mutable: bool,
 }
 

@@ -7,6 +7,7 @@ use crate::defs::errors::MascalError;
 use crate::runtime::FUNCTION_HASHSET;
 use crate::semantic_analysis::check_parameters_declaration::check_for_param_declaration;
 use std::collections::HashSet;
+use std::rc::Rc;
 use std::sync::Arc;
 
 pub fn conduct_semantic_analysis(
@@ -28,7 +29,7 @@ pub fn conduct_semantic_analysis(
             }
         }
         .variables;
-        let mut defined_var_names: HashSet<String> = HashSet::new();
+        let mut defined_var_names: HashSet<Rc<str>> = HashSet::new();
         defined_var_names =
             variable_check_stage::check_per_variable(&varblock.integers, defined_var_names)?;
         defined_var_names =

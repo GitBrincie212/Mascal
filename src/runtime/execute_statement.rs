@@ -238,7 +238,7 @@ pub fn execute_statement(
                 let borrowed_vartable = semantic_context.variable_table.borrow();
                 let variable_data =
                     borrowed_vartable
-                        .get(&variable)
+                        .get(variable.as_str())
                         .ok_or_else(|| MascalError {
                             error_type: MascalErrorType::RuntimeError,
                             character: 0,
@@ -291,12 +291,13 @@ pub fn execute_statement(
                     let int_to_num: i128 = to_num.extract_as_int().unwrap();
                     let int_step_num: i128 = step_num.extract_as_int().unwrap();
                     let mut curr: i128 = from_num.extract_as_int().unwrap();
+                    let varname: Rc<str> = Rc::from(variable);
                     while curr <= int_to_num {
                         {
                             let mut mutable_borrow_vartable =
                                 semantic_context.variable_table.borrow_mut();
                             mutable_borrow_vartable.insert(
-                                variable.clone(),
+                                varname.clone(),
                                 VariableData {
                                     value: Some(Rc::new(RefCell::new(MascalValue::Integer(
                                         IntegerNum::new(curr),
@@ -337,12 +338,13 @@ pub fn execute_statement(
                     let float_to_num: f64 = to_num.extract_as_float().unwrap();
                     let float_step_num: f64 = step_num.extract_as_float().unwrap();
                     let mut curr: f64 = from_num.extract_as_float().unwrap();
+                    let varname: Rc<str> = Rc::from(variable);
                     while curr <= float_to_num {
                         {
                             let mut mutable_borrow_vartable =
                                 semantic_context.variable_table.borrow_mut();
                             mutable_borrow_vartable.insert(
-                                variable.clone(),
+                                varname.clone(),
                                 VariableData {
                                     value: Some(Rc::new(RefCell::new(MascalValue::Float(curr)))),
                                     is_constant,

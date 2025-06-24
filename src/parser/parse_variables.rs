@@ -1,3 +1,4 @@
+use std::rc::Rc;
 use crate::defs::blocks::VariableBlock;
 use crate::defs::declerations::MascalVariableInitialDeclaration;
 use crate::defs::errors::{MascalError, MascalErrorType};
@@ -16,7 +17,7 @@ pub fn parse_variable_type_block(
                 return Ok(());
             } else if token_sequence.len() == 1 {
                 var_inits.push(MascalVariableInitialDeclaration {
-                    name: token_sequence[0].value.to_string(),
+                    name: Rc::from(token_sequence[0].value),
                     initial_value: None,
                     is_constant: false,
                     is_dynamic_array: Box::new([]),

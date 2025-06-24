@@ -44,7 +44,7 @@ pub fn execute_declaration_statement(
                 });
             }
             let variable_table_borrow = variable_table.borrow();
-            if let Some(vardata) = variable_table_borrow.get(&varname) {
+            if let Some(vardata) = variable_table_borrow.get(varname.as_str()) {
                 let is_constant = vardata.is_constant;
                 let is_nullable = vardata.is_nullable;
                 let array_dimensions = vardata.array_dimensions.clone();
@@ -83,7 +83,7 @@ pub fn execute_declaration_statement(
                     atomic_variable_type,
                 };
 
-                vartable_mutable_borrow.insert(varname, owned_data);
+                vartable_mutable_borrow.insert(Rc::from(varname), owned_data);
                 return Ok(StatementResults {
                     return_value: None,
                     loop_flag: LoopFlags::None,

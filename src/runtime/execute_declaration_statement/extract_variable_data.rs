@@ -25,7 +25,7 @@ pub fn extract_variable_data(
     };
 
     let vardata = vartable_borrow
-        .get(&varname)
+        .get(varname.as_str())
         .ok_or_else(|| MascalError {
             error_type: MascalErrorType::RuntimeError,
             line: 0,

@@ -1,3 +1,4 @@
+use std::rc::Rc;
 use crate::defs::blocks::{ExecutionBlock, MascalParameter, ScopedBlocks};
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::token::{Token, TokenType};
@@ -65,7 +66,7 @@ fn get_parameters_of_func(
                 });
             }
             parameters.push(MascalParameter {
-                name: parameter_name.unwrap(),
+                name: Rc::from(parameter_name.unwrap()),
                 is_mutable,
             });
             parameter_name = None;
