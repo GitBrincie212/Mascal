@@ -1,6 +1,7 @@
 use crate::defs::token::TokenType;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[repr(u8)]
 pub enum MascalUnaryOperators {
     Not,
     Minus,
@@ -8,6 +9,7 @@ pub enum MascalUnaryOperators {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[repr(u8)]
 pub enum MascalBinaryOperators {
     Plus,
     Minus,

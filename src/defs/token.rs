@@ -5,6 +5,7 @@ use std::collections::HashSet;
 pub type TokenRegexMap = Vec<(Regex, TokenType)>;
 
 #[derive(Debug, Hash, Eq, PartialEq, Clone)]
+#[repr(u8)]
 pub enum TokenType {
     // Identifiers Of Mascal
     Identifier,

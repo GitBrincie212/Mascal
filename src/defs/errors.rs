@@ -1,6 +1,7 @@
 use std::fmt;
 
 #[derive(Debug)]
+#[repr(u8)]
 pub enum MascalErrorType {
     LexerError,
     ParserError,

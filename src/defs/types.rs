@@ -100,6 +100,7 @@ pub enum MascalType {
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[repr(u8)]
 pub enum MascalTypeKind {
     Integer,
     Float,
