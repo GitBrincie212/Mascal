@@ -1,15 +1,14 @@
-use std::cell::RefCell;
-use rustc_hash::FxHashMap;
-use std::rc::Rc;
-use std::sync::Arc;
 use crate::defs::blocks::ExecutionBlock;
 use crate::defs::errors::{MascalError, MascalErrorType};
-use crate::defs::types::{MascalType};
-use crate::runtime::execute_expression::execute_expression;
+use crate::defs::types::MascalType;
 use crate::runtime::ExecutionData;
-use crate::runtime::values::MascalValue;
+use crate::runtime::execute_expression::execute_expression;
 use crate::runtime::utils::make_array;
-
+use crate::runtime::values::MascalValue;
+use rustc_hash::FxHashMap;
+use std::cell::RefCell;
+use std::rc::Rc;
+use std::sync::Arc;
 
 /*
  I am highly aware that this could be severally optimized by using a stack and a heap. However,
@@ -108,7 +107,9 @@ macro_rules! create_variable_table_for_type {
 }
 
 #[allow(dead_code)]
-pub fn create_variable_table(mut block: ExecutionBlock) -> Result<(Rc<RefCell<VariableTable>>, ExecutionBlock), MascalError> {
+pub fn create_variable_table(
+    mut block: ExecutionBlock,
+) -> Result<(Rc<RefCell<VariableTable>>, ExecutionBlock), MascalError> {
     let table: Rc<RefCell<VariableTable>> = Rc::new(RefCell::new(FxHashMap::default()));
 
     let integers = std::mem::take(&mut block.variables.integers);

@@ -1,8 +1,8 @@
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::statements::MascalStatement;
 use crate::defs::token::{Token, TokenType};
-use crate::parser::parse_statement::parse_statement;
 use crate::parser::TokenSequence;
+use crate::parser::parse_statement::parse_statement;
 use crate::parser::utils::{locate_block, run_per_statement};
 
 pub fn parse_executable(inner_parser: TokenSequence) -> Result<Vec<MascalStatement>, MascalError> {
@@ -13,12 +13,13 @@ pub fn parse_executable(inner_parser: TokenSequence) -> Result<Vec<MascalStateme
         "IMPLEMENTATION",
         &[],
         &[],
-    )?.unwrap();
+    )?
+    .unwrap();
 
     let final_toks: Vec<Token> = run_per_statement(&program_parser, |token_sequence| {
         let stmt: MascalStatement = parse_statement(token_sequence)?;
         statements.push(stmt);
-        return Ok(());
+        Ok(())
     })?;
 
     if !final_toks.is_empty() {
@@ -26,9 +27,11 @@ pub fn parse_executable(inner_parser: TokenSequence) -> Result<Vec<MascalStateme
             error_type: MascalErrorType::ParserError,
             line: final_toks[0].line,
             character: final_toks[0].start,
-            source: String::from("Unexpected characters found inside implementation block, perhaps forgot a semicolon?")
-        })
+            source: String::from(
+                "Unexpected characters found inside implementation block, perhaps forgot a semicolon?",
+            ),
+        });
     }
-    
+
     Ok(statements)
 }

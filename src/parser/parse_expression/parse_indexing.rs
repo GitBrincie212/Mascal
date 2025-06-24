@@ -1,8 +1,8 @@
-use crate::defs::binding_power::{BindingPower};
-use crate::defs::errors::{MascalError};
+use crate::defs::binding_power::BindingPower;
+use crate::defs::errors::MascalError;
 use crate::defs::expressions::MascalExpression;
-use crate::defs::token::{Token, TokenType};
 use crate::defs::loop_flags::LoopFlags;
+use crate::defs::token::{Token, TokenType};
 use crate::parser::parse_expression::parse_expression_internal;
 
 pub fn parse_indexing_expression(
@@ -14,7 +14,7 @@ pub fn parse_indexing_expression(
     let tok = tokens.get(*pos).map(|t| &t.token_type);
     let is_dynamic_array = tok == Some(&TokenType::OpenDynamicArray);
     if !is_dynamic_array && tok != Some(&TokenType::OpenBracket) {
-        return Ok((LoopFlags::NONE, lhs));
+        return Ok((LoopFlags::None, lhs));
     }
 
     let mut depth = 0;
@@ -32,26 +32,40 @@ pub fn parse_indexing_expression(
             _ => {}
         }
     }
-    let end = if let Some(i) = match_idx { i } else {
-        return Ok((LoopFlags::NONE, lhs));
+    let end = if let Some(i) = match_idx {
+        i
+    } else {
+        return Ok((LoopFlags::None, lhs));
     };
 
-    if tokens.get(end + 1)
-        .map(|t| matches!(t.token_type,
-                 TokenType::Identifier
-               | TokenType::IntegerLiteral
-               | TokenType::FloatLiteral
-               | TokenType::StringLiteral
-               | TokenType::OpenParen
-               | TokenType::OpenBracket
-             ))
+    if tokens
+        .get(end + 1)
+        .map(|t| {
+            matches!(
+                t.token_type,
+                TokenType::Identifier
+                    | TokenType::IntegerLiteral
+                    | TokenType::FloatLiteral
+                    | TokenType::StringLiteral
+                    | TokenType::OpenParen
+                    | TokenType::OpenBracket
+            )
+        })
         .unwrap_or(false)
     {
-        return Ok((LoopFlags::NONE, lhs));
+        return Ok((LoopFlags::None, lhs));
     }
 
-    let open_tt = if is_dynamic_array {TokenType::OpenDynamicArray} else {TokenType::OpenBracket};
-    let close_tt = if is_dynamic_array {TokenType::CloseDynamicArray} else {TokenType::CloseBracket};
+    let open_tt = if is_dynamic_array {
+        TokenType::OpenDynamicArray
+    } else {
+        TokenType::OpenBracket
+    };
+    let close_tt = if is_dynamic_array {
+        TokenType::CloseDynamicArray
+    } else {
+        TokenType::CloseBracket
+    };
     let is_dynamic = true;
 
     *pos += 1;
@@ -79,12 +93,18 @@ pub fn parse_indexing_expression(
     let idx_expr: MascalExpression = parse_expression_internal(
         &indices,
         &mut inner_pos,
-        BindingPower { left_binding_power: 0, right_binding_power: 0 },
+        BindingPower {
+            left_binding_power: 0,
+            right_binding_power: 0,
+        },
     )?;
 
-    Ok((LoopFlags::CONTINUE, MascalExpression::IndexExpression {
-        array:      Box::new(lhs),
-        index:      Box::new(idx_expr),
-        is_dynamic,
-    }))
+    Ok((
+        LoopFlags::Continue,
+        MascalExpression::Indexing {
+            array: Box::new(lhs),
+            index: Box::new(idx_expr),
+            is_dynamic,
+        },
+    ))
 }

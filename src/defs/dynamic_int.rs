@@ -6,15 +6,20 @@ pub enum IntegerNum {
     I16(i16),
     I32(i32),
     I64(i64),
-    I128(i128)
+    I128(i128),
 }
 
 fn promotion_process<F>(
-    num1: &IntegerNum, num2: &IntegerNum, func: F
-) -> Result<IntegerNum, MascalError> where F: Fn(i128, i128) -> (i128, bool) {
+    num1: &IntegerNum,
+    num2: &IntegerNum,
+    func: F,
+) -> Result<IntegerNum, MascalError>
+where
+    F: Fn(i128, i128) -> (i128, bool),
+{
     let (num, did_overflow): (i128, bool) = func(num1.to_i128(), num2.to_i128());
     if !did_overflow {
-        return Ok(IntegerNum::new(num))
+        return Ok(IntegerNum::new(num));
     }
 
     Err(MascalError {
@@ -27,13 +32,19 @@ fn promotion_process<F>(
 
 impl IntegerNum {
     pub fn new(val: i128) -> IntegerNum {
-        if (i8::MIN as i128..i8::MAX as i128).contains(&val) {IntegerNum::I8(val as i8)}
-        else if (i16::MIN as i128..i16::MAX as i128).contains(&val) {IntegerNum::I16(val as i16)}
-        else if (i32::MIN as i128..i32::MAX as i128).contains(&val) {IntegerNum::I32(val as i32)}
-        else if (i64::MIN as i128..i64::MAX as i128).contains(&val) {IntegerNum::I64(val as i64)}
-        else {IntegerNum::I128(val)}
+        if (i8::MIN as i128..i8::MAX as i128).contains(&val) {
+            IntegerNum::I8(val as i8)
+        } else if (i16::MIN as i128..i16::MAX as i128).contains(&val) {
+            IntegerNum::I16(val as i16)
+        } else if (i32::MIN as i128..i32::MAX as i128).contains(&val) {
+            IntegerNum::I32(val as i32)
+        } else if (i64::MIN as i128..i64::MAX as i128).contains(&val) {
+            IntegerNum::I64(val as i64)
+        } else {
+            IntegerNum::I128(val)
+        }
     }
-    
+
     pub fn as_string(&self) -> String {
         self.to_i128().to_string()
     }
@@ -41,7 +52,7 @@ impl IntegerNum {
     pub fn as_f64(&self) -> f64 {
         self.to_i128() as f64
     }
-    
+
     pub fn is_negative_or_zero(&self) -> bool {
         self.to_i128().is_negative() || self.to_i128() == 0
     }
@@ -75,16 +86,16 @@ impl IntegerNum {
                 line: 0,
                 character: 0,
                 source: String::from("Division by zero"),
-            })
+            });
         }
-        
+
         promotion_process(self, &other, i128::overflowing_div)
     }
 
     pub fn neg(&self) -> Result<IntegerNum, MascalError> {
         let (num, did_overflow): (i128, bool) = self.to_i128().overflowing_neg();
         if !did_overflow {
-            return Ok(IntegerNum::new(num))
+            return Ok(IntegerNum::new(num));
         }
 
         Err(MascalError {
@@ -125,7 +136,7 @@ impl IntegerNum {
 
         Ok(IntegerNum::new(num.isqrt()))
     }
-    
+
     fn logarithm_operation_pipeline(&self) -> Result<i128, MascalError> {
         let num: i128 = self.to_i128();
         if num <= 0 {
@@ -133,10 +144,12 @@ impl IntegerNum {
                 error_type: MascalErrorType::UndefinedOperation,
                 line: 0,
                 character: 0,
-                source: String::from("Cannot use the logarithm operation with a negative or zero value"),
+                source: String::from(
+                    "Cannot use the logarithm operation with a negative or zero value",
+                ),
             });
         }
-        
+
         Ok(num)
     }
 
@@ -163,12 +176,17 @@ impl IntegerNum {
                 character: 0,
                 line: 0,
                 error_type: MascalErrorType::UndefinedOperation,
-                source: String::from("Cannot perform exponentation with a negative or zero base")
-            })
+                source: String::from("Cannot perform exponentation with a negative or zero base"),
+            });
         }
         if other_val <= 0 {
-            return Ok(IntegerNum::new(1i128 / num_traits::pow(self_val, other_val.abs() as usize)));
+            return Ok(IntegerNum::new(
+                1i128 / num_traits::pow(self_val, other_val.unsigned_abs() as usize),
+            ));
         }
-        Ok(IntegerNum::new(num_traits::pow(self_val,  other_val as usize)))
+        Ok(IntegerNum::new(num_traits::pow(
+            self_val,
+            other_val as usize,
+        )))
     }
 }

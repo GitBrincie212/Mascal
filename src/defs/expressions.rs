@@ -5,33 +5,33 @@ use crate::defs::types::MascalUnprocessedType;
 #[derive(Debug, Clone)]
 pub enum MascalExpression {
     // === Simple Expressions ===
-    LiteralExpression(MascalLiteral),
-    SymbolicExpression(String),
-    DynamicArrayExpression(Box<[MascalExpression]>),
-    StaticArrayExpression(Box<[MascalExpression]>),
-    TypeExpression(Box<MascalUnprocessedType>),
-    BlankExpression,
+    Literal(MascalLiteral),
+    Symbolic(String),
+    DynamicArray(Box<[MascalExpression]>),
+    StaticArray(Box<[MascalExpression]>),
+    Type(Box<MascalUnprocessedType>),
+    Blank,
 
     // === Complex Expressions ===
-    UnaryExpression {
+    Unary {
         operator: MascalUnaryOperators,
         value: Box<MascalExpression>,
     },
-    
-    BinaryExpression {
+
+    Binary {
         left: Box<MascalExpression>,
         operator: MascalBinaryOperators,
         right: Box<MascalExpression>,
     },
 
-    CallExpression {
+    Call {
         function: Box<MascalExpression>,
         arguments: Vec<MascalExpression>,
     },
-    
-    IndexExpression {
+
+    Indexing {
         array: Box<MascalExpression>,
         index: Box<MascalExpression>,
-        is_dynamic: bool
-    }
+        is_dynamic: bool,
+    },
 }

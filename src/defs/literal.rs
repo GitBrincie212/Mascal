@@ -6,5 +6,5 @@ pub enum MascalLiteral {
     Float(f64),
     Boolean(bool),
     String(String),
-    NULL,
+    Null,
 }

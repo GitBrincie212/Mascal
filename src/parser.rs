@@ -1,20 +1,19 @@
-mod parse_program;
-mod parse_function;
-mod utils;
-mod parse_variables;
-mod parse_variable_decl;
-mod parse_expression;
 mod parse_executable_block;
+mod parse_expression;
+mod parse_function;
+mod parse_program;
 mod parse_statement;
+mod parse_variable_decl;
+mod parse_variables;
+mod utils;
 
-
-use std::ops::{Range, RangeFrom};
 use crate::ast::AbstractSyntaxTree;
-use crate::defs::blocks::{ScopedBlocks};
+use crate::defs::blocks::ScopedBlocks;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::token::{Token, TokenType};
 use crate::parser::parse_function::parse_function;
 use crate::parser::parse_program::parse_program;
+use std::ops::{Range, RangeFrom};
 
 pub struct TokenSequence<'a> {
     pub tokens: Vec<Token<'a>>,
@@ -68,7 +67,7 @@ pub fn parse(token_sequence: TokenSequence) -> Result<AbstractSyntaxTree, Mascal
                 program_index = Some(index);
                 scoped_blocks.push(program);
             }
-            _ => {continue}
+            _ => continue,
         }
     }
     if program_index.is_none() {
@@ -76,9 +75,12 @@ pub fn parse(token_sequence: TokenSequence) -> Result<AbstractSyntaxTree, Mascal
             error_type: MascalErrorType::ParserError,
             character: 0,
             line: 0,
-            source: String::from("No program entrypoint has been defined")
-        })
+            source: String::from("No program entrypoint has been defined"),
+        });
     }
-    let abstract_syntax_tree = AbstractSyntaxTree {blocks: scoped_blocks, program_index: program_index.unwrap()};
+    let abstract_syntax_tree = AbstractSyntaxTree {
+        blocks: scoped_blocks,
+        program_index: program_index.unwrap(),
+    };
     Ok(abstract_syntax_tree)
 }

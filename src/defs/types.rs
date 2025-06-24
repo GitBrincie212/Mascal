@@ -1,4 +1,4 @@
-use crate::defs::errors::{MascalError};
+use crate::defs::errors::MascalError;
 use crate::defs::token::TokenType;
 use crate::runtime::values::MascalValue;
 
@@ -10,19 +10,15 @@ pub enum MascalUnprocessedType {
     String,
     Dynamic,
     Type,
-    DynamicArray (Box<MascalUnprocessedType>),
-    StaticArray (Box<MascalUnprocessedType>),
+    DynamicArray(Box<MascalUnprocessedType>),
+    StaticArray(Box<MascalUnprocessedType>),
 }
 
 impl MascalType {
     pub fn get_atomic_type(&self) -> MascalType {
         match self {
-            MascalType::DynamicArray(t) => {
-                t.get_atomic_type()
-            }
-            MascalType::StaticArray(t) => {
-                t.get_atomic_type()
-            }
+            MascalType::DynamicArray(t) => t.get_atomic_type(),
+            MascalType::StaticArray(t) => t.get_atomic_type(),
             _ => self.clone(),
         }
     }
@@ -57,7 +53,7 @@ impl MascalType {
         for &m in &modifiers {
             s.push_str(m);
         }
-        
+
         s
     }
 }
@@ -69,7 +65,7 @@ pub fn token_type_to_atom_mascal_type(tt: &TokenType) -> Option<MascalUnprocesse
         TokenType::String => Some(MascalUnprocessedType::String),
         TokenType::Dynamic => Some(MascalUnprocessedType::Dynamic),
         TokenType::Type => Some(MascalUnprocessedType::Type),
-        _ => None
+        _ => None,
     }
 }
 
@@ -81,12 +77,12 @@ pub fn to_processed_type(unprocessed: MascalUnprocessedType) -> Result<MascalTyp
         MascalUnprocessedType::String => Ok(MascalType::String),
         MascalUnprocessedType::Dynamic => Ok(MascalType::Dynamic),
         MascalUnprocessedType::Type => Ok(MascalType::Type),
-        MascalUnprocessedType::DynamicArray(array_type) => {
-            Ok(MascalType::DynamicArray(Box::new(to_processed_type(*array_type)?)))
-        }
-        MascalUnprocessedType::StaticArray(array_type) => {
-            Ok(MascalType::StaticArray(Box::new(to_processed_type(*array_type)?)))
-        }
+        MascalUnprocessedType::DynamicArray(array_type) => Ok(MascalType::DynamicArray(Box::new(
+            to_processed_type(*array_type)?,
+        ))),
+        MascalUnprocessedType::StaticArray(array_type) => Ok(MascalType::StaticArray(Box::new(
+            to_processed_type(*array_type)?,
+        ))),
     }
 }
 
@@ -98,7 +94,7 @@ pub enum MascalType {
     String,
     Dynamic,
     Type,
-    DynamicArray (Box<MascalType>),
+    DynamicArray(Box<MascalType>),
     StaticArray(Box<MascalType>),
 }
 
@@ -112,10 +108,11 @@ pub enum MascalTypeKind {
     Dynamic,
     Type,
     DynamicArray,
-    StaticArray
+    StaticArray,
 }
 
 impl MascalTypeKind {
+    #[allow(clippy::match_like_matches_macro)]
     pub fn is_type_of_for_value(&self, v: &MascalValue) -> bool {
         match (self, v) {
             (MascalTypeKind::Dynamic, _) => true,
@@ -124,30 +121,22 @@ impl MascalTypeKind {
             (MascalTypeKind::String, MascalValue::String(..)) => true,
             (MascalTypeKind::Type, MascalValue::Type(..)) => true,
             (MascalTypeKind::Boolean, MascalValue::Boolean(..)) => true,
-            (MascalTypeKind::StaticArray, MascalValue::StaticArray {..}) => true,
-            (MascalTypeKind::DynamicArray, MascalValue::DynamicArray {..}) => true,
-            _ => false
+            (MascalTypeKind::StaticArray, MascalValue::StaticArray { .. }) => true,
+            (MascalTypeKind::DynamicArray, MascalValue::DynamicArray { .. }) => true,
+            _ => false,
         }
     }
-    
+
     pub fn as_string(&self) -> String {
         match self {
             MascalTypeKind::String => String::from("STRING"),
             MascalTypeKind::Integer => String::from("INTEGER"),
-            MascalTypeKind::Float => {String::from("FLOAT")}
-            MascalTypeKind::Boolean => {String::from("BOOLEAN")}
-            MascalTypeKind::DynamicArray => {
-                String::from("DYNAMIC_ARRAY")
-            }
-            MascalTypeKind::StaticArray => {
-                String::from("STATIC_ARRAY")
-            }
-            MascalTypeKind::Dynamic => {
-                String::from("DYNAMIC")
-            }
-            MascalTypeKind::Type => {
-                String::from("TYPE")
-            }
+            MascalTypeKind::Float => String::from("FLOAT"),
+            MascalTypeKind::Boolean => String::from("BOOLEAN"),
+            MascalTypeKind::DynamicArray => String::from("DYNAMIC_ARRAY"),
+            MascalTypeKind::StaticArray => String::from("STATIC_ARRAY"),
+            MascalTypeKind::Dynamic => String::from("DYNAMIC"),
+            MascalTypeKind::Type => String::from("TYPE"),
         }
     }
 }

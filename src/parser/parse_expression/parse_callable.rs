@@ -1,20 +1,36 @@
 use crate::defs::binding_power::BindingPower;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
-use crate::defs::token::{Token, TokenType};
 use crate::defs::loop_flags::LoopFlags;
+use crate::defs::token::{Token, TokenType};
 use crate::parser::parse_expression::parse_expression_internal;
 
 pub fn parse_callable(
-    tokens: &[Token], pos: &mut usize, _min_bp: &BindingPower, mut lhs: MascalExpression
+    tokens: &[Token],
+    pos: &mut usize,
+    _min_bp: &BindingPower,
+    mut lhs: MascalExpression,
 ) -> Result<(LoopFlags, MascalExpression), MascalError> {
-    if matches!(tokens.get(*pos).map(|t| &t.token_type), Some(TokenType::OpenParen)) {
+    if matches!(
+        tokens.get(*pos).map(|t| &t.token_type),
+        Some(TokenType::OpenParen)
+    ) {
         *pos += 1;
 
         let mut args: Vec<MascalExpression> = Vec::new();
-        if !matches!(tokens.get(*pos).map(|t| &t.token_type), Some(TokenType::CloseParen)) {
+        if !matches!(
+            tokens.get(*pos).map(|t| &t.token_type),
+            Some(TokenType::CloseParen)
+        ) {
             loop {
-                let arg: MascalExpression = parse_expression_internal(tokens, pos, BindingPower { left_binding_power: 0, right_binding_power: 0 })?;
+                let arg: MascalExpression = parse_expression_internal(
+                    tokens,
+                    pos,
+                    BindingPower {
+                        left_binding_power: 0,
+                        right_binding_power: 0,
+                    },
+                )?;
                 args.push(arg);
 
                 let curr_tok: &Token = tokens.get(*pos).unwrap();
@@ -27,7 +43,7 @@ pub fn parse_callable(
                             character: curr_tok.start,
                             line: curr_tok.line,
                             source: format!(
-                                "Expected a comma ',' or closing parenthesis ')' in the function call, but got {:?}", 
+                                "Expected a comma ',' or closing parenthesis ')' in the function call, but got {:?}",
                                 curr_tok.value
                             ),
                         });
@@ -46,13 +62,13 @@ pub fn parse_callable(
         }
         *pos += 1;
 
-        lhs = MascalExpression::CallExpression {
+        lhs = MascalExpression::Call {
             function: Box::new(lhs),
             arguments: args,
         };
 
-        return Ok((LoopFlags::CONTINUE, lhs));
+        return Ok((LoopFlags::Continue, lhs));
     }
-    
-    Ok((LoopFlags::NONE, lhs))
+
+    Ok((LoopFlags::None, lhs))
 }

@@ -1,6 +1,6 @@
-use std::collections::HashSet;
 use once_cell::sync::Lazy;
 use regex::Regex;
+use std::collections::HashSet;
 
 pub type TokenRegexMap = Vec<(Regex, TokenType)>;
 
@@ -76,83 +76,136 @@ pub enum TokenType {
 
     // Special Stuff Regarding Mascal
     Unknown,
-    NULL
+    Null,
 }
 
 pub static SCOPABLE_TOKEN_TYPES: Lazy<HashSet<TokenType>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        TokenType::Integer, TokenType::Float, TokenType::String,
-        TokenType::Dynamic, TokenType::Type, TokenType::Boolean,
-        TokenType::DefineProgram, TokenType::Implementation, TokenType::Variables,
-        TokenType::DefineFunction, TokenType::Implementation,
-    ].iter().cloned())
+    HashSet::from_iter(
+        [
+            TokenType::Integer,
+            TokenType::Float,
+            TokenType::String,
+            TokenType::Dynamic,
+            TokenType::Type,
+            TokenType::Boolean,
+            TokenType::DefineProgram,
+            TokenType::Implementation,
+            TokenType::Variables,
+            TokenType::DefineFunction,
+            TokenType::Implementation,
+        ]
+        .iter()
+        .cloned(),
+    )
 });
 
 pub static TOKEN_REGEX_MAP: Lazy<TokenRegexMap> = Lazy::new(|| {
-    let mut map: TokenRegexMap = Vec::new();
-    map.push((Regex::new(r"//.*").unwrap(), TokenType::Comment));
-    map.push((Regex::new(r"^[a-zA-Z_][a-zA-Z0-9_]*").unwrap(), TokenType::Identifier));
-    map.push((Regex::new(r"TRUE|true|True").unwrap(), TokenType::True));
-    map.push((Regex::new(r"FALSE|false|False").unwrap(), TokenType::False));
-    map.push((Regex::new(r"BREAK|break|Break").unwrap(), TokenType::Break));
-    map.push((Regex::new(r"CONTINUE|continue|Continue").unwrap(), TokenType::Continue));
-    map.push((Regex::new(r"NULL").unwrap(), TokenType::NULL));
-    map.push((Regex::new(r"FOR|for|For").unwrap(), TokenType::For));
-    map.push((Regex::new(r"If|if|IF").unwrap(), TokenType::If));
-    map.push((Regex::new(r"Else|else|ELSE").unwrap(), TokenType::Else));
-    map.push((Regex::new(r"Elif|elif|ELIF").unwrap(), TokenType::ElseIf));
-    map.push((Regex::new(r"Const|const|CONST").unwrap(), TokenType::Const));
-    map.push((Regex::new(r"IMPLEMENTATION|implemenentation|Implementation").unwrap(), TokenType::Implementation));
-    map.push((Regex::new(r"VARIABLES|variables|Variables").unwrap(), TokenType::Variables));
-    map.push((Regex::new(r"String|string|STRING").unwrap(), TokenType::String));
-    map.push((Regex::new(r"INTEGER|integer|Integer").unwrap(), TokenType::Integer));
-    map.push((Regex::new(r"FLOAT|float|Float").unwrap(), TokenType::Float));
-    map.push((Regex::new(r"Dynamic|DYNAMIC|dynamic").unwrap(), TokenType::Dynamic));
-    map.push((Regex::new(r"Boolean|BOOLEAN|boolean").unwrap(), TokenType::Boolean));
-    map.push((Regex::new(r"DEFINE_FUNCTION|define_function|Define_Function").unwrap(), TokenType::DefineFunction));
-    map.push((Regex::new(r"DEFINE_PROGRAM|define_program|Define_Program").unwrap(), TokenType::DefineProgram));
-    map.push((Regex::new(r"While|while|WHILE").unwrap(), TokenType::While));
-    map.push((Regex::new(r"From|from|FROM").unwrap(), TokenType::From));
-    map.push((Regex::new(r"To|to|TO").unwrap(), TokenType::To));
-    map.push((Regex::new(r"Mut|mut|MUT").unwrap(), TokenType::Mutable));
-    map.push((Regex::new(r"with_step|With_Step|WITH_STEP").unwrap(), TokenType::WithStep));
-    map.push((Regex::new(r"typeof|TypeOf|TYPEOF").unwrap(), TokenType::Typeof));
-    map.push((Regex::new(r"type|Type|TYPE").unwrap(), TokenType::Type));
-    map.push((Regex::new(r"and|AND|And").unwrap(), TokenType::And));
-    map.push((Regex::new(r"or|OR|Or").unwrap(), TokenType::Or));
-    map.push((Regex::new(r"not|NOT|Not").unwrap(), TokenType::Not));
-    map.push((Regex::new(r"throw|THROW|thro").unwrap(), TokenType::Throw));
-    map.push((Regex::new(r"\^").unwrap(), TokenType::Exponentiation));
-    map.push((Regex::new(r"(\d+\.\d*)|(\d*\.\d+)").unwrap(), TokenType::FloatLiteral));
-    map.push((Regex::new(r"(\d+)").unwrap(), TokenType::IntegerLiteral));
-    map.push((Regex::new("\"([^\"]*)\"").unwrap(), TokenType::StringLiteral));
-    map.push((Regex::new(r"->").unwrap(), TokenType::ReturnIndicator));
-    map.push((Regex::new(r"\+").unwrap(), TokenType::Plus));
-    map.push((Regex::new(r"-").unwrap(), TokenType::Minus));
-    map.push((Regex::new(r"%").unwrap(), TokenType::Modulo));
-    map.push((Regex::new(r"\*").unwrap(), TokenType::Asterisk));
-    map.push((Regex::new(r"\?").unwrap(), TokenType::QuestionMark));
-    map.push((Regex::new(r"/").unwrap(), TokenType::Division));
-    map.push((Regex::new(r";").unwrap(), TokenType::Semicolon));
-    map.push((Regex::new(r"\(").unwrap(), TokenType::OpenParen));
-    map.push((Regex::new(r"\)").unwrap(), TokenType::CloseParen));
-    map.push((Regex::new(r"\{").unwrap(), TokenType::OpenBrace));
-    map.push((Regex::new(r"}").unwrap(), TokenType::CloseBrace));
-    map.push((Regex::new(r"\[").unwrap(), TokenType::OpenBracket));
-    map.push((Regex::new(r"]").unwrap(), TokenType::CloseBracket));
-    map.push((Regex::new(r"\.").unwrap(), TokenType::Dot));
-    map.push((Regex::new(r",").unwrap(), TokenType::Comma));
-    map.push((Regex::new(r":").unwrap(), TokenType::Colon));
-    map.push((Regex::new(r"!=").unwrap(), TokenType::NotEquals));
-    map.push((Regex::new(r"=").unwrap(), TokenType::Equals));
-    map.push((Regex::new(r"<-").unwrap(), TokenType::VariableInitializer));
-    map.push((Regex::new(r">=").unwrap(), TokenType::GreaterThanEqual));
-    map.push((Regex::new(r"<=").unwrap(), TokenType::LesserThanEqual));
-    map.push((Regex::new(r"<").unwrap(), TokenType::LessThan));
-    map.push((Regex::new(r">").unwrap(), TokenType::GreaterThan));
-    map.push((Regex::new(r">>").unwrap(), TokenType::CloseDynamicArray));
-    map.push((Regex::new(r"<<").unwrap(), TokenType::OpenDynamicArray));
-    map
+    vec![
+        (Regex::new(r"//.*").unwrap(), TokenType::Comment),
+        (
+            Regex::new(r"^[a-zA-Z_][a-zA-Z0-9_]*").unwrap(),
+            TokenType::Identifier,
+        ),
+        (Regex::new(r"TRUE|true|True").unwrap(), TokenType::True),
+        (Regex::new(r"FALSE|false|False").unwrap(), TokenType::False),
+        (Regex::new(r"BREAK|break|Break").unwrap(), TokenType::Break),
+        (
+            Regex::new(r"CONTINUE|continue|Continue").unwrap(),
+            TokenType::Continue,
+        ),
+        (Regex::new(r"NULL").unwrap(), TokenType::Null),
+        (Regex::new(r"FOR|for|For").unwrap(), TokenType::For),
+        (Regex::new(r"If|if|IF").unwrap(), TokenType::If),
+        (Regex::new(r"Else|else|ELSE").unwrap(), TokenType::Else),
+        (Regex::new(r"Elif|elif|ELIF").unwrap(), TokenType::ElseIf),
+        (Regex::new(r"Const|const|CONST").unwrap(), TokenType::Const),
+        (
+            Regex::new(r"IMPLEMENTATION|implemenentation|Implementation").unwrap(),
+            TokenType::Implementation,
+        ),
+        (
+            Regex::new(r"VARIABLES|variables|Variables").unwrap(),
+            TokenType::Variables,
+        ),
+        (
+            Regex::new(r"String|string|STRING").unwrap(),
+            TokenType::String,
+        ),
+        (
+            Regex::new(r"INTEGER|integer|Integer").unwrap(),
+            TokenType::Integer,
+        ),
+        (Regex::new(r"FLOAT|float|Float").unwrap(), TokenType::Float),
+        (
+            Regex::new(r"Dynamic|DYNAMIC|dynamic").unwrap(),
+            TokenType::Dynamic,
+        ),
+        (
+            Regex::new(r"Boolean|BOOLEAN|boolean").unwrap(),
+            TokenType::Boolean,
+        ),
+        (
+            Regex::new(r"DEFINE_FUNCTION|define_function|Define_Function").unwrap(),
+            TokenType::DefineFunction,
+        ),
+        (
+            Regex::new(r"DEFINE_PROGRAM|define_program|Define_Program").unwrap(),
+            TokenType::DefineProgram,
+        ),
+        (Regex::new(r"While|while|WHILE").unwrap(), TokenType::While),
+        (Regex::new(r"From|from|FROM").unwrap(), TokenType::From),
+        (Regex::new(r"To|to|TO").unwrap(), TokenType::To),
+        (Regex::new(r"Mut|mut|MUT").unwrap(), TokenType::Mutable),
+        (
+            Regex::new(r"with_step|With_Step|WITH_STEP").unwrap(),
+            TokenType::WithStep,
+        ),
+        (
+            Regex::new(r"typeof|TypeOf|TYPEOF").unwrap(),
+            TokenType::Typeof,
+        ),
+        (Regex::new(r"type|Type|TYPE").unwrap(), TokenType::Type),
+        (Regex::new(r"and|AND|And").unwrap(), TokenType::And),
+        (Regex::new(r"or|OR|Or").unwrap(), TokenType::Or),
+        (Regex::new(r"not|NOT|Not").unwrap(), TokenType::Not),
+        (Regex::new(r"throw|THROW|thro").unwrap(), TokenType::Throw),
+        (Regex::new(r"\^").unwrap(), TokenType::Exponentiation),
+        (
+            Regex::new(r"(\d+\.\d*)|(\d*\.\d+)").unwrap(),
+            TokenType::FloatLiteral,
+        ),
+        (Regex::new(r"(\d+)").unwrap(), TokenType::IntegerLiteral),
+        (
+            Regex::new("\"([^\"]*)\"").unwrap(),
+            TokenType::StringLiteral,
+        ),
+        (Regex::new(r"->").unwrap(), TokenType::ReturnIndicator),
+        (Regex::new(r"\+").unwrap(), TokenType::Plus),
+        (Regex::new(r"-").unwrap(), TokenType::Minus),
+        (Regex::new(r"%").unwrap(), TokenType::Modulo),
+        (Regex::new(r"\*").unwrap(), TokenType::Asterisk),
+        (Regex::new(r"\?").unwrap(), TokenType::QuestionMark),
+        (Regex::new(r"/").unwrap(), TokenType::Division),
+        (Regex::new(r";").unwrap(), TokenType::Semicolon),
+        (Regex::new(r"\(").unwrap(), TokenType::OpenParen),
+        (Regex::new(r"\)").unwrap(), TokenType::CloseParen),
+        (Regex::new(r"\{").unwrap(), TokenType::OpenBrace),
+        (Regex::new(r"}").unwrap(), TokenType::CloseBrace),
+        (Regex::new(r"\[").unwrap(), TokenType::OpenBracket),
+        (Regex::new(r"]").unwrap(), TokenType::CloseBracket),
+        (Regex::new(r"\.").unwrap(), TokenType::Dot),
+        (Regex::new(r",").unwrap(), TokenType::Comma),
+        (Regex::new(r":").unwrap(), TokenType::Colon),
+        (Regex::new(r"!=").unwrap(), TokenType::NotEquals),
+        (Regex::new(r"=").unwrap(), TokenType::Equals),
+        (Regex::new(r"<-").unwrap(), TokenType::VariableInitializer),
+        (Regex::new(r">=").unwrap(), TokenType::GreaterThanEqual),
+        (Regex::new(r"<=").unwrap(), TokenType::LesserThanEqual),
+        (Regex::new(r"<").unwrap(), TokenType::LessThan),
+        (Regex::new(r">").unwrap(), TokenType::GreaterThan),
+        (Regex::new(r">>").unwrap(), TokenType::CloseDynamicArray),
+        (Regex::new(r"<<").unwrap(), TokenType::OpenDynamicArray),
+    ]
 });
 
 #[derive(Debug, Clone)]
@@ -162,5 +215,5 @@ pub struct Token<'a> {
     pub value: &'a str,
     pub start: usize,
     pub end: usize,
-    pub line: usize
+    pub line: usize,
 }

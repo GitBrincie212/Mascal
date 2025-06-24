@@ -20,9 +20,9 @@ macro_rules! comparison_arms {
 
             (MascalValue::String(s1), MascalValue::String(s2)) => {
                 Ok(MascalValue::Boolean(s1.$method(s2)))
-            },
-            
-            (v1, v2) => $fallback(v1.clone(), v2.clone())
+            }
+
+            (v1, v2) => $fallback(v1.clone(), v2.clone()),
         }
     };
 }
@@ -30,7 +30,7 @@ macro_rules! comparison_arms {
 #[macro_export]
 macro_rules! define_arithmetic_fn {
     (
-        $fn_name:expr, $left: expr, $right:expr, $intmeth:ident, 
+        $fn_name:expr, $left: expr, $right:expr, $intmeth:ident,
         $floatop:tt, $( $extra_pat:pat => $extra_expr:expr ),* $(,)?
     ) => {
             match ($left, $right) {

@@ -1,22 +1,23 @@
-use std::cell::RefCell;
-use std::rc::Rc;
-use std::sync::Arc;
 use crate::defs::builtins::builtin_functions::BuiltinFunction;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
-use crate::runtime::execute_expression::execute_expression;
 use crate::runtime::ExecutionData;
+use crate::runtime::execute_expression::execute_expression;
 use crate::runtime::values::MascalValue;
+use std::cell::RefCell;
+use std::rc::Rc;
+use std::sync::Arc;
 
-pub fn execute_builtin_function<'a>(
-    built_in_func: Arc<BuiltinFunction>, arguments: Vec<MascalExpression>,
-    exec_data:  Rc<RefCell<ExecutionData>>
+pub fn execute_builtin_function(
+    built_in_func: Arc<BuiltinFunction>,
+    arguments: Vec<MascalExpression>,
+    exec_data: Rc<RefCell<ExecutionData>>,
 ) -> Result<MascalValue, MascalError> {
     match built_in_func.as_ref() {
         BuiltinFunction::ValueBased {
             fixed_argument_types,
             supports_dynamic_arguments,
-            execution
+            execution,
         } => {
             let mut args: Vec<MascalValue> = Vec::with_capacity(arguments.len());
             for (index, arg) in arguments.iter().enumerate() {
@@ -40,8 +41,8 @@ pub fn execute_builtin_function<'a>(
                                     "Expected a type of {:?} but got {:?}",
                                     arg_types.first().unwrap().as_string(),
                                     result.as_type_string()?
-                                )
-                            })
+                                ),
+                            });
                         }
                         return Err(MascalError {
                             error_type: MascalErrorType::TypeError,
@@ -49,30 +50,33 @@ pub fn execute_builtin_function<'a>(
                             character: 0,
                             source: format!(
                                 "Expected at least one of the types {} but got {:?}",
-                                arg_types.iter()
+                                arg_types
+                                    .iter()
                                     .map(|x| format!("{:?}", x.as_string()))
                                     .collect::<Vec<String>>()
                                     .join(", "),
                                 result.as_type_string()?
-                            )
-                        })
+                            ),
+                        });
                     }
-                } else {
-                    if !supports_dynamic_arguments {
-                        return Err(MascalError {
-                            error_type: MascalErrorType::RuntimeError,
-                            line: 0,
-                            character: 0,
-                            source: format!("Expected only {:?} parameter(s) but got {:?} parameter(s)", arguments.len(), args.len())
-                        })
-                    }
+                } else if !supports_dynamic_arguments {
+                    return Err(MascalError {
+                        error_type: MascalErrorType::RuntimeError,
+                        line: 0,
+                        character: 0,
+                        source: format!(
+                            "Expected only {:?} parameter(s) but got {:?} parameter(s)",
+                            arguments.len(),
+                            args.len()
+                        ),
+                    });
                 }
                 args.push(result);
             }
             let val: Option<MascalValue> = execution(args, exec_data.clone())?;
-            Ok(val.unwrap_or(MascalValue::NULL))
+            Ok(val.unwrap_or(MascalValue::Null))
         }
-        
+
         BuiltinFunction::ExpressionBased {
             fixed_argument_types,
             supports_dynamic_arguments,
@@ -85,13 +89,17 @@ pub fn execute_builtin_function<'a>(
                         error_type: MascalErrorType::RuntimeError,
                         line: 0,
                         character: 0,
-                        source: format!("Expected only {:?} parameter(s) but got {:?} parameter(s)", arguments.len(), args.len())
-                    })
+                        source: format!(
+                            "Expected only {:?} parameter(s) but got {:?} parameter(s)",
+                            arguments.len(),
+                            args.len()
+                        ),
+                    });
                 }
                 args.push(arg);
             }
             let val: Option<MascalValue> = execution(args, exec_data.clone())?;
-            Ok(val.unwrap_or(MascalValue::NULL))
+            Ok(val.unwrap_or(MascalValue::Null))
         }
     }
 }

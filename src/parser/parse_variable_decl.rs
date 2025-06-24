@@ -8,7 +8,7 @@ use crate::parser::parse_expression::parse_expression;
 use crate::parser::utils::parse_array_type;
 
 pub fn parse_variable_decl<'a>(
-    tokens: &'a Vec<Token<'a>>
+    tokens: &'a Vec<Token<'a>>,
 ) -> Result<MascalVariableInitialDeclaration, MascalError> {
     let name: String;
     let mut is_constant: bool = false;
@@ -35,29 +35,42 @@ pub fn parse_variable_decl<'a>(
         });
     }
 
-    curr_index = parse_array_type(tokens, curr_index, |token_sequence, is_dynamic | {
-        if is_dynamic {
+    curr_index = parse_array_type(
+        tokens,
+        curr_index,
+        |token_sequence, is_dynamic| {
+            if is_dynamic {
+                if token_sequence.is_empty() {
+                    dimensions.push(MascalExpression::Literal(MascalLiteral::Integer(
+                        IntegerNum::I8(1),
+                    )));
+                    is_dynamic_array.push(is_dynamic);
+                    return Ok(());
+                }
+                dimensions.push(parse_expression(&token_sequence.to_vec())?);
+                is_dynamic_array.push(true);
+                return Ok(());
+            }
             if token_sequence.is_empty() {
-                dimensions.push(MascalExpression::LiteralExpression(MascalLiteral::Integer(IntegerNum::I8(1))));
-                is_dynamic_array.push(is_dynamic);
-                return Ok(())
+                return Err(MascalError {
+                    error_type: MascalErrorType::ParserError,
+                    line: 0,
+                    character: 0,
+                    source: String::from(
+                        "Static arrays cannot be omitted and must have a specified size",
+                    ),
+                });
             }
             dimensions.push(parse_expression(&token_sequence.to_vec())?);
-            is_dynamic_array.push(true);
-            return Ok(());
-        }
-        if token_sequence.is_empty() {
-            return Err(MascalError {
-                error_type: MascalErrorType::ParserError,
-                line: 0,
-                character: 0,
-                source: String::from("Static arrays cannot be omitted and must have a specified size")
-            })
-        }
-        dimensions.push(parse_expression(&token_sequence.to_vec())?);
-        is_dynamic_array.push(false);
-        Ok(())
-    }, vec![TokenType::Semicolon, TokenType::VariableInitializer, TokenType::QuestionMark])?;
+            is_dynamic_array.push(false);
+            Ok(())
+        },
+        vec![
+            TokenType::Semicolon,
+            TokenType::VariableInitializer,
+            TokenType::QuestionMark,
+        ],
+    )?;
 
     if tokens[curr_index].token_type == TokenType::QuestionMark {
         is_nullable = true;
@@ -75,7 +88,9 @@ pub fn parse_variable_decl<'a>(
             error_type: MascalErrorType::ParserError,
             line: tokens[curr_index].line,
             character: tokens[curr_index].start,
-            source: String::from("Unexpected characters found during parsing of variable initialization")
+            source: String::from(
+                "Unexpected characters found during parsing of variable initialization",
+            ),
         });
     }
 

@@ -1,5 +1,5 @@
 use crate::defs::declerations::MascalVariableInitialDeclaration;
-use crate::defs::statements::{MascalStatement};
+use crate::defs::statements::MascalStatement;
 use crate::defs::types::MascalUnprocessedType;
 
 #[derive(Debug, Clone)]
@@ -15,7 +15,7 @@ pub struct VariableBlock {
 #[derive(Debug, Clone)]
 pub struct ExecutionBlock {
     pub variables: VariableBlock,
-    pub body: Box<[MascalStatement]>
+    pub body: Box<[MascalStatement]>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -26,13 +26,13 @@ pub struct MascalParameter {
 
 #[derive(Debug, Clone)]
 pub enum ScopedBlocks {
-    PROGRAM(ExecutionBlock),
-    FUNCTION {
+    Program(ExecutionBlock),
+    Function {
         parameters: Box<[MascalParameter]>,
         name: String,
         return_type: Option<MascalUnprocessedType>,
         execution_block: ExecutionBlock,
-    }
+    },
 }
 
 impl VariableBlock {
@@ -42,7 +42,7 @@ impl VariableBlock {
         booleans: Vec<MascalVariableInitialDeclaration>,
         strings: Vec<MascalVariableInitialDeclaration>,
         dynamics: Vec<MascalVariableInitialDeclaration>,
-        types: Vec<MascalVariableInitialDeclaration>
+        types: Vec<MascalVariableInitialDeclaration>,
     ) -> Self {
         VariableBlock {
             integers: integers.into_boxed_slice(),
@@ -50,12 +50,13 @@ impl VariableBlock {
             booleans: booleans.into_boxed_slice(),
             strings: strings.into_boxed_slice(),
             dynamics: dynamics.into_boxed_slice(),
-            types: types.into_boxed_slice()
+            types: types.into_boxed_slice(),
         }
     }
 
     pub fn iter_all(&self) -> Vec<&MascalVariableInitialDeclaration> {
-        self.integers.iter()
+        self.integers
+            .iter()
             .chain(self.floats.iter())
             .chain(self.strings.iter())
             .chain(self.booleans.iter())

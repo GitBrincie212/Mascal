@@ -1,36 +1,46 @@
-mod execute_index_based_decleration;
-mod unwrap_index_layers;
-mod extract_variable_data;
-mod extract_target_area;
 mod check_array_assignment;
+mod execute_index_based_decleration;
+mod extract_target_area;
+mod extract_variable_data;
+mod unwrap_index_layers;
 
-use std::cell::{RefCell};
-use std::rc::Rc;
-use std::sync::Arc;
 use crate::defs::blocks::ScopedBlocks;
 use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::expressions::MascalExpression;
 use crate::defs::loop_flags::LoopFlags;
 use crate::runtime::execute_declaration_statement::execute_index_based_decleration::execute_index_based_decleration;
 use crate::runtime::execute_expression::execute_expression;
-use crate::runtime::{ExecutionData, FUNCTION_HASHSET};
 use crate::runtime::execute_statement::StatementResults;
 use crate::runtime::values::MascalValue;
 use crate::runtime::variable_table::{VariableData, VariableTable};
+use crate::runtime::{ExecutionData, FUNCTION_HASHSET};
+use std::cell::RefCell;
+use std::rc::Rc;
+use std::sync::Arc;
 
 pub fn execute_declaration_statement(
-    variable: MascalExpression, value: MascalExpression,
-    variable_table: Rc<RefCell<VariableTable>>, scoped_blocks: Rc<RefCell<Vec<ScopedBlocks>>>
+    variable: MascalExpression,
+    value: MascalExpression,
+    variable_table: Rc<RefCell<VariableTable>>,
+    scoped_blocks: Rc<RefCell<Vec<ScopedBlocks>>>,
 ) -> Result<StatementResults, MascalError> {
     match variable {
-        MascalExpression::SymbolicExpression(varname) => {
-            if FUNCTION_HASHSET.lock().unwrap().get(varname.as_str()).is_some() {
+        MascalExpression::Symbolic(varname) => {
+            if FUNCTION_HASHSET
+                .lock()
+                .unwrap()
+                .get(varname.as_str())
+                .is_some()
+            {
                 return Ok(StatementResults {
-                    return_value: Some(execute_expression(value, Rc::new(RefCell::new(ExecutionData {
-                        variable_table: Some(variable_table.clone()),
-                        scoped_blocks,
-                    })))?),
-                    loop_flag: LoopFlags::NONE,
+                    return_value: Some(execute_expression(
+                        value,
+                        Rc::new(RefCell::new(ExecutionData {
+                            variable_table: Some(variable_table.clone()),
+                            scoped_blocks,
+                        })),
+                    )?),
+                    loop_flag: LoopFlags::None,
                 });
             }
             let variable_table_borrow = variable_table.borrow();
@@ -45,15 +55,21 @@ pub fn execute_declaration_statement(
                         line: 0,
                         character: 0,
                         error_type: MascalErrorType::RuntimeError,
-                        source: format!("Cannot assign a new value to the constant variable called {:?}", varname)
-                    })
+                        source: format!(
+                            "Cannot assign a new value to the constant variable called {:?}",
+                            varname
+                        ),
+                    });
                 }
 
                 drop(variable_table_borrow);
-                let value: MascalValue = execute_expression(value, Rc::new(RefCell::new(ExecutionData {
-                    variable_table: Some(variable_table.clone()),
-                    scoped_blocks,
-                })))?;
+                let value: MascalValue = execute_expression(
+                    value,
+                    Rc::new(RefCell::new(ExecutionData {
+                        variable_table: Some(variable_table.clone()),
+                        scoped_blocks,
+                    })),
+                )?;
 
                 value.is_expected_array(array_dimensions.clone(), is_dynamic_array.clone())?;
 
@@ -68,22 +84,33 @@ pub fn execute_declaration_statement(
                 };
 
                 vartable_mutable_borrow.insert(varname, owned_data);
-                return Ok(StatementResults {return_value: None, loop_flag: LoopFlags::NONE});
+                return Ok(StatementResults {
+                    return_value: None,
+                    loop_flag: LoopFlags::None,
+                });
             }
 
             Err(MascalError {
                 line: 0,
                 character: 0,
                 error_type: MascalErrorType::RuntimeError,
-                source: format!("Expected a variable name, however got an unknown one called {:?}", varname)
+                source: format!(
+                    "Expected a variable name, however got an unknown one called {:?}",
+                    varname
+                ),
             })
         }
 
-        MascalExpression::IndexExpression {..} => {
+        MascalExpression::Indexing { .. } => {
             execute_index_based_decleration(variable, value, variable_table, scoped_blocks)?;
-            Ok(StatementResults {return_value: None, loop_flag: LoopFlags::NONE})
+            Ok(StatementResults {
+                return_value: None,
+                loop_flag: LoopFlags::None,
+            })
         }
 
-        _ => {unreachable!()}
+        _ => {
+            unreachable!()
+        }
     }
 }

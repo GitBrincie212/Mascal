@@ -39,7 +39,7 @@ pub enum MascalStatement {
     (10 + 5) / 3;
     */
     ExpressionStatement(MascalExpression),
-    
+
     /*
     a <- 3;
      */
@@ -47,7 +47,7 @@ pub enum MascalStatement {
         variable: MascalExpression,
         value: MascalExpression,
     },
-    
+
     /*
     THROW RuntimeError: "...";
      */
@@ -55,10 +55,10 @@ pub enum MascalStatement {
         error_type: String,
         message: String,
     },
-    
+
     /* BREAK; */
     Break,
-    
+
     /* CONTINUE */
-    Continue
+    Continue,
 }

@@ -4,7 +4,7 @@ use crate::defs::token::TokenType;
 pub enum MascalUnaryOperators {
     Not,
     Minus,
-    Typeof
+    Typeof,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -22,7 +22,7 @@ pub enum MascalBinaryOperators {
     And,
     Or,
     NotEqual,
-    Exponentiation
+    Exponentiation,
 }
 
 pub fn token_type_to_binary_operator(tt: &TokenType) -> Option<MascalBinaryOperators> {
@@ -41,15 +41,15 @@ pub fn token_type_to_binary_operator(tt: &TokenType) -> Option<MascalBinaryOpera
         TokenType::NotEquals => Some(MascalBinaryOperators::NotEqual),
         TokenType::LessThan => Some(MascalBinaryOperators::LessThan),
         TokenType::GreaterThan => Some(MascalBinaryOperators::GreaterThan),
-        _ => None
+        _ => None,
     }
 }
 
 pub fn token_type_to_unary_operator(tt: &TokenType) -> Option<MascalUnaryOperators> {
     match tt {
-        TokenType::Minus =>  Some(MascalUnaryOperators::Minus),
-        TokenType::Not =>  Some(MascalUnaryOperators::Not),
-        TokenType::Typeof =>  Some(MascalUnaryOperators::Typeof),
-        _ => None
+        TokenType::Minus => Some(MascalUnaryOperators::Minus),
+        TokenType::Not => Some(MascalUnaryOperators::Not),
+        TokenType::Typeof => Some(MascalUnaryOperators::Typeof),
+        _ => None,
     }
 }

@@ -1,7 +1,7 @@
-use crate::defs::errors::{MascalErrorType, MascalError};
+use crate::defs::errors::{MascalError, MascalErrorType};
 use crate::defs::token::{Token, TokenType};
 use crate::lexer;
-use crate::parser::{parse, TokenSequence};
+use crate::parser::{TokenSequence, parse};
 use crate::runtime::interpert;
 use crate::semantic_analysis::conduct_semantic_analysis;
 
@@ -18,20 +18,29 @@ macro_rules! define_pipeline_step {
 }
 
 pub fn trigger_pipeline(contents: String) {
-    let tokens: Vec<Token> = lexer::tokenize(&*contents);
-    if tokens.is_empty() {return;}
+    let tokens: Vec<Token> = lexer::tokenize(&contents);
+    if tokens.is_empty() {
+        return;
+    }
     let last_token: &Token = tokens.last().unwrap();
     if last_token.token_type == TokenType::Unknown {
-        println!("{}", MascalError {
-            error_type: MascalErrorType::LexerError,
-            line: last_token.line,
-            character: last_token.start,
-            source: format!("Unknown Character Sequence \"{}\"", last_token.value)
-        });
+        println!(
+            "{}",
+            MascalError {
+                error_type: MascalErrorType::LexerError,
+                line: last_token.line,
+                character: last_token.start,
+                source: format!("Unknown Character Sequence \"{}\"", last_token.value)
+            }
+        );
         return;
     }
     let token_sequence: TokenSequence = TokenSequence::new(tokens);
-    let Some(tree) = define_pipeline_step!(parse, token_sequence) else {return};
-    let Some(tree) = define_pipeline_step!(conduct_semantic_analysis, tree) else {return};
-    if define_pipeline_step!(interpert, tree).is_none() {return};
+    let Some(tree) = define_pipeline_step!(parse, token_sequence) else {
+        return;
+    };
+    let Some(tree) = define_pipeline_step!(conduct_semantic_analysis, tree) else {
+        return;
+    };
+    let _ = define_pipeline_step!(interpert, tree).is_none();
 }

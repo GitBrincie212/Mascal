@@ -5,11 +5,14 @@ use crate::defs::expressions::MascalExpression;
 use crate::defs::literal::MascalLiteral;
 use crate::defs::statements::{MascalConditionalBranch, MascalStatement};
 use crate::defs::token::{Token, TokenType};
-use crate::parser::parse_expression::parse_expression;
 use crate::parser::TokenSequence;
+use crate::parser::parse_expression::parse_expression;
 use crate::parser::utils::{extract_braced_block_from_tokens, run_per_statement};
 
-fn parse_branch(token_sequence: &[Token], is_else: bool) -> Result<MascalConditionalBranch, MascalError> {
+fn parse_branch(
+    token_sequence: &[Token],
+    is_else: bool,
+) -> Result<MascalConditionalBranch, MascalError> {
     let mut open_brace_index: usize = 0;
     let condition_expression: Option<MascalExpression> = if !is_else {
         open_brace_index = 1;
@@ -31,8 +34,8 @@ fn parse_branch(token_sequence: &[Token], is_else: bool) -> Result<MascalConditi
             error_type: MascalErrorType::ParserError,
             line: token_sequence[open_brace_index].line,
             character: token_sequence[open_brace_index].start,
-            source: String::from("Expected a opening brace for a conditional branch")
-        })
+            source: String::from("Expected a opening brace for a conditional branch"),
+        });
     }
 
     let statements_parser: TokenSequence = extract_braced_block_from_tokens(
@@ -49,14 +52,16 @@ fn parse_branch(token_sequence: &[Token], is_else: bool) -> Result<MascalConditi
         statements.push(stmt);
         Ok(())
     })?;
-    
+
     if !final_toks.is_empty() {
         return Err(MascalError {
             error_type: MascalErrorType::ParserError,
             line: final_toks[0].line,
             character: final_toks[0].start,
-            source: String::from("Unexpected characters found inside conditional statement, perhaps forgot a semicolon?")
-        })
+            source: String::from(
+                "Unexpected characters found inside conditional statement, perhaps forgot a semicolon?",
+            ),
+        });
     }
 
     Ok(MascalConditionalBranch {
@@ -98,7 +103,7 @@ fn locate_semicolon(tokens: &[Token]) -> Result<usize, MascalError> {
         error_type: MascalErrorType::ParserError,
         line: tokens.last().unwrap().line,
         character: tokens.last().unwrap().start,
-        source: String::from("Expected an ending semicolon to finish the statement")
+        source: String::from("Expected an ending semicolon to finish the statement"),
     })
 }
 
@@ -106,19 +111,41 @@ fn parse_throw_statement(tokens: &[Token]) -> Result<MascalStatement, MascalErro
     let mut index: usize = 0;
     let mut curr: &Token;
     define_statement_checkup!(
-        index, tokens, curr, TokenType::Identifier, String::from("Expected a error type to throw but got nothing"),
-        |curr: &Token | {format!("Expected a error type to throw but got {:?}", curr.value)}
+        index,
+        tokens,
+        curr,
+        TokenType::Identifier,
+        String::from("Expected a error type to throw but got nothing"),
+        |curr: &Token| { format!("Expected a error type to throw but got {:?}", curr.value) }
     );
     let error_type: String = curr.value.to_string();
     index += 1;
     define_statement_checkup!(
-        index, tokens, curr, TokenType::Colon, String::from("Expected a colon for the throw statement but got nothing"),
-        |curr: &Token | {format!("Expected a colon for the throw statement but got {:?}", curr.value)}
+        index,
+        tokens,
+        curr,
+        TokenType::Colon,
+        String::from("Expected a colon for the throw statement but got nothing"),
+        |curr: &Token| {
+            format!(
+                "Expected a colon for the throw statement but got {:?}",
+                curr.value
+            )
+        }
     );
     index += 1;
     define_statement_checkup!(
-        index, tokens, curr, TokenType::StringLiteral, String::from("Expected a message for the throw statement but got nothing"),
-        |curr: &Token | {format!("Expected a message for the throw statement but got {:?}", curr.value)}
+        index,
+        tokens,
+        curr,
+        TokenType::StringLiteral,
+        String::from("Expected a message for the throw statement but got nothing"),
+        |curr: &Token| {
+            format!(
+                "Expected a message for the throw statement but got {:?}",
+                curr.value
+            )
+        }
     );
     let message: String = curr.value.to_string();
     index += 1;
@@ -128,14 +155,15 @@ fn parse_throw_statement(tokens: &[Token]) -> Result<MascalStatement, MascalErro
             error_type: MascalErrorType::ParserError,
             line: curr.line,
             character: curr.start,
-            source: String::from("Unexpected tokens found during the parsing of the throw statement")
-        })
+            source: String::from(
+                "Unexpected tokens found during the parsing of the throw statement",
+            ),
+        });
     }
-    
-    
-    Ok(MascalStatement::Throw{
+
+    Ok(MascalStatement::Throw {
         error_type,
-        message
+        message,
     })
 }
 
@@ -143,7 +171,9 @@ macro_rules! parse_expression_in_statement {
     ($tokens: expr, $index: expr, $terminator_tokens: expr) => {{
         let mut expression_tokens: Vec<Token> = Vec::new();
         for token in $tokens[$index..].iter() {
-            if $terminator_tokens.contains(&token.token_type) { break; }
+            if $terminator_tokens.contains(&token.token_type) {
+                break;
+            }
             expression_tokens.push(token.clone());
             $index += 1;
         }
@@ -155,48 +185,64 @@ fn parse_for_loop_statement(tokens: &[Token]) -> Result<MascalStatement, MascalE
     let mut index: usize = 0;
     let mut curr: &Token;
     define_statement_checkup!(
-        index, tokens, curr, TokenType::Identifier, String::from("Expected a variable identifier to use but got nothing"),
-        |curr: &Token | {format!("Expected a variable identifier to use but got {:?}", curr.value)}
+        index,
+        tokens,
+        curr,
+        TokenType::Identifier,
+        String::from("Expected a variable identifier to use but got nothing"),
+        |curr: &Token| {
+            format!(
+                "Expected a variable identifier to use but got {:?}",
+                curr.value
+            )
+        }
     );
     let variable_name: String = curr.value.to_string();
     index += 1;
     define_statement_checkup!(
-        index, tokens, curr, TokenType::From, String::from("Expected FROM but got nothing"),
-        |curr: &Token | {format!("Expected FROM but got {:?}", curr.value)}
+        index,
+        tokens,
+        curr,
+        TokenType::From,
+        String::from("Expected FROM but got nothing"),
+        |curr: &Token| { format!("Expected FROM but got {:?}", curr.value) }
     );
     index += 1;
 
-    let from: MascalExpression = parse_expression_in_statement!(tokens, index, vec![TokenType::To]);
+    let from: MascalExpression = parse_expression_in_statement!(tokens, index, [TokenType::To]);
 
     define_statement_checkup!(
-        index, tokens, curr, TokenType::To, String::from("Expected TO but got nothing"),
-        |curr: &Token | {format!("Expected TO but got {:?}", curr.value)}
+        index,
+        tokens,
+        curr,
+        TokenType::To,
+        String::from("Expected TO but got nothing"),
+        |curr: &Token| { format!("Expected TO but got {:?}", curr.value) }
     );
     index += 1;
 
-    let to: MascalExpression = parse_expression_in_statement!(tokens, index, vec![TokenType::WithStep, TokenType::OpenBrace]);
+    let to: MascalExpression =
+        parse_expression_in_statement!(tokens, index, [TokenType::WithStep, TokenType::OpenBrace]);
 
     let with_step: MascalExpression = if tokens[index].token_type == TokenType::WithStep {
         index += 1;
 
-        parse_expression_in_statement!(tokens, index, vec![TokenType::OpenBrace])
-    } else {MascalExpression::LiteralExpression(MascalLiteral::Integer(IntegerNum::I8(1)))};
+        parse_expression_in_statement!(tokens, index, [TokenType::OpenBrace])
+    } else {
+        MascalExpression::Literal(MascalLiteral::Integer(IntegerNum::I8(1)))
+    };
 
     if tokens[index].token_type != TokenType::OpenBrace {
         return Err(MascalError {
             error_type: MascalErrorType::ParserError,
             line: tokens[index].line,
             character: tokens[index].start,
-            source: String::from("Expected a opening brace for a for loop block")
-        })
+            source: String::from("Expected a opening brace for a for loop block"),
+        });
     }
 
-    let statements_parser: TokenSequence = extract_braced_block_from_tokens(
-        &tokens[index..],
-        "For loop",
-        &[],
-        &[],
-    )?;
+    let statements_parser: TokenSequence =
+        extract_braced_block_from_tokens(&tokens[index..], "For loop", &[], &[])?;
 
     let mut statements: Vec<MascalStatement> = Vec::new();
 
@@ -211,8 +257,10 @@ fn parse_for_loop_statement(tokens: &[Token]) -> Result<MascalStatement, MascalE
             error_type: MascalErrorType::ParserError,
             line: final_toks[0].line,
             character: final_toks[0].start,
-            source: String::from("Unexpected characters found inside for loop statement, perhaps forgot a semicolon?")
-        })
+            source: String::from(
+                "Unexpected characters found inside for loop statement, perhaps forgot a semicolon?",
+            ),
+        });
     }
 
     Ok(MascalStatement::For {
@@ -227,25 +275,20 @@ fn parse_for_loop_statement(tokens: &[Token]) -> Result<MascalStatement, MascalE
 fn parse_while_loop_statement(tokens: &[Token]) -> Result<MascalStatement, MascalError> {
     let mut index: usize = 0;
 
-    let condition_expression: MascalExpression = parse_expression_in_statement!(
-        tokens, index, vec![TokenType::OpenBrace]
-    );
+    let condition_expression: MascalExpression =
+        parse_expression_in_statement!(tokens, index, [TokenType::OpenBrace]);
 
     if tokens[index].token_type != TokenType::OpenBrace {
         return Err(MascalError {
             error_type: MascalErrorType::ParserError,
             line: tokens[index].line,
             character: tokens[index].start,
-            source: String::from("Expected a opening brace for a while loop block")
-        })
+            source: String::from("Expected a opening brace for a while loop block"),
+        });
     }
 
-    let statements_parser: TokenSequence = extract_braced_block_from_tokens(
-        &tokens[index..],
-        "While loop",
-        &[],
-        &[],
-    )?;
+    let statements_parser: TokenSequence =
+        extract_braced_block_from_tokens(&tokens[index..], "While loop", &[], &[])?;
 
     let mut statements: Vec<MascalStatement> = Vec::new();
 
@@ -260,13 +303,15 @@ fn parse_while_loop_statement(tokens: &[Token]) -> Result<MascalStatement, Masca
             error_type: MascalErrorType::ParserError,
             line: final_toks[0].line,
             character: final_toks[0].start,
-            source: String::from("Unexpected characters found inside while loop statement, perhaps forgot a semicolon?")
-        })
+            source: String::from(
+                "Unexpected characters found inside while loop statement, perhaps forgot a semicolon?",
+            ),
+        });
     }
 
     Ok(MascalStatement::While(MascalConditionalBranch {
         condition: Some(condition_expression),
-        statements: statements.into_boxed_slice()
+        statements: statements.into_boxed_slice(),
     }))
 }
 
@@ -276,15 +321,16 @@ pub fn parse_statement(token_sequence: &Vec<Token>) -> Result<MascalStatement, M
     match first_token.token_type {
         TokenType::Throw => {
             let index: usize = locate_semicolon(token_sequence)?;
-            let throw_statement: MascalStatement = parse_throw_statement(&token_sequence[1..index])?;
+            let throw_statement: MascalStatement =
+                parse_throw_statement(&token_sequence[1..index])?;
             Ok(throw_statement)
         }
-        
+
         TokenType::If => {
-            let if_statement: MascalStatement = parse_conditional_statement(&token_sequence)?;
+            let if_statement: MascalStatement = parse_conditional_statement(token_sequence)?;
             Ok(if_statement)
         }
-        
+
         TokenType::For => {
             let for_statement: MascalStatement = parse_for_loop_statement(&token_sequence[1..])?;
             Ok(for_statement)
@@ -295,24 +341,20 @@ pub fn parse_statement(token_sequence: &Vec<Token>) -> Result<MascalStatement, M
             Ok(for_statement)
         }
 
-        TokenType::ElseIf => {
-            Err(MascalError {
-                error_type: MascalErrorType::ParserError,
-                character: first_token.start,
-                line: first_token.line,
-                source: String::from("Expected an IF condition before this ELIF condition"),
-            })
-        }
+        TokenType::ElseIf => Err(MascalError {
+            error_type: MascalErrorType::ParserError,
+            character: first_token.start,
+            line: first_token.line,
+            source: String::from("Expected an IF condition before this ELIF condition"),
+        }),
 
-        TokenType::Else => {
-            Err(MascalError {
-                error_type: MascalErrorType::ParserError,
-                character: first_token.start,
-                line: first_token.line,
-                source: String::from("Expected an IF statement before this ELSE condition"),
-            })
-        }
-        
+        TokenType::Else => Err(MascalError {
+            error_type: MascalErrorType::ParserError,
+            character: first_token.start,
+            line: first_token.line,
+            source: String::from("Expected an IF statement before this ELSE condition"),
+        }),
+
         TokenType::Break => {
             let index: usize = locate_semicolon(token_sequence)?;
             if token_sequence[..index].len() > 1 {
@@ -320,8 +362,10 @@ pub fn parse_statement(token_sequence: &Vec<Token>) -> Result<MascalStatement, M
                     error_type: MascalErrorType::ParserError,
                     character: 0,
                     line: 0,
-                    source: String::from("Expected nothing else to be supplied but contents inside the break statement"),
-                })
+                    source: String::from(
+                        "Expected nothing else to be supplied but contents inside the break statement",
+                    ),
+                });
             }
             Ok(MascalStatement::Break)
         }
@@ -333,8 +377,10 @@ pub fn parse_statement(token_sequence: &Vec<Token>) -> Result<MascalStatement, M
                     error_type: MascalErrorType::ParserError,
                     character: 0,
                     line: 0,
-                    source: String::from("Expected nothing else to be supplied but contents inside the continue statement"),
-                })
+                    source: String::from(
+                        "Expected nothing else to be supplied but contents inside the continue statement",
+                    ),
+                });
             }
             Ok(MascalStatement::Continue)
         }
@@ -350,26 +396,27 @@ pub fn parse_statement(token_sequence: &Vec<Token>) -> Result<MascalStatement, M
                 }
             }
             if let Some(unwrapped_assign_index) = assignment_index {
-                let target_assigne: MascalExpression = parse_expression(
-                    &trunucated_token_seq[..unwrapped_assign_index].to_vec()
-                )?;
+                let target_assigne: MascalExpression =
+                    parse_expression(&trunucated_token_seq[..unwrapped_assign_index].to_vec())?;
                 match target_assigne {
-                    MascalExpression::IndexExpression {..} 
-                    | MascalExpression::SymbolicExpression(_) => {}
+                    MascalExpression::Indexing { .. } | MascalExpression::Symbolic(_) => {}
 
-                    _ => {return Err(MascalError {
-                        error_type: MascalErrorType::ParserError,
-                        line: trunucated_token_seq.first().unwrap().line,
-                        character: trunucated_token_seq.first().unwrap().line,
-                        source: String::from("Expected either a index-based variable modification or variable assignment but got something else")
-                    });}
+                    _ => {
+                        return Err(MascalError {
+                            error_type: MascalErrorType::ParserError,
+                            line: trunucated_token_seq.first().unwrap().line,
+                            character: trunucated_token_seq.first().unwrap().line,
+                            source: String::from(
+                                "Expected either a index-based variable modification or variable assignment but got something else",
+                            ),
+                        });
+                    }
                 }
-                let value_assigned: MascalExpression = parse_expression(
-                    &trunucated_token_seq[unwrapped_assign_index + 1..].to_vec()
-                )?;
-                return Ok(MascalStatement::Declaration{
+                let value_assigned: MascalExpression =
+                    parse_expression(&trunucated_token_seq[unwrapped_assign_index + 1..].to_vec())?;
+                return Ok(MascalStatement::Declaration {
                     variable: target_assigne,
-                    value: value_assigned
+                    value: value_assigned,
                 });
             }
             let expression_statement: MascalExpression = parse_expression(&trunucated_token_seq)?;

@@ -1,13 +1,12 @@
-use std::collections::HashSet;
 use crate::defs::blocks::{ExecutionBlock, MascalParameter};
 use crate::defs::errors::{MascalError, MascalErrorType};
+use std::collections::HashSet;
 
 pub fn check_for_param_declaration(
     function_block: &ExecutionBlock,
     params: &[MascalParameter],
 ) -> Result<(), MascalError> {
-    let param_names: HashSet<&String> =
-        params.iter().map(|p| &p.name).collect();
+    let param_names: HashSet<&String> = params.iter().map(|p| &p.name).collect();
 
     if function_block
         .variables
@@ -25,8 +24,12 @@ pub fn check_for_param_declaration(
         });
     }
 
-    let declared: HashSet<&String> =
-        function_block.variables.iter_all().iter().map(|v| &v.name).collect();
+    let declared: HashSet<&String> = function_block
+        .variables
+        .iter_all()
+        .iter()
+        .map(|v| &v.name)
+        .collect();
 
     for param in params {
         if !declared.contains(&param.name) {
