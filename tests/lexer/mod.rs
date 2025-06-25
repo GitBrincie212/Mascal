@@ -4,6 +4,7 @@ use mascal::lexer::tokenize;
 mod identifiers;
 mod numbers;
 mod groups;
+mod practical;
 
 #[test]
 fn mixed_identifiers_and_numbers() {
