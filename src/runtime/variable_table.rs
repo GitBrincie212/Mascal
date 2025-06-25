@@ -35,7 +35,7 @@ macro_rules! create_variable_table_for_type {
             let mut value: Option<Rc<RefCell<MascalValue>>> = if let Some(unwrapped_val) = var.initial_value {
                 let val: MascalValue = execute_expression(unwrapped_val, &mut ExecutionData {
                     variable_table: Some($table.clone()),
-                    scoped_blocks: Rc::new(RefCell::new(Vec::new()))
+                    scoped_blocks: &mut Vec::new()
                 })?;
                 if !(val.is_atomic_type_of(&*$target_type.clone())?) {
                     return Err(MascalError {
@@ -51,7 +51,7 @@ macro_rules! create_variable_table_for_type {
             for dimension in var.dimensions {
                 let val: MascalValue = execute_expression(dimension, &mut ExecutionData {
                     variable_table: Some($table.clone()),
-                    scoped_blocks: Rc::new(RefCell::new(Vec::new()))
+                    scoped_blocks: &mut Vec::new()
                 })?;
 
                 let size = match val {

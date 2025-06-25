@@ -20,9 +20,9 @@ use std::collections::HashSet;
 use std::rc::Rc;
 use std::sync::{Arc, LazyLock, Mutex};
 
-pub struct ExecutionData {
+pub struct ExecutionData<'a> {
     pub variable_table: Option<Rc<RefCell<VariableTable>>>,
-    pub scoped_blocks: Rc<RefCell<Vec<ScopedBlocks>>>,
+    pub scoped_blocks: &'a Vec<ScopedBlocks>,
 }
 
 pub static FUNCTION_HASHSET: LazyLock<Mutex<HashSet<Arc<str>>>> =

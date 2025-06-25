@@ -10,7 +10,7 @@ use crate::runtime::execute_statement::{SemanticContext, StatementResults, execu
 use crate::runtime::execute_typecast::{execute_processed_typecast, execute_typecast};
 use crate::runtime::values::MascalValue;
 use crate::runtime::variable_table::{VariableData, VariableTable, create_variable_table};
-use std::cell::{Ref, RefCell};
+use std::cell::RefCell;
 use std::rc::Rc;
 use std::str::Chars;
 
@@ -87,27 +87,28 @@ pub fn execute_function_call(
     let mut func_parameters: &[MascalParameter] = &Vec::new();
     let mut func_return_type: Option<MascalUnprocessedType> = None;
     let mut wrapped_func_exec_block: Option<ExecutionBlock> = None;
-    let scope_blocks: Rc<RefCell<Vec<ScopedBlocks>>> = exec_data.scoped_blocks.clone();
-    let borrowed_scoped_blocks: Ref<Vec<ScopedBlocks>> = scope_blocks.borrow();
-    for scoped_block in borrowed_scoped_blocks.iter() {
-        match scoped_block {
-            ScopedBlocks::Program(..) => {
-                unreachable!()
-            }
-            ScopedBlocks::Function {
-                name,
-                parameters,
-                return_type,
-                execution_block,
-            } => {
-                if name == &fn_name {
-                    func_return_type = return_type.clone();
-                    func_parameters = parameters;
-                    wrapped_func_exec_block = Some(execution_block.clone());
-                    break;
+    {
+        let scope_blocks: &Vec<ScopedBlocks> = &*exec_data.scoped_blocks;
+        for scoped_block in scope_blocks.iter() {
+            match scoped_block {
+                ScopedBlocks::Program(..) => {
+                    unreachable!()
+                }
+                ScopedBlocks::Function {
+                    name,
+                    parameters,
+                    return_type,
+                    execution_block,
+                } => {
+                    if name == &fn_name {
+                        func_return_type = return_type.clone();
+                        func_parameters = parameters;
+                        wrapped_func_exec_block = Some(execution_block.clone());
+                        break;
+                    }
                 }
             }
-        }
+        } 
     }
     if wrapped_func_exec_block.is_none() {
         return Err(MascalError {
@@ -169,7 +170,7 @@ pub fn execute_function_call(
             statement,
             Rc::new(SemanticContext {
                 variable_table: scoped_variable_table.clone(),
-                scoped_blocks: exec_data.scoped_blocks.clone(),
+                scoped_blocks: Rc::new(RefCell::new(exec_data.scoped_blocks.clone())),
                 function_name: Some(Rc::from(fn_name.clone())),
                 in_loop: false,
             }),

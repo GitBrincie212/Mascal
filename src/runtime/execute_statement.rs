@@ -59,7 +59,7 @@ fn error_check_expression(
     mut val: MascalExpression,
     variable_data: &VariableData,
     variable: &String,
-    scoped_blocks: Rc<RefCell<Vec<ScopedBlocks>>>,
+    scoped_blocks: &mut Vec<ScopedBlocks>,
 ) -> Result<MascalValue, MascalError> {
     if let MascalExpression::Literal(literal) = &val {
         if let MascalLiteral::Float(v) = literal {
@@ -138,7 +138,7 @@ pub fn execute_statement(
                         cond,
                         &mut ExecutionData {
                             variable_table: Some(semantic_context.variable_table.clone()),
-                            scoped_blocks: semantic_context.scoped_blocks.clone(),
+                            scoped_blocks: semantic_context.scoped_blocks.borrow_mut().as_mut(),
                         },
                     )?;
                     match value {
@@ -190,7 +190,7 @@ pub fn execute_statement(
                     cond_expr.clone(),
                     &mut ExecutionData {
                         variable_table: Some(semantic_context.variable_table.clone()),
-                        scoped_blocks: semantic_context.scoped_blocks.clone(),
+                        scoped_blocks: semantic_context.scoped_blocks.borrow_mut().as_mut(),
                     },
                 )?;
                 match value {
@@ -268,7 +268,7 @@ pub fn execute_statement(
                 from,
                 &variable_data,
                 &variable,
-                semantic_context.scoped_blocks.clone(),
+                semantic_context.scoped_blocks.borrow_mut().as_mut(),
             )?;
 
             let to_num: MascalValue = error_check_expression(
@@ -276,7 +276,7 @@ pub fn execute_statement(
                 to,
                 &variable_data,
                 &variable,
-                semantic_context.scoped_blocks.clone(),
+                semantic_context.scoped_blocks.borrow_mut().as_mut(),
             )?;
 
             let step_num: MascalValue = error_check_expression(
@@ -284,7 +284,7 @@ pub fn execute_statement(
                 step,
                 &variable_data,
                 &variable,
-                semantic_context.scoped_blocks.clone(),
+                semantic_context.scoped_blocks.borrow_mut().as_mut(),
             )?;
 
             match (&from_num, &to_num, &step_num) {
@@ -386,7 +386,7 @@ pub fn execute_statement(
                 expression,
                 &mut ExecutionData {
                     variable_table: Some(semantic_context.variable_table.clone()),
-                    scoped_blocks: semantic_context.scoped_blocks.clone(),
+                    scoped_blocks: &*semantic_context.scoped_blocks.borrow(),
                 },
             )?;
         }
@@ -395,7 +395,7 @@ pub fn execute_statement(
                 variable,
                 value,
                 semantic_context.variable_table.clone(),
-                semantic_context.scoped_blocks.clone(),
+                semantic_context.scoped_blocks.borrow_mut().as_mut(),
             );
         }
         MascalStatement::Throw {

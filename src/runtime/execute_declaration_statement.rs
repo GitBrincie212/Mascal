@@ -22,7 +22,7 @@ pub fn execute_declaration_statement(
     variable: MascalExpression,
     value: MascalExpression,
     variable_table: Rc<RefCell<VariableTable>>,
-    scoped_blocks: Rc<RefCell<Vec<ScopedBlocks>>>,
+    scoped_blocks: &mut Vec<ScopedBlocks>,
 ) -> Result<StatementResults, MascalError> {
     match variable {
         MascalExpression::Symbolic(varname) => {

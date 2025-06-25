@@ -16,17 +16,17 @@ pub fn execute_index_based_decleration(
     variable: MascalExpression,
     value: MascalExpression,
     variable_table: Rc<RefCell<VariableTable>>,
-    scoped_blocks: Rc<RefCell<Vec<ScopedBlocks>>>,
+    scoped_blocks: &mut Vec<ScopedBlocks>,
 ) -> Result<(), MascalError> {
     let (base, layers) =
-        unwrap_index_layers(variable, variable_table.clone(), scoped_blocks.clone())?;
+        unwrap_index_layers(variable, variable_table.clone(), scoped_blocks)?;
     let (varname, vardata) = extract_variable_data(base, variable_table.clone(), &layers)?;
 
     let rhs: MascalValue = execute_expression(
         value,
         &mut ExecutionData {
             variable_table: Some(variable_table.clone()),
-            scoped_blocks: scoped_blocks.clone(),
+            scoped_blocks,
         },
     )?;
 

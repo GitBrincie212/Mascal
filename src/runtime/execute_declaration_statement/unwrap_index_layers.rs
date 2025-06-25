@@ -12,7 +12,7 @@ use std::rc::Rc;
 pub fn unwrap_index_layers(
     variable: MascalExpression,
     variable_table: Rc<RefCell<VariableTable>>,
-    scoped_blocks: Rc<RefCell<Vec<ScopedBlocks>>>,
+    scoped_blocks: &mut Vec<ScopedBlocks>,
 ) -> Result<(MascalExpression, Vec<(MascalValue, bool)>), MascalError> {
     let mut layers: Vec<(MascalValue, bool)> = Vec::new();
     let mut base: MascalExpression = variable;
@@ -26,7 +26,7 @@ pub fn unwrap_index_layers(
             *index,
             &mut ExecutionData {
                 variable_table: Some(variable_table.clone()),
-                scoped_blocks: scoped_blocks.clone(),
+                scoped_blocks,
             },
         )?;
         layers.push((index_val, is_dynamic));
