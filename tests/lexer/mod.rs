@@ -8,6 +8,7 @@ mod practical;
 mod misc;
 mod types;
 mod keywords;
+mod comments;
 
 #[macro_export]
 macro_rules! test_individual_token {
