@@ -9,6 +9,7 @@ mod misc;
 mod types;
 mod keywords;
 mod comments;
+mod test_unknown;
 
 #[macro_export]
 macro_rules! test_individual_token {
