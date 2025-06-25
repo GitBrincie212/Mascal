@@ -16,7 +16,13 @@ fn test_integer_numbers() {
 
 #[test]
 fn test_float_numbers() {
-    let inputs: Vec<&str> = vec!["1.2345", ".3848193", "2394.0", "0.3948291", "234213."];
+    let inputs: Vec<&str> = vec![
+        "1.2345", 
+        ".3848193", 
+        "2394.0", 
+        "0.3948291", 
+        "234213."
+    ];
     for input in inputs {
         let tokens: Vec<Token> = tokenize(input);
         assert_eq!(tokens.len(), 1);
@@ -31,14 +37,14 @@ fn test_float_numbers() {
 fn test_in_mix_numbers() {
     let inputs: Vec<(&str, TokenType, &str)> = vec![
         ("0301000  ", TokenType::IntegerLiteral, "0301000"),
-        ("  1.2345", TokenType::FloatLiteral, "1.2345"),
+        ("  1.2345 // cool", TokenType::FloatLiteral, "1.2345"),
         (".3848193", TokenType::FloatLiteral, ".3848193"),
         ("0101000", TokenType::IntegerLiteral, "0101000"),
         ("2394.0 ", TokenType::FloatLiteral, "2394.0"),
-        ("3941     ", TokenType::IntegerLiteral, "3941"),
-        ("0.3948291 ",TokenType::FloatLiteral, "0.3948291"),
+        ("3941     // ?", TokenType::IntegerLiteral, "3941"),
+        ("0.3948291 // TYPEOF 3",TokenType::FloatLiteral, "0.3948291"),
         (" 234213.", TokenType::FloatLiteral, "234213."),
-        ("239456", TokenType::IntegerLiteral, "239456"),
+        ("239456 // 3.341", TokenType::IntegerLiteral, "239456"),
     ];
     for (input, expected, expected_input) in inputs {
         let tokens: Vec<Token> = tokenize(input);
