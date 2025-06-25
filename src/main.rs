@@ -1,15 +1,8 @@
-mod ast;
-mod defs;
-mod language_pipeline;
-mod lexer;
-mod parser;
-mod runtime;
-mod semantic_analysis;
-
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::process::exit;
 use std::{env, fs};
+use mascal::language_pipeline;
 
 fn merge_paths(input_path: &Path, lang_dir: &Path) -> Option<PathBuf> {
     if input_path.is_absolute() {
