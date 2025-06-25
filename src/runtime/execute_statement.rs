@@ -76,10 +76,10 @@ fn error_check_expression(
     }
     let val_num: MascalValue = execute_expression(
         val,
-        Rc::new(RefCell::new(ExecutionData {
+        &mut ExecutionData {
             variable_table: Some(variable_table),
             scoped_blocks,
-        })),
+        },
     )?;
     match &val_num {
         MascalValue::Integer(_) => {
@@ -136,10 +136,10 @@ pub fn execute_statement(
                 let cond: bool = if let Some(cond) = branch.condition {
                     let value: MascalValue = execute_expression(
                         cond,
-                        Rc::new(RefCell::new(ExecutionData {
+                        &mut ExecutionData {
                             variable_table: Some(semantic_context.variable_table.clone()),
                             scoped_blocks: semantic_context.scoped_blocks.clone(),
-                        })),
+                        },
                     )?;
                     match value {
                         MascalValue::Boolean(b) => Ok(b),
@@ -188,10 +188,10 @@ pub fn execute_statement(
                 */
                 let value: MascalValue = execute_expression(
                     cond_expr.clone(),
-                    Rc::new(RefCell::new(ExecutionData {
+                    &mut ExecutionData {
                         variable_table: Some(semantic_context.variable_table.clone()),
                         scoped_blocks: semantic_context.scoped_blocks.clone(),
-                    })),
+                    },
                 )?;
                 match value {
                     MascalValue::Boolean(b) => Ok(b),
@@ -384,10 +384,10 @@ pub fn execute_statement(
         MascalStatement::ExpressionStatement(expression) => {
             execute_expression(
                 expression,
-                Rc::new(RefCell::new(ExecutionData {
+                &mut ExecutionData {
                     variable_table: Some(semantic_context.variable_table.clone()),
                     scoped_blocks: semantic_context.scoped_blocks.clone(),
-                })),
+                },
             )?;
         }
         MascalStatement::Declaration { variable, value } => {

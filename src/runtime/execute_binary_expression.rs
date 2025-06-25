@@ -4,17 +4,15 @@ use crate::defs::operators::MascalBinaryOperators;
 use crate::runtime::ExecutionData;
 use crate::runtime::execute_expression::execute_expression;
 use crate::runtime::values::MascalValue;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 #[inline(always)]
 pub fn execute_binary_expression(
     left: MascalExpression,
     operator: MascalBinaryOperators,
     right: MascalExpression,
-    exec_data: Rc<RefCell<ExecutionData>>,
+    exec_data: &mut ExecutionData,
 ) -> Result<MascalValue, MascalError> {
-    let left_value: MascalValue = execute_expression(left, exec_data.clone())?;
+    let left_value: MascalValue = execute_expression(left, exec_data)?;
     let right_value: MascalValue = execute_expression(right, exec_data)?;
 
     match operator {

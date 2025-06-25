@@ -24,10 +24,10 @@ pub fn execute_index_based_decleration(
 
     let rhs: MascalValue = execute_expression(
         value,
-        Rc::new(RefCell::new(ExecutionData {
+        &mut ExecutionData {
             variable_table: Some(variable_table.clone()),
             scoped_blocks: scoped_blocks.clone(),
-        })),
+        },
     )?;
 
     let layers_len: usize = layers.len();

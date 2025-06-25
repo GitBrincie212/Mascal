@@ -14,7 +14,7 @@ use std::sync::Arc;
 pub fn execute_typecast(
     function: Box<MascalUnprocessedType>,
     arguments: Vec<MascalExpression>,
-    exec_data: Rc<RefCell<ExecutionData>>,
+    exec_data: &mut ExecutionData,
 ) -> Result<MascalValue, MascalError> {
     let value: MascalValue = execute_expression(arguments[0].clone(), exec_data)?;
     execute_processed_typecast(to_processed_type(*function.clone())?, value)

@@ -10,16 +10,16 @@ use crate::runtime::execute_statement::{SemanticContext, StatementResults, execu
 use crate::runtime::execute_typecast::{execute_processed_typecast, execute_typecast};
 use crate::runtime::values::MascalValue;
 use crate::runtime::variable_table::{VariableData, VariableTable, create_variable_table};
-use std::cell::RefCell;
+use std::cell::{Ref, RefCell};
 use std::rc::Rc;
 use std::str::Chars;
 
 fn notify_mutable_params(
     mutable_parameters: Vec<(Rc<str>, Rc<str>)>,
     scoped_variable_table: Rc<RefCell<VariableTable>>,
-    exec_data: Rc<RefCell<ExecutionData>>,
+    exec_data: &mut ExecutionData,
 ) {
-    let outer_vartable = exec_data.borrow().variable_table.clone();
+    let outer_vartable = exec_data.variable_table.clone();
     if let Some(unwrapped_outer_vartable) = outer_vartable {
         let scope_borrow_vartable = scoped_variable_table.borrow();
         let mut outer_borrow_mut_vartable = unwrapped_outer_vartable.borrow_mut();
@@ -44,7 +44,7 @@ fn is_titlecase(s: &str) -> bool {
 pub fn execute_function_call(
     function: MascalExpression,
     arguments: Vec<MascalExpression>,
-    exec_data: Rc<RefCell<ExecutionData>>,
+    exec_data: &mut ExecutionData,
 ) -> Result<MascalValue, MascalError> {
     let fn_name: String = match function {
         MascalExpression::Symbolic(target_name) => target_name,
@@ -52,7 +52,7 @@ pub fn execute_function_call(
             return execute_typecast(t, arguments, exec_data);
         }
         expr => {
-            let value: MascalValue = execute_expression(expr, exec_data.clone())?;
+            let value: MascalValue = execute_expression(expr, exec_data)?;
             if value.is_type_of(&MascalType::Type) {
                 let MascalValue::Type(extracted_type) = value else {
                     unreachable!()
@@ -81,14 +81,14 @@ pub fn execute_function_call(
     let lowercased: &String = &fn_name.to_lowercase();
     if fn_name == fn_name.to_uppercase() || &fn_name == lowercased || is_titlecase(&fn_name) {
         if let Some(built_in_func) = BUILT_IN_FUNCTION_TABLE.get(lowercased) {
-            return execute_builtin_function(built_in_func, arguments, exec_data.clone());
+            return execute_builtin_function(built_in_func, arguments, exec_data);
         }
     }
     let mut func_parameters: &[MascalParameter] = &Vec::new();
     let mut func_return_type: Option<MascalUnprocessedType> = None;
     let mut wrapped_func_exec_block: Option<ExecutionBlock> = None;
-    let exedata_binding: &ExecutionData = &exec_data.borrow();
-    let borrowed_scoped_blocks: &Vec<ScopedBlocks> = &exedata_binding.scoped_blocks.borrow();
+    let scope_blocks: Rc<RefCell<Vec<ScopedBlocks>>> = exec_data.scoped_blocks.clone();
+    let borrowed_scoped_blocks: Ref<Vec<ScopedBlocks>> = scope_blocks.borrow();
     for scoped_block in borrowed_scoped_blocks.iter() {
         match scoped_block {
             ScopedBlocks::Program(..) => {
@@ -155,7 +155,7 @@ pub fn execute_function_call(
             }
             continue;
         }
-        let result: MascalValue = execute_expression(arguments[index].clone(), exec_data.clone())?;
+        let result: MascalValue = execute_expression(arguments[index].clone(), exec_data)?;
         data.value = Some(Rc::new(RefCell::new(result)));
     }
     let processed_return_type: Option<MascalType> = if let Some(return_type) = func_return_type {
@@ -169,7 +169,7 @@ pub fn execute_function_call(
             statement,
             Rc::new(SemanticContext {
                 variable_table: scoped_variable_table.clone(),
-                scoped_blocks: exec_data.borrow().scoped_blocks.clone(),
+                scoped_blocks: exec_data.scoped_blocks.clone(),
                 function_name: Some(Rc::from(fn_name.clone())),
                 in_loop: false,
             }),
@@ -202,7 +202,7 @@ pub fn execute_function_call(
                     ),
                 });
             }
-            notify_mutable_params(mutable_parameters, scoped_variable_table, exec_data.clone());
+            notify_mutable_params(mutable_parameters, scoped_variable_table, exec_data);
             return Ok(value);
         }
     }
@@ -215,7 +215,7 @@ pub fn execute_function_call(
         });
     }
 
-    notify_mutable_params(mutable_parameters, scoped_variable_table, exec_data.clone());
+    notify_mutable_params(mutable_parameters, scoped_variable_table, exec_data);
 
     Ok(MascalValue::Null)
 }

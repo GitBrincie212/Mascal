@@ -17,7 +17,7 @@ use std::sync::Arc;
 #[allow(dead_code)]
 pub fn execute_expression(
     expression: MascalExpression,
-    exec_data: Rc<RefCell<ExecutionData>>,
+    exec_data: &mut ExecutionData,
 ) -> Result<MascalValue, MascalError> {
     match expression {
         MascalExpression::Literal(value) => {
@@ -33,7 +33,7 @@ pub fn execute_expression(
 
         MascalExpression::Symbolic(symbolic_expr) => {
             let var_table_option: Option<Rc<RefCell<VariableTable>>> =
-                exec_data.borrow().variable_table.clone();
+                exec_data.variable_table.clone();
             let unwrapped_var_table: Rc<RefCell<VariableTable>> = match var_table_option {
                 Some(v) => v,
                 None => {
@@ -80,7 +80,7 @@ pub fn execute_expression(
         } => {
             let arr_expr: MascalExpression = *array;
             let is_atomic_type_expr: bool = matches!(arr_expr, MascalExpression::Type(_));
-            let arr_value: MascalValue = execute_expression(arr_expr, exec_data.clone())?;
+            let arr_value: MascalValue = execute_expression(arr_expr, exec_data)?;
             if is_atomic_type_expr {
                 let MascalValue::Type(extract_type) = arr_value else {
                     unreachable!()
@@ -102,7 +102,7 @@ pub fn execute_expression(
                     source: String::from("Expected an array type but found instead an atomic type"),
                 });
             }
-            let index_value: MascalValue = execute_expression(*index, exec_data.clone())?;
+            let index_value: MascalValue = execute_expression(*index, exec_data)?;
             let num: &IntegerNum = match &index_value {
                 MascalValue::Integer(i) => Ok(i),
 
@@ -131,12 +131,12 @@ pub fn execute_expression(
         }
 
         MascalExpression::DynamicArray(array) => {
-            let arr = define_array_expression_exec!(array, exec_data.clone());
+            let arr = define_array_expression_exec!(array, exec_data);
             Ok(MascalValue::DynamicArray(arr))
         }
 
         MascalExpression::StaticArray(array) => {
-            let arr = define_array_expression_exec!(array, exec_data.clone());
+            let arr = define_array_expression_exec!(array, exec_data);
             Ok(MascalValue::StaticArray(arr.into()))
         }
 

@@ -4,14 +4,12 @@ use crate::defs::expressions::MascalExpression;
 use crate::runtime::ExecutionData;
 use crate::runtime::execute_expression::execute_expression;
 use crate::runtime::values::MascalValue;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 #[inline(always)]
 pub fn execute_builtin_function(
     built_in_func: &BuiltinFunction,
     arguments: Vec<MascalExpression>,
-    exec_data: Rc<RefCell<ExecutionData>>,
+    exec_data: &mut ExecutionData,
 ) -> Result<MascalValue, MascalError> {
     match built_in_func {
         BuiltinFunction::ValueBased {
@@ -21,7 +19,7 @@ pub fn execute_builtin_function(
         } => {
             let mut args: Vec<MascalValue> = Vec::with_capacity(arguments.len());
             for (index, arg) in arguments.iter().enumerate() {
-                let result: MascalValue = execute_expression(arg.clone(), exec_data.clone())?;
+                let result: MascalValue = execute_expression(arg.clone(), exec_data)?;
                 if index < fixed_argument_types.len() {
                     let arg_types = &fixed_argument_types[index];
                     let mut is_atleast_one_type: bool = false;
@@ -73,7 +71,7 @@ pub fn execute_builtin_function(
                 }
                 args.push(result);
             }
-            let val: Option<MascalValue> = execution(args, exec_data.clone())?;
+            let val: Option<MascalValue> = execution(args, exec_data)?;
             Ok(val.unwrap_or(MascalValue::Null))
         }
 
@@ -98,7 +96,7 @@ pub fn execute_builtin_function(
                 }
                 args.push(arg);
             }
-            let val: Option<MascalValue> = execution(args, exec_data.clone())?;
+            let val: Option<MascalValue> = execution(args, exec_data)?;
             Ok(val.unwrap_or(MascalValue::Null))
         }
     }

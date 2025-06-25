@@ -4,15 +4,13 @@ use crate::defs::operators::MascalUnaryOperators;
 use crate::runtime::ExecutionData;
 use crate::runtime::execute_expression::execute_expression;
 use crate::runtime::values::MascalValue;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 #[allow(dead_code)]
 #[inline(always)]
 pub fn execute_unary_expression(
     target: MascalExpression,
     operator: MascalUnaryOperators,
-    exec_data: Rc<RefCell<ExecutionData>>,
+    exec_data: &mut ExecutionData,
 ) -> Result<MascalValue, MascalError> {
     let target_value: MascalValue = execute_expression(target, exec_data)?;
 

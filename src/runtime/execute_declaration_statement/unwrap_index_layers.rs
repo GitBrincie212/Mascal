@@ -24,10 +24,10 @@ pub fn unwrap_index_layers(
     {
         let index_val = execute_expression(
             *index,
-            Rc::new(RefCell::new(ExecutionData {
+            &mut ExecutionData {
                 variable_table: Some(variable_table.clone()),
                 scoped_blocks: scoped_blocks.clone(),
-            })),
+            },
         )?;
         layers.push((index_val, is_dynamic));
         base = *array;

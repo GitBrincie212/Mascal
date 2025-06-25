@@ -35,10 +35,10 @@ pub fn execute_declaration_statement(
                 return Ok(StatementResults {
                     return_value: Some(execute_expression(
                         value,
-                        Rc::new(RefCell::new(ExecutionData {
+                        &mut ExecutionData {
                             variable_table: Some(variable_table.clone()),
                             scoped_blocks,
-                        })),
+                        },
                     )?),
                     loop_flag: LoopFlags::None,
                 });
@@ -65,10 +65,10 @@ pub fn execute_declaration_statement(
                 drop(variable_table_borrow);
                 let value: MascalValue = execute_expression(
                     value,
-                    Rc::new(RefCell::new(ExecutionData {
+                    &mut ExecutionData {
                         variable_table: Some(variable_table.clone()),
                         scoped_blocks,
-                    })),
+                    },
                 )?;
 
                 value.is_expected_array(array_dimensions.clone(), is_dynamic_array.clone())?;

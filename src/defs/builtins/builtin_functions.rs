@@ -19,10 +19,10 @@ use std::rc::Rc;
 use std::sync::Arc;
 
 type BuiltinValueBased =
-    fn(Vec<MascalValue>, Rc<RefCell<ExecutionData>>) -> Result<Option<MascalValue>, MascalError>;
+    fn(Vec<MascalValue>, &mut ExecutionData) -> Result<Option<MascalValue>, MascalError>;
 type BuiltinExpressionBased = fn(
     Vec<&MascalExpression>,
-    Rc<RefCell<ExecutionData>>,
+    &mut ExecutionData,
 ) -> Result<Option<MascalValue>, MascalError>;
 
 #[derive(Clone)]
@@ -996,7 +996,7 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<FxHashMap<String, BuiltinFunction>> = L
                     });
                 }
             };
-            if let Some(wrapped_vartable) = &exec_data.borrow().variable_table {
+            if let Some(wrapped_vartable) = &exec_data.variable_table {
                 let mut vartable = wrapped_vartable.borrow_mut();
                 if let [Some(variable_data1), Some(variable_data2)] =
                     vartable.get_disjoint_mut([varname1.as_str(), varname2.as_str()])
@@ -1037,8 +1037,7 @@ pub static BUILT_IN_FUNCTION_TABLE: Lazy<FxHashMap<String, BuiltinFunction>> = L
                         });
                     }
                 };
-                let execdata_ref = exec_data.borrow_mut();
-                let extracted_vartable = execdata_ref.variable_table.as_ref().unwrap();
+                let extracted_vartable = exec_data.variable_table.as_ref().unwrap();
                 let mut mutable_borrow_vartable = extracted_vartable.borrow_mut();
                 if let Some(unwrapped_vardata) = mutable_borrow_vartable.get_mut(varname) {
                     if !unwrapped_vardata.array_dimensions.is_empty() {
