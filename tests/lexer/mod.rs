@@ -5,6 +5,28 @@ mod identifiers;
 mod numbers;
 mod groups;
 mod practical;
+mod misc;
+mod types;
+mod keywords;
+
+#[macro_export]
+macro_rules! test_individual_token {
+    ($fn_name: ident, $token_char: expr, $token_type: expr) => {
+        #[test]
+        fn $fn_name() {
+            let input_cases: Vec<String> = vec![
+                $token_char.to_string(),
+                $token_char.to_uppercase(), 
+                $token_char.to_lowercase()
+            ];
+            for input in input_cases.iter() {
+                let tokens: Vec<Token> = tokenize(input);
+                assert_eq!(tokens.len(), 1);
+                assert_eq!(tokens[0].token_type, $token_type);
+            }
+        }
+    };
+}
 
 #[test]
 fn mixed_identifiers_and_numbers() {
