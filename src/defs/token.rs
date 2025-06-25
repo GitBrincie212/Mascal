@@ -113,14 +113,14 @@ pub static TOKEN_REGEX_MAP: Lazy<TokenRegexMap> = Lazy::new(|| {
             Regex::new(r"CONTINUE|continue|Continue").unwrap(),
             TokenType::Continue,
         ),
-        (Regex::new(r"NULL").unwrap(), TokenType::Null),
+        (Regex::new(r"NULL|null|Null").unwrap(), TokenType::Null),
         (Regex::new(r"FOR|for|For").unwrap(), TokenType::For),
         (Regex::new(r"If|if|IF").unwrap(), TokenType::If),
         (Regex::new(r"Else|else|ELSE").unwrap(), TokenType::Else),
         (Regex::new(r"Elif|elif|ELIF").unwrap(), TokenType::ElseIf),
         (Regex::new(r"Const|const|CONST").unwrap(), TokenType::Const),
         (
-            Regex::new(r"IMPLEMENTATION|implemenentation|Implementation").unwrap(),
+            Regex::new(r"IMPLEMENTATION|implementation|Implementation").unwrap(),
             TokenType::Implementation,
         ),
         (
@@ -161,7 +161,7 @@ pub static TOKEN_REGEX_MAP: Lazy<TokenRegexMap> = Lazy::new(|| {
             TokenType::WithStep,
         ),
         (
-            Regex::new(r"typeof|TypeOf|TYPEOF").unwrap(),
+            Regex::new(r"typeof|Typeof|TYPEOF").unwrap(),
             TokenType::Typeof,
         ),
         (Regex::new(r"type|Type|TYPE").unwrap(), TokenType::Type),
