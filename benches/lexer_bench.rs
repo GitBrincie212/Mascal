@@ -6,7 +6,7 @@ mod common;
 fn make_inputs() -> Vec<(&'static str, String)> {
     let small  = "()+-*/".repeat(10);
     let medium = "([{}])".repeat(1_000);
-    let large  = "([{}])".repeat(2_000);
+    let large  = "([{}])".repeat(10_000);
     vec![("small", small), ("medium", medium), ("large", large)]
 }
 
@@ -21,7 +21,7 @@ fn bench_lexer(c: &mut Criterion) {
             |b, data| {
                 b.iter(|| {
                     // 5) Invoke your lexer
-                    let tokens = tokenize(data);
+                    let tokens = tokenize(data).unwrap();
                     std::hint::black_box(tokens);
                 })
             },
