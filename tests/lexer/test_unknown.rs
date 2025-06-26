@@ -8,7 +8,7 @@ fn test_unknown() {
         ("Hello@gmail.com", 5, "@"),
         ("Nice Job!", 8, "!"),
         ("§ Paragraph 1", 0, "§"),
-        ("## HEADER 2", 0, "##"),
+        ("## HEADER 2", 0, "#"),
         ("H$llo", 1, "$"),
         ("0E 61\\", 5, "\\"),
     ];
