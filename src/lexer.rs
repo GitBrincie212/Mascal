@@ -13,8 +13,9 @@ pub fn tokenize(input: &str) -> Result<Vec<Token>, (Span, usize, &str)> {
         if kind.is_err() {
             return Err((span, line, value));
         }
+        let unwrapped_kind: TokenType = kind.unwrap();
         tokens.push(Token {
-            token_type: kind.unwrap(),
+            token_type: unwrapped_kind,
             start: span.start,
             line,
             value
