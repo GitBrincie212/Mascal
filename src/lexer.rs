@@ -8,11 +8,19 @@ pub fn tokenize(input: &str) -> Result<Vec<Token>, (Span, usize, &str)> {
 
     while let Some(kind) = lexer.next() {
         let span: Span = lexer.span();
-        let value: &str = &input[span.clone()];
         let line: usize = lexer.extras;
-        if kind.is_err() {
-            return Err((span, line, value));
-        }
+        let value: &str = match kind {
+            Ok(TokenType::StringLiteral) => {
+                &input[span.start + 1..span.end - 1]
+            }
+
+            Err(_) => {
+                let val: &str = &input[span.clone()];
+                return Err((span, line, val));
+            }
+
+            _ => {&input[span.clone()]}
+        };
         let unwrapped_kind: TokenType = kind.unwrap();
         tokens.push(Token {
             token_type: unwrapped_kind,
