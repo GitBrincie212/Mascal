@@ -1,81 +1,161 @@
 use once_cell::sync::Lazy;
-use regex::Regex;
 use std::collections::HashSet;
+use logos::{Lexer, Logos, Skip};
 
-pub type TokenRegexMap = Vec<(Regex, TokenType)>;
+#[allow(dead_code)]
+fn newline_callback(lex: &mut Lexer<TokenType>) -> Skip {
+    let slice: &str = lex.slice();
+    let count: usize = slice.chars().filter(|&c| c == '\n').count();
+    lex.extras += count;
+    Skip
+}
 
-#[derive(Debug, Hash, Eq, PartialEq, Clone)]
+
+#[derive(Debug, Hash, Eq, PartialEq, Clone, Logos)]
 #[repr(u8)]
+#[logos(extras = usize)]
 pub enum TokenType {
+    #[logos(skip r"[\t \f]+")]
+    Whitespace,
+
+    #[logos(skip(r"\n", callback = newline_callback))]
+    Newline,
+
+    #[logos(skip r"//[^\n]*", priority=100)]
+    Comment,
+
     // Identifiers Of Mascal
+    #[regex("[a-zA-Z_][a-zA-Z0-9_]*")]
     Identifier,
+    #[regex(r"(\d+)")]
     IntegerLiteral,
+    #[regex(r"(\d+\.\d*)|(\d*\.\d+)")]
     FloatLiteral,
+    #[regex("\"([^\"]*)\"")]
     StringLiteral,
+    #[regex(r"<-")]
     VariableInitializer,
 
     // Specific Operators And Symbols That Mascal Supports
+    #[token("+")]
     Plus,
+    #[token("-")]
     Minus,
+    #[token("*")]
     Asterisk,
+    #[token("/")]
     Division,
+    #[token(r"%")]
     Modulo,
+    #[token("^")]
     Exponentiation,
+    #[regex(r"=|==")]
     Equals,
+    #[token("!=")]
     NotEquals,
+    #[token(">=")]
     GreaterThanEqual,
+    #[token("<=")]
     LesserThanEqual,
+    #[regex(r"OR|or|Or")]
     Or,
+    #[regex(r"AND|and|And")]
     And,
+    #[regex(r"NOT|Not|not")]
     Not,
+    #[token(";")]
     Semicolon,
+    #[token("(")]
     OpenParen,
+    #[token(")")]
     CloseParen,
+    #[token("{")]
     OpenBrace,
+    #[token("}")]
     CloseBrace,
+    #[token("[")]
     OpenBracket,
+    #[token("]")]
     CloseBracket,
+    #[token(",")]
     Comma,
+    #[token(":")]
     Colon,
+
+    #[token("->")]
     ReturnIndicator,
+    #[token("?")]
     QuestionMark,
+    #[token("<")]
     LessThan,
+    #[token(">")]
     GreaterThan,
 
-    Comment,
-
     // Reserved Keywords
+    #[regex(r"For|for|FOR")]
     For,
+    #[regex(r"If|if|IF")]
     If,
+    #[regex(r"Else|else|Else")]
     Else,
+    #[regex(r"ELIF|Elif|elif|Else if| ELSE IF| Else If")]
     ElseIf,
+    #[regex(r"const|CONST|Const")]
     Const,
+    #[regex(r"VARIABLES|Variables|variables")]
     Variables,
+    #[regex(r"String|STRING|string")]
     String,
+    #[regex(r"INTEGER|integer|Integer")]
     Integer,
+    #[regex(r"FLOAT|float|Float")]
     Float,
+    #[regex(r"Dynamic|dynamic|DYNAMIC")]
     Dynamic,
+    #[regex(r"BOOLEAN|boolean|Boolean")]
     Boolean,
+    #[regex(r"DEFINE_FUNCTION|Define_Function|define_function")]
     DefineFunction,
+    #[regex(r"DEFINE_PROGRAM|Define_Program|define_program")]
     DefineProgram,
+    #[regex(r"IMPLEMENTATION|implementation|Implementation")]
     Implementation,
+    #[regex(r"WHILE|while|While")]
     While,
+    #[regex(r"FROM|from|From")]
     From,
+    #[regex(r"To|to|TO")]
     To,
+    #[regex(r"WITH_STEP|with_step|With_Step")]
     WithStep,
+    #[regex(r"MUT|mut|Mut")]
     Mutable,
+    #[regex(r"TYPE|type|Type")]
     Type,
+    #[regex(r"TYPEOF|Typeof|typeof")]
     Typeof,
+    #[regex(r"TRUE|true|True")]
     True,
+
+    #[regex(r"FALSE|false|False")]
     False,
+
+    #[regex(r"THROW|throw|Throw")]
     Throw,
+
+    #[regex(r"BREAK|break|Break")]
     Break,
+
+    #[regex(r"Continue|continue|CONTINUE")]
     Continue,
+
+    #[token("<<")]
     OpenDynamicArray,
+    #[token(">>")]
     CloseDynamicArray,
 
     // Special Stuff Regarding Mascal
-    Unknown,
+    #[regex(r"NULL|Null|null")]
     Null,
 }
 
@@ -99,120 +179,11 @@ pub static SCOPABLE_TOKEN_TYPES: Lazy<HashSet<TokenType>> = Lazy::new(|| {
     )
 });
 
-pub static TOKEN_REGEX_MAP: Lazy<TokenRegexMap> = Lazy::new(|| {
-    vec![
-        (Regex::new(r"//.*").unwrap(), TokenType::Comment),
-        (
-            Regex::new(r"^[a-zA-Z_][a-zA-Z0-9_]*").unwrap(),
-            TokenType::Identifier,
-        ),
-        (Regex::new(r"TRUE|true|True").unwrap(), TokenType::True),
-        (Regex::new(r"FALSE|false|False").unwrap(), TokenType::False),
-        (Regex::new(r"BREAK|break|Break").unwrap(), TokenType::Break),
-        (
-            Regex::new(r"CONTINUE|continue|Continue").unwrap(),
-            TokenType::Continue,
-        ),
-        (Regex::new(r"NULL|null|Null").unwrap(), TokenType::Null),
-        (Regex::new(r"FOR|for|For").unwrap(), TokenType::For),
-        (Regex::new(r"If|if|IF").unwrap(), TokenType::If),
-        (Regex::new(r"Else|else|ELSE").unwrap(), TokenType::Else),
-        (Regex::new(r"Elif|elif|ELIF").unwrap(), TokenType::ElseIf),
-        (Regex::new(r"Const|const|CONST").unwrap(), TokenType::Const),
-        (
-            Regex::new(r"IMPLEMENTATION|implementation|Implementation").unwrap(),
-            TokenType::Implementation,
-        ),
-        (
-            Regex::new(r"VARIABLES|variables|Variables").unwrap(),
-            TokenType::Variables,
-        ),
-        (
-            Regex::new(r"String|string|STRING").unwrap(),
-            TokenType::String,
-        ),
-        (
-            Regex::new(r"INTEGER|integer|Integer").unwrap(),
-            TokenType::Integer,
-        ),
-        (Regex::new(r"FLOAT|float|Float").unwrap(), TokenType::Float),
-        (
-            Regex::new(r"Dynamic|DYNAMIC|dynamic").unwrap(),
-            TokenType::Dynamic,
-        ),
-        (
-            Regex::new(r"Boolean|BOOLEAN|boolean").unwrap(),
-            TokenType::Boolean,
-        ),
-        (
-            Regex::new(r"DEFINE_FUNCTION|define_function|Define_Function").unwrap(),
-            TokenType::DefineFunction,
-        ),
-        (
-            Regex::new(r"DEFINE_PROGRAM|define_program|Define_Program").unwrap(),
-            TokenType::DefineProgram,
-        ),
-        (Regex::new(r"While|while|WHILE").unwrap(), TokenType::While),
-        (Regex::new(r"From|from|FROM").unwrap(), TokenType::From),
-        (Regex::new(r"To|to|TO").unwrap(), TokenType::To),
-        (Regex::new(r"Mut|mut|MUT").unwrap(), TokenType::Mutable),
-        (
-            Regex::new(r"with_step|With_Step|WITH_STEP").unwrap(),
-            TokenType::WithStep,
-        ),
-        (
-            Regex::new(r"typeof|Typeof|TYPEOF").unwrap(),
-            TokenType::Typeof,
-        ),
-        (Regex::new(r"type|Type|TYPE").unwrap(), TokenType::Type),
-        (Regex::new(r"and|AND|And").unwrap(), TokenType::And),
-        (Regex::new(r"or|OR|Or").unwrap(), TokenType::Or),
-        (Regex::new(r"not|NOT|Not").unwrap(), TokenType::Not),
-        (Regex::new(r"throw|THROW|thro").unwrap(), TokenType::Throw),
-        (Regex::new(r"\^").unwrap(), TokenType::Exponentiation),
-        (
-            Regex::new(r"(\d+\.\d*)|(\d*\.\d+)").unwrap(),
-            TokenType::FloatLiteral,
-        ),
-        (Regex::new(r"(\d+)").unwrap(), TokenType::IntegerLiteral),
-        (
-            Regex::new("\"([^\"]*)\"").unwrap(),
-            TokenType::StringLiteral,
-        ),
-        (Regex::new(r"->").unwrap(), TokenType::ReturnIndicator),
-        (Regex::new(r"\+").unwrap(), TokenType::Plus),
-        (Regex::new(r"-").unwrap(), TokenType::Minus),
-        (Regex::new(r"%").unwrap(), TokenType::Modulo),
-        (Regex::new(r"\*").unwrap(), TokenType::Asterisk),
-        (Regex::new(r"\?").unwrap(), TokenType::QuestionMark),
-        (Regex::new(r"/").unwrap(), TokenType::Division),
-        (Regex::new(r";").unwrap(), TokenType::Semicolon),
-        (Regex::new(r"\(").unwrap(), TokenType::OpenParen),
-        (Regex::new(r"\)").unwrap(), TokenType::CloseParen),
-        (Regex::new(r"\{").unwrap(), TokenType::OpenBrace),
-        (Regex::new(r"}").unwrap(), TokenType::CloseBrace),
-        (Regex::new(r"\[").unwrap(), TokenType::OpenBracket),
-        (Regex::new(r"]").unwrap(), TokenType::CloseBracket),
-        (Regex::new(r",").unwrap(), TokenType::Comma),
-        (Regex::new(r":").unwrap(), TokenType::Colon),
-        (Regex::new(r"!=").unwrap(), TokenType::NotEquals),
-        (Regex::new(r"=").unwrap(), TokenType::Equals),
-        (Regex::new(r"<-").unwrap(), TokenType::VariableInitializer),
-        (Regex::new(r">=").unwrap(), TokenType::GreaterThanEqual),
-        (Regex::new(r"<=").unwrap(), TokenType::LesserThanEqual),
-        (Regex::new(r"<").unwrap(), TokenType::LessThan),
-        (Regex::new(r">").unwrap(), TokenType::GreaterThan),
-        (Regex::new(r">>").unwrap(), TokenType::CloseDynamicArray),
-        (Regex::new(r"<<").unwrap(), TokenType::OpenDynamicArray),
-    ]
-});
-
 #[derive(Debug, Clone)]
 #[allow(dead_code)]
 pub struct Token<'a> {
     pub token_type: TokenType,
     pub value: &'a str,
     pub start: usize,
-    pub end: usize,
     pub line: usize,
 }
