@@ -10,19 +10,14 @@ fn newline_callback(lex: &mut Lexer<TokenType>) -> Skip {
     Skip
 }
 
-
 #[derive(Debug, Hash, Eq, PartialEq, Clone, Logos)]
 #[repr(u8)]
 #[logos(extras = usize)]
+#[logos(skip r"[\t\r\f ]+")]
+#[logos(skip r"//[^\n]*")]
 pub enum TokenType {
-    #[logos(skip r"[\t \f]+")]
-    Whitespace,
-
     #[logos(skip(r"\n", callback = newline_callback))]
     Newline,
-
-    #[logos(skip r"//[^\n]*", priority=100)]
-    Comment,
 
     // Identifiers Of Mascal
     #[regex("[a-zA-Z_][a-zA-Z0-9_]*")]
@@ -96,7 +91,7 @@ pub enum TokenType {
     For,
     #[regex(r"If|if|IF")]
     If,
-    #[regex(r"Else|else|Else")]
+    #[regex(r"Else|else|ELSE")]
     Else,
     #[regex(r"ELIF|Elif|elif|Else if| ELSE IF| Else If")]
     ElseIf,
