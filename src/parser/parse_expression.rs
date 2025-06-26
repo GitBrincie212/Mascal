@@ -77,5 +77,13 @@ pub fn parse_expression(token_sequence: &Vec<Token>) -> Result<MascalExpression,
             right_binding_power: 0,
         },
     )?;
+    if pos < token_sequence.len() - 1 {
+        return Err(MascalError {
+            error_type: MascalErrorType::ParserError,
+            line: token_sequence[pos].line,
+            character: token_sequence[pos].start,
+            source: String::from("Unexpected character sequences found in a supposed expression")
+        })
+    }
     Ok(parsed_expression)
 }
