@@ -22,7 +22,7 @@ macro_rules! test_individual_token {
                 $token_char.to_lowercase()
             ];
             for input in input_cases.iter() {
-                let tokens: Vec<Token> = tokenize(input);
+                let tokens: Vec<Token> = tokenize(input).unwrap();
                 assert_eq!(tokens.len(), 1);
                 assert_eq!(tokens[0].token_type, $token_type);
             }
@@ -49,13 +49,19 @@ fn mixed_identifiers_and_numbers() {
         ),
     ];
     for (input, expected_tok_types, expected_values) in inputs {
-        let tokens: Vec<Token> = tokenize(input);
+        let tokens: Vec<Token> = tokenize(input).unwrap();
         assert_eq!(tokens.len(), expected_tok_types.len());
         for (index, tok_type) in expected_tok_types.iter().enumerate() {
             assert_eq!(tokens[index].value, expected_values[index]);
             assert_eq!(tokens[index].token_type, *tok_type);
             assert_eq!(tokens[index].line, 0);
-            assert_eq!(tokens[index].start, expected_values[..index].iter().map(|x| x.len()).sum());
+            assert_eq!(
+                tokens[index].start, 
+                expected_values[..index]
+                    .iter()
+                    .map(|x| x.len())
+                    .sum::<usize>()
+            );
         }
     }
 }

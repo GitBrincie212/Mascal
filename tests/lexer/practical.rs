@@ -4,7 +4,7 @@ use mascal::lexer::tokenize;
 #[test]
 fn test_expression_statement1() {
     let input: &str = "WRITE(\"Hello World\");";
-    let tokens: Vec<Token> = tokenize(input);
+    let tokens: Vec<Token> = tokenize(input).unwrap();
     assert_eq!(tokens.len(), 5);
     assert_eq!(tokens[0].token_type, TokenType::Identifier);
     assert_eq!(tokens[1].token_type, TokenType::OpenParen);
@@ -16,7 +16,7 @@ fn test_expression_statement1() {
 #[test]
 fn test_arithmetic_expression() {
     let input: &str = "(a + 5) / (3 - b * INTEGER(2.5));";
-    let tokens: Vec<Token> = tokenize(input);
+    let tokens: Vec<Token> = tokenize(input).unwrap();
     assert_eq!(tokens.len(), 17);
     assert_eq!(tokens[0].token_type, TokenType::OpenParen);
     assert_eq!(tokens[1].token_type, TokenType::Identifier);
@@ -40,7 +40,7 @@ fn test_arithmetic_expression() {
 #[test]
 fn test_variable_init_statement() {
     let input: &str = "a <- b[3] + LEN(\"Hello World\");";
-    let tokens: Vec<Token> = tokenize(input);
+    let tokens: Vec<Token> = tokenize(input).unwrap();
     assert_eq!(tokens.len(), 12);
     assert_eq!(tokens[0].token_type, TokenType::Identifier);
     assert_eq!(tokens[1].token_type, TokenType::VariableInitializer);
@@ -59,7 +59,7 @@ fn test_variable_init_statement() {
 #[test]
 fn test_controlflow_statement1() {
     let input: &str = "IF a = b { WRITE(a, b); SWAP(a, b); WRITE(a, b); }";
-    let tokens: Vec<Token> = tokenize(input);
+    let tokens: Vec<Token> = tokenize(input).unwrap();
     assert_eq!(tokens.len(), 27);
     assert_eq!(tokens[0].token_type, TokenType::If);
     assert_eq!(tokens[1].token_type, TokenType::Identifier);
@@ -99,7 +99,7 @@ fn test_controlflow_statement2() {
                        } ELSE { \
                             WRITE(\"Equal\"); \
                        }";
-    let tokens: Vec<Token> = tokenize(input);
+    let tokens: Vec<Token> = tokenize(input).unwrap();
     assert_eq!(tokens.len(), 30);
     assert_eq!(tokens[0].token_type, TokenType::If);
     assert_eq!(tokens[1].token_type, TokenType::Identifier);
@@ -140,7 +140,7 @@ fn test_controlflow_statement3() {
                             IF a <= b {
                             }
                        }";
-    let tokens: Vec<Token> = tokenize(input);
+    let tokens: Vec<Token> = tokenize(input).unwrap();
     assert_eq!(tokens.len(), 27);
     assert_eq!(tokens[0].token_type, TokenType::While);
     assert_eq!(tokens[1].token_type, TokenType::Identifier);
@@ -176,7 +176,7 @@ fn test_controlflow_statement4() {
     let input: &str = "FOR i FROM 1 TO 5 WITH_STEP 3 {\
                             WRITE(\"Hello World\");
                        }";
-    let tokens: Vec<Token> = tokenize(input);
+    let tokens: Vec<Token> = tokenize(input).unwrap();
     assert_eq!(tokens.len(), 15);
     assert_eq!(tokens[0].token_type, TokenType::For);
     assert_eq!(tokens[1].token_type, TokenType::Identifier);
@@ -198,7 +198,7 @@ fn test_controlflow_statement4() {
 #[test]
 fn test_throw_statement() {
     let input: &str = "THROW RuntimeError: \"here is a COOL MESSAGE\"";
-    let tokens: Vec<Token> = tokenize(input);
+    let tokens: Vec<Token> = tokenize(input).unwrap();
     assert_eq!(tokens.len(), 4);
     assert_eq!(tokens[0].token_type, TokenType::Throw);
     assert_eq!(tokens[1].token_type, TokenType::Identifier);
@@ -209,7 +209,7 @@ fn test_throw_statement() {
 #[test]
 fn test_continue_statement() {
     let input: &str = "CONTINUE;";
-    let tokens: Vec<Token> = tokenize(input);
+    let tokens: Vec<Token> = tokenize(input).unwrap();
     assert_eq!(tokens.len(), 2);
     assert_eq!(tokens[0].token_type, TokenType::Continue);
     assert_eq!(tokens[1].token_type, TokenType::Semicolon);
@@ -218,7 +218,7 @@ fn test_continue_statement() {
 #[test]
 fn test_break_statement() {
     let input: &str = "BREAK;";
-    let tokens: Vec<Token> = tokenize(input);
+    let tokens: Vec<Token> = tokenize(input).unwrap();
     assert_eq!(tokens.len(), 2);
     assert_eq!(tokens[0].token_type, TokenType::Break);
     assert_eq!(tokens[1].token_type, TokenType::Semicolon);
@@ -227,7 +227,7 @@ fn test_break_statement() {
 #[test]
 fn test_logic_statement_expressions() {
     let input: &str = "9 = 3 AND NOT a % 3 = 0 OR b ^ 2 > 4;";
-    let tokens: Vec<Token> = tokenize(input);
+    let tokens: Vec<Token> = tokenize(input).unwrap();
     assert_eq!(tokens.len(), 17);
     assert_eq!(tokens[0].token_type, TokenType::IntegerLiteral);
     assert_eq!(tokens[1].token_type, TokenType::Equals);
@@ -251,7 +251,7 @@ fn test_logic_statement_expressions() {
 #[test]
 fn test_type_statement_expression() {
     let input: &str = "TYPE_CAST(\"abc\", INTEGER(FLOAT(3)));";
-    let tokens: Vec<Token> = tokenize(input);
+    let tokens: Vec<Token> = tokenize(input).unwrap();
     assert_eq!(tokens.len(), 13);
     assert_eq!(tokens[0].token_type, TokenType::Identifier);
     assert_eq!(tokens[1].token_type, TokenType::OpenParen);
@@ -271,7 +271,7 @@ fn test_type_statement_expression() {
 #[test]
 fn test_mixed_statement_expression() {
     let input: &str = "(1 * TYPE_CAST(2.3, a)) = 2.3 AND NOT 3 % 3 = 0;";
-    let tokens: Vec<Token> = tokenize(input);
+    let tokens: Vec<Token> = tokenize(input).unwrap();
     assert_eq!(tokens.len(), 20);
     assert_eq!(tokens[0].token_type, TokenType::OpenParen);
     assert_eq!(tokens[1].token_type, TokenType::IntegerLiteral);

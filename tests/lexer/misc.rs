@@ -6,8 +6,8 @@ macro_rules! test_stray_token_repetitions {
         #[test]
         fn $fn_name() {
             for size in 1usize..10usize {
-                let input: &str = &$token_char.repeat(size); 
-                let tokens: Vec<Token> = tokenize(input);
+                let input: &str = &$token_char.repeat(size);
+                let tokens: Vec<Token> = tokenize(input).unwrap();
                 assert_eq!(tokens.len(), size);
                 assert_eq!(tokens.iter().all(|x| x.token_type == $token_type), true);
             }

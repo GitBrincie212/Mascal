@@ -1,21 +1,23 @@
-use mascal::defs::token::{Token, TokenType};
+use logos::Span;
+use mascal::defs::token::{Token};
 use mascal::lexer::tokenize;
 
 #[test]
 fn test_unknown() {
-    let inputs = vec![
-        ("Hello@gmail.com", vec![TokenType::Identifier]),
-        ("Nice Job!", vec![TokenType::Identifier, TokenType::Identifier]),
-        ("§ Paragraph 1", vec![]),
-        ("## HEADER 2", vec![]),
-        ("H$llo", vec![TokenType::Identifier]),
-        ("0E 61\\", vec![TokenType::IntegerLiteral, TokenType::Identifier, TokenType::IntegerLiteral]),
+    let inputs: Vec<(&str, usize, &str)> = vec![
+        ("Hello@gmail.com", 5, "@"),
+        ("Nice Job!", 8, "!"),
+        ("§ Paragraph 1", 0, "§"),
+        ("## HEADER 2", 0, "##"),
+        ("H$llo", 1, "$"),
+        ("0E 61\\", 5, "\\"),
     ];
-    for (input, tok_types) in inputs {
-        let tokens: Vec<Token> = tokenize(input);
-        for (index, token) in tokens[..tok_types.len()].iter().enumerate() {
-            assert_eq!(token.token_type, tok_types[index]);
-        }
-        assert_eq!(tokens.last().unwrap().token_type, TokenType::Unknown);
+    for (input, start, expected) in inputs {
+        let tokens: Result<Vec<Token>, (Span, usize, &str)> = tokenize(input);
+        assert_eq!(tokens.is_err(), true);
+        let Err((span, line, val)) = tokens else {unreachable!()};
+        assert_eq!(line, 0);
+        assert_eq!(span.start, start);
+        assert_eq!(val, expected);
     }
 }

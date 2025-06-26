@@ -4,7 +4,7 @@ use mascal::lexer::tokenize;
 #[test]
 fn test_identifiers_without_whitespaces() {
     let input: &str = "AcCeT_3";
-    let tokens: Vec<Token> = tokenize(input);
+    let tokens: Vec<Token> = tokenize(input).unwrap();
     assert_eq!(tokens.len(), 1);
     assert_eq!(tokens[0].token_type, TokenType::Identifier);
     assert_eq!(tokens[0].value, input);
@@ -15,7 +15,7 @@ fn test_identifiers_with_spaces() {
     let input: Vec<&str> = vec!["_AbE_", "FOM_", "bAr_3"];
     let char_count: Vec<usize> = input.iter().map(|x| x.len()).collect();
     let stringified: String = input.join(" ");
-    let tokens: Vec<Token> = tokenize(stringified.as_str());
+    let tokens: Vec<Token> = tokenize(stringified.as_str()).unwrap();
     for (index, token) in tokens.iter().enumerate() {
         assert_eq!(token.token_type, TokenType::Identifier);
         assert_eq!(token.value, input[index]);
@@ -27,7 +27,7 @@ fn test_identifiers_with_spaces() {
 fn test_identifiers_with_newlines() {
     let input: Vec<&str> = vec!["a3_c", "_D2FPco", "dko2kcoc"];
     let stringified: String = input.join("\n");
-    let tokens: Vec<Token> = tokenize(stringified.as_str());
+    let tokens: Vec<Token> = tokenize(stringified.as_str()).unwrap();
     for (index, token) in tokens.iter().enumerate() {
         assert_eq!(token.token_type, TokenType::Identifier);
         assert_eq!(token.value, input[index]);
@@ -42,7 +42,7 @@ fn test_identifiers_with_combination() {
         let char_count: Vec<usize> = input.iter().map(|x| x.len()).collect();
         let sep: String = format!("{}\n", " ".repeat(spaces).as_str());
         let stringified: String = input.join(sep.as_str());
-        let tokens: Vec<Token> = tokenize(stringified.as_str());
+        let tokens: Vec<Token> = tokenize(stringified.as_str()).unwrap();
         for (index, token) in tokens.iter().enumerate() {
             assert_eq!(token.token_type, TokenType::Identifier);
             assert_eq!(token.value, input[index]);
@@ -59,7 +59,7 @@ fn test_identifiers_with_combination2() {
         let char_count: Vec<usize> = input.iter().map(|x| x.len()).collect();
         let sep: String = format!("{}\n{}", " ".repeat(spaces).as_str(), "\t".repeat(spaces).as_str());
         let stringified: String = input.join(sep.as_str());
-        let tokens: Vec<Token> = tokenize(stringified.as_str());
+        let tokens: Vec<Token> = tokenize(stringified.as_str()).unwrap();
         for (index, token) in tokens.iter().enumerate() {
             assert_eq!(token.token_type, TokenType::Identifier);
             assert_eq!(token.value, input[index]);
@@ -76,7 +76,7 @@ fn test_identifiers_with_combination3() {
         let char_count: Vec<usize> = input.iter().map(|x| x.len()).collect();
         let sep: String = format!("{}\n{}", "\t ".repeat(spaces).as_str(), " \t".repeat(spaces).as_str());
         let stringified: String = input.join(sep.as_str());
-        let tokens: Vec<Token> = tokenize(stringified.as_str());
+        let tokens: Vec<Token> = tokenize(stringified.as_str()).unwrap();
         for (index, token) in tokens.iter().enumerate() {
             assert_eq!(token.token_type, TokenType::Identifier);
             assert_eq!(token.value, input[index]);
@@ -93,7 +93,7 @@ fn test_identifiers_with_combination4() {
         let char_count: Vec<usize> = input.iter().map(|x| x.len()).collect();
         let sep: String = format!("{}{}", "\t\n".repeat(spaces).as_str(), " \t".repeat(spaces).as_str());
         let stringified: String = input.join(sep.as_str());
-        let tokens: Vec<Token> = tokenize(stringified.as_str());
+        let tokens: Vec<Token> = tokenize(stringified.as_str()).unwrap();
         for (index, token) in tokens.iter().enumerate() {
             assert_eq!(token.token_type, TokenType::Identifier);
             assert_eq!(token.value, input[index]);

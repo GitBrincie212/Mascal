@@ -68,7 +68,7 @@ fn test_individual_groups() {
         for (input, token_types) in inputs {
             let transformed_input: String = input.replace("(", group_open_char)
                 .replace(")", group_close_char);
-            let tokens: Vec<Token> = tokenize(transformed_input.as_str());
+            let tokens: Vec<Token> = tokenize(transformed_input.as_str()).unwrap();
             assert_eq!(tokens.len(), token_types.len());
             for (idx, tok) in tokens.iter().enumerate() {
                 assert_eq!(tok.token_type, *token_types[idx]);
@@ -140,7 +140,7 @@ fn test_mixed_groups() {
         ]),
     ];
     for (input, token_types) in inputs {
-        let tokens: Vec<Token> = tokenize(input);
+        let tokens: Vec<Token> = tokenize(input).unwrap();
         assert_eq!(tokens.len(), token_types.len());
         for (idx, tok) in tokens.iter().enumerate() {
             assert_eq!(tok.token_type, token_types[idx]);
@@ -186,7 +186,7 @@ fn test_nonequal_groups() {
         ]),
     ];
     for (input, token_types) in inputs {
-        let tokens: Vec<Token> = tokenize(input);
+        let tokens: Vec<Token> = tokenize(input).unwrap();
         assert_eq!(tokens.len(), token_types.len());
         for (idx, tok) in tokens.iter().enumerate() {
             assert_eq!(tok.token_type, token_types[idx]);

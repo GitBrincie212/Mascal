@@ -9,7 +9,7 @@ fn test_comments() {
         "\n\t\t// Some documentation? blah, blah..."
     ];
     for input in inputs {
-        let tokens: Vec<Token> = tokenize(input);
+        let tokens: Vec<Token> = tokenize(input).unwrap();
         assert_eq!(tokens.len(), 0);
     }
 }

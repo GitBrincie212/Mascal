@@ -5,7 +5,7 @@ use mascal::lexer::tokenize;
 fn test_integer_numbers() {
     let inputs: Vec<&str> = vec!["1234", "901", "010", "1234567890", "03"];
     for input in inputs {
-        let tokens: Vec<Token> = tokenize(input);
+        let tokens: Vec<Token> = tokenize(input).unwrap();
         assert_eq!(tokens.len(), 1);
         assert_eq!(tokens[0].token_type, TokenType::IntegerLiteral);
         assert_eq!(tokens[0].value, input);
@@ -24,7 +24,7 @@ fn test_float_numbers() {
         "234213."
     ];
     for input in inputs {
-        let tokens: Vec<Token> = tokenize(input);
+        let tokens: Vec<Token> = tokenize(input).unwrap();
         assert_eq!(tokens.len(), 1);
         assert_eq!(tokens[0].token_type, TokenType::FloatLiteral);
         assert_eq!(tokens[0].value, input);
@@ -47,7 +47,7 @@ fn test_in_mix_numbers() {
         ("239456 // 3.341", TokenType::IntegerLiteral, "239456"),
     ];
     for (input, expected, expected_input) in inputs {
-        let tokens: Vec<Token> = tokenize(input);
+        let tokens: Vec<Token> = tokenize(input).unwrap();
         assert_eq!(tokens.len(), 1);
         assert_eq!(tokens[0].token_type, expected);
         assert_eq!(tokens[0].value, expected_input);

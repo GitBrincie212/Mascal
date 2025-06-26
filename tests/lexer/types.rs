@@ -1,5 +1,5 @@
 use crate::lexer::tokenize;
-use mascal::defs::token::{Token, TokenType};
+use mascal::defs::token::{TokenType, Token};
 use crate::{test_individual_token};
 
 test_individual_token!(test_dynamic,  "Dynamic", TokenType::Dynamic);
