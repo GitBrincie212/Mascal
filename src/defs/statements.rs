@@ -1,3 +1,4 @@
+use crate::defs::errors::MascalErrorType;
 use crate::defs::expressions::MascalExpression;
 
 #[derive(Debug, Clone)]
@@ -52,7 +53,7 @@ pub enum MascalStatement {
     THROW RuntimeError: "...";
      */
     Throw {
-        error_type: String,
+        error_type: MascalErrorType,
         message: String,
     },
 

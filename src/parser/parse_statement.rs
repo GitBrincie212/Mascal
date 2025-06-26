@@ -118,7 +118,26 @@ fn parse_throw_statement(tokens: &[Token]) -> Result<MascalStatement, MascalErro
         String::from("Expected a error type to throw but got nothing"),
         |curr: &Token| { format!("Expected a error type to throw but got {:?}", curr.value) }
     );
-    let error_type: String = curr.value.to_string();
+    let error_type: MascalErrorType = match curr.value {
+        "TypeError" => MascalErrorType::TypeError,
+        "RuntimeError" => MascalErrorType::RuntimeError,
+        "OverflowError" => MascalErrorType::OverflowError,
+        "UndefinedOperationError" => MascalErrorType::UndefinedOperation,
+        "IndexError" => MascalErrorType::IndexError,
+        "InputError" => MascalErrorType::InputError,
+        "ArgumentError" => MascalErrorType::ArgumentError,
+        "ValueError" => MascalErrorType::ValueError,
+        _ => {
+            return Err(MascalError {
+                error_type: MascalErrorType::UndefinedErrorType,
+                character: 0,
+                line: 0,
+                source: String::from(
+                    "Use of an undefined usable error type in the throw statement (perhaps a typo?)",
+                ),
+            });
+        }
+    };
     index += 1;
     define_statement_checkup!(
         index,
