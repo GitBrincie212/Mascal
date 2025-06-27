@@ -19,7 +19,7 @@ fn get_parameters_of_func(
         return Ok((Vec::new(), curr_index + 2));
     }
     let mut is_mutable: bool = false;
-    let mut parameter_name: Option<String> = None;
+    let mut parameter_name: Option<&str> = None;
     let mut parameters: Vec<MascalParameter> = Vec::new();
     while !token_sequence.is_of(TokenType::CloseParen, curr_index) {
         if curr_index >= token_sequence.tokens.len() {
@@ -36,7 +36,7 @@ fn get_parameters_of_func(
             .unwrap_or(curr_token)
             .token_type;
         if curr_token.token_type == TokenType::Identifier {
-            parameter_name = Some(curr_token.value.to_string());
+            parameter_name = Some(curr_token.value);
         } else if curr_token.token_type == TokenType::Mutable {
             if parameter_name.is_some() {
                 return Err(MascalError {
