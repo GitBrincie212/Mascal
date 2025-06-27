@@ -1,4 +1,5 @@
 mod parse_throw_statement;
+mod parse_declare_statement;
 
 #[macro_export]
 macro_rules! run_parsing {
