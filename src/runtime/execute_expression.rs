@@ -68,7 +68,7 @@ pub fn execute_expression(
                     error_type: MascalErrorType::RuntimeError,
                     character: 0,
                     line: 0,
-                    source: format!("Unknown expression {:?} not found", symbolic_expr),
+                    source: format!("Unknown expression {:?} found", symbolic_expr),
                 }),
             }
         }
