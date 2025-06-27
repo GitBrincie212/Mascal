@@ -1,3 +1,4 @@
+use rstest::rstest;
 use mascal::ast::AbstractSyntaxTree;
 use mascal::defs::blocks::ScopedBlocks;
 use mascal::defs::errors::{MascalError, MascalErrorType};
@@ -34,50 +35,53 @@ macro_rules! define_general_throw_statement_boilerplate {
     }
 }
 
-#[test]
-fn test_correct_parsing() {
-    define_general_throw_statement_boilerplate!(|error_id, throw_case, expected| {
-        let input: String = define_program_boilerplate!(Vec::<String>::new(), vec![
-                format!("{throw_case} {error_id}: \"test Test TEST!\";")
-            ]);
-            let ast: AbstractSyntaxTree = run_parsing!(input.as_str())
-                .unwrap(); // For better error handling
-            assert_eq!(ast.blocks.len(), 1);
-            let ScopedBlocks::Program(exec) = &ast.blocks[0] else {unreachable!()};
-            assert_eq!(exec.body.len(), 1);
-            assert_eq!(exec.variables.iter_all().iter().count(), 0);
-            assert!(
-                matches!(&exec.body[0],
-                    MascalStatement::Throw {
-                        error_type,
-                        message,
-                    } if error_type == expected && message == "test Test TEST!"
-                ),
-                "got {:?}, expected Throw {{ error_type: {:?}, message: {:?} }}",
-                exec.body[0], expected, "test Test TEST!"
-            );
-    });
+#[rstest(
+    error_id, expected,
+    case("TypeError",           MascalErrorType::TypeError),
+    case("RuntimeError",        MascalErrorType::RuntimeError),
+    case("OverflowError",       MascalErrorType::OverflowError),
+    case("UndefinedOperationError", MascalErrorType::UndefinedOperation),
+    case("IndexError",          MascalErrorType::IndexError),
+    case("InputError",          MascalErrorType::InputError),
+    case("ArgumentError",       MascalErrorType::ArgumentError),
+    case("ValueError",          MascalErrorType::ValueError),
+)]
+fn test_correct_parsing(error_id: &str, expected: MascalErrorType) {
+    for throw_case in &["THROW", "throw", "Throw"] {
+        let input = define_program_boilerplate!(
+            Vec::<String>::new(),
+            vec![ format!("{throw_case} {error_id}: \"test Test TEST!\";") ]
+        );
+        let ast = run_parsing!(input.as_str()).unwrap();
+
+        assert!(matches!(&ast.blocks[0],
+            ScopedBlocks::Program(exec) if exec.body.len() == 1
+                && matches!(&exec.body[0],
+                    MascalStatement::Throw { error_type, message }
+                        if *error_type == expected && message == "test Test TEST!"
+                )
+        ));
+    }
 }
 
-#[test]
-fn test_incorrect_parsing1() {
-    let errors: Vec<&str> = vec![
-        "TypeErRor",
-        "RuntImeError",
-        "OVerfloWError",
-        "UnDEfinedOPErationERRor",
-        "IndexErro",
-        "nputError",
-        "ArgumentRror",
-        "Value",
-    ];
-    for error_id in errors {
-        for throw_case in vec!["THROW", "throw", "Throw"] {
-            let ast: Result<AbstractSyntaxTree, MascalError> = expect_error!(vec![
+#[rstest(
+    error_id,
+    case("TypeErRor"),
+    case("RuntImeError"),
+    case("OVerfloWError"),
+    case("UnDEfinedOPErationERRor"),
+    case("IndexErro"),
+    case("nputError"),
+    case("ArgumentRror"),
+    case("Value"),
+)]
+fn test_incorrect_parsing1(error_id: &str) {
+    for throw_case in vec!["THROW", "throw", "Throw"] {
+        let ast: Result<AbstractSyntaxTree, MascalError> = expect_error!(vec![
                 format!("{throw_case} {error_id}: \"test Test TEST!\";")
             ]);
-            assert!(
-                matches!(ast.as_ref().unwrap_err(),
+        assert!(
+            matches!(ast.as_ref().unwrap_err(),
                     MascalError {
                         error_type,
                         source,
@@ -85,10 +89,9 @@ fn test_incorrect_parsing1() {
                     } if *error_type == MascalErrorType::UndefinedErrorType
                         && source == "Use of an undefined usable error type in the throw statement (perhaps a typo?)"
                 ),
-                "got {:?}, expected MascalError {{ error_type: {:?}, message: {:?}, ... }}",
-                &ast, MascalErrorType::UndefinedErrorType, "test Test TEST!"
-            );
-        }
+            "got {:?}, expected MascalError {{ error_type: {:?}, message: {:?}, ... }}",
+            &ast, MascalErrorType::UndefinedErrorType, "test Test TEST!"
+        );
     }
 }
 

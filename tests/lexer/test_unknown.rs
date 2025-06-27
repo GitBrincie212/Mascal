@@ -1,23 +1,22 @@
 use logos::Span;
+use rstest::rstest;
 use mascal::defs::token::{Token};
 use mascal::lexer::tokenize;
 
-#[test]
-fn test_unknown() {
-    let inputs: Vec<(&str, usize, &str)> = vec![
-        ("Hello@gmail.com", 5, "@"),
-        ("Nice Job!", 8, "!"),
-        ("§ Paragraph 1", 0, "§"),
-        ("## HEADER 2", 0, "#"),
-        ("H$llo", 1, "$"),
-        ("0E 61\\", 5, "\\"),
-    ];
-    for (input, start, expected) in inputs {
-        let tokens: Result<Vec<Token>, (Span, usize, &str)> = tokenize(input);
-        assert_eq!(tokens.is_err(), true);
-        let Err((span, line, val)) = tokens else {unreachable!()};
-        assert_eq!(line, 0);
-        assert_eq!(span.start, start);
-        assert_eq!(val, expected);
-    }
+#[rstest(
+    input, start, expected,
+    case("Hello@gmail.com", 5, "@"),
+    case("Nice Job!", 8, "!"),
+    case("§ Paragraph 1", 0, "§"),
+    case("## HEADER 2", 0, "#"),
+    case("H$llo", 1, "$"),
+    case("0E 61\\", 5, "\\"),
+)]
+fn test_unknown(input: &str, start: usize, expected: &str) {
+    let tokens: Result<Vec<Token>, (Span, usize, &str)> = tokenize(input);
+    assert_eq!(tokens.is_err(), true);
+    let Err((span, line, val)) = tokens else {unreachable!()};
+    assert_eq!(line, 0);
+    assert_eq!(span.start, start);
+    assert_eq!(val, expected);
 }
