@@ -3,7 +3,7 @@ use crate::defs::errors::MascalError;
 use crate::defs::expressions::MascalExpression;
 use crate::defs::loop_flags::LoopFlags;
 use crate::defs::operators::{MascalBinaryOperators, token_type_to_binary_operator};
-use crate::defs::token::Token;
+use crate::defs::token::{Token};
 use crate::parser::parse_expression::parse_expression_internal;
 
 #[inline(always)]
@@ -13,7 +13,9 @@ pub fn parse_binary_expression(
     min_bp: &BindingPower,
     mut lhs: MascalExpression,
 ) -> Result<(LoopFlags, MascalExpression), MascalError> {
-    let op_tok: &Token = tokens.get(*pos).unwrap();
+    let op_tok: &Token = if let Some(tok) = tokens.get(*pos) {
+        tok
+    } else { return Ok((LoopFlags::Break, lhs)); }; // This feels a bit logically wrong but it works
     let binop: Option<MascalBinaryOperators> = token_type_to_binary_operator(&op_tok.token_type);
     let bp: BindingPower = if let Some(op) = &binop {
         get_binding_power_from_bsign(op.clone())
