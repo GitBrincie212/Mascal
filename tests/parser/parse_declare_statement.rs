@@ -1,6 +1,7 @@
 use rstest::rstest;
 use mascal::ast::AbstractSyntaxTree;
 use mascal::defs::blocks::ScopedBlocks;
+use mascal::defs::errors::{MascalError, MascalErrorType};
 use mascal::defs::expressions::MascalExpression;
 use mascal::defs::statements::MascalStatement;
 use crate::{define_program_boilerplate, run_parsing};
@@ -59,4 +60,72 @@ fn test_correct_parsing2(input: &str, expected_dynamics: Vec<bool>) {
     }
     are_dynamics.reverse();
     assert_eq!(expected_dynamics, are_dynamics);
+}
+
+#[rstest(
+    input, closing_symbol,
+    case("a[0 <- 391;", "]"),
+    case("a[b[0] <- 19 + 21;", "]"),
+    case("a<<b[0] <- 1 + 1;", ">>"),
+    case("c<<b<<0>> <- -1313;", ">>"),
+    case("c<<3>><< <- 1134;", ">>"),
+    case("c[3][ <- 1;", "]"),
+    case("b[3][3 / b[2] + b[1] <- 1929;", "]"),
+    case("a<<3>><<b<<2>> + a[1] <- 34.32;", ">>"),
+    case("a[b[0] + c[0]<<3 + 1>> <- 3948;", "]"),
+)]
+fn test_incorrect_parsing1(input: &str, closing_symbol: &str) {
+    let input: String = define_program_boilerplate!(
+        Vec::<String>::new(),
+        vec![ input ]
+    );
+    let ast: Result<AbstractSyntaxTree, MascalError> = run_parsing!(input.as_str());
+    assert!(
+        matches!(ast.as_ref().unwrap_err(),
+                MascalError {
+                    error_type,
+                    source,
+                    ..
+                } if *error_type == MascalErrorType::ParserError
+                && source == &format!("Expected \"{}\" after index expression", closing_symbol)
+            ),
+        "got {:?}, expected MascalError {{ error_type: {:?}, message: {:?}, ... }}",
+        &ast, MascalErrorType::ParserError, &format!("Expected \"{}\" after index expression", closing_symbol)
+    );
+}
+
+#[rstest(
+    input, array_type,
+    case("a[0]] <- 391;", "static"),
+    case("a<<0>>>> <- 391;", "dynamic"),
+    case("a[0]>> <- 391;", "dynamic"),
+    case("a<<9>>] <- 391;", "static"),
+    case("a[9]>> <- 391;", "dynamic"),
+)]
+fn test_incorrect_parsing2(input: &str, array_type: &str) {
+    let input: String = define_program_boilerplate!(
+        Vec::<String>::new(),
+        vec![ input ]
+    );
+    let ast: Result<AbstractSyntaxTree, MascalError> = run_parsing!(input.as_str());
+    assert!(
+        matches!(ast.as_ref().unwrap_err(),
+                MascalError {
+                    error_type,
+                    source,
+                    ..
+                } if *error_type == MascalErrorType::ParserError
+                && source == &format!(
+                    "Expected an opening character {:?} before closing an unopened {} array",
+                    if array_type == "dynamic" {"<<"} else {"["},
+                    array_type,
+                )
+            ),
+        "got {:?}, expected MascalError {{ error_type: {:?}, message: {:?}, ... }}",
+        &ast, MascalErrorType::ParserError, &format!(
+            "Expected an opening character {:?} before closing an unopened {} array",
+            if array_type == "dynamic" {"<<"} else {"["},
+            array_type,
+        )
+    );
 }
