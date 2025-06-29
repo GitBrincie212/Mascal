@@ -410,8 +410,15 @@ pub fn parse_statement(token_sequence: &Vec<Token>) -> Result<MascalStatement, M
             let trunucated_token_seq: Vec<Token> = token_sequence[..index].to_vec();
             for (index, tok) in trunucated_token_seq.iter().enumerate() {
                 if tok.token_type == TokenType::VariableInitializer {
+                    if assignment_index.is_some() {
+                        return Err(MascalError {
+                            error_type: MascalErrorType::ParserError,
+                            line: tok.line,
+                            character: tok.start,
+                            source: String::from("Cannot use more than one variable initializer per statement")
+                        })
+                    }
                     assignment_index = Some(index);
-                    break;
                 }
             }
             if let Some(unwrapped_assign_index) = assignment_index {
