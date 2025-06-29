@@ -73,6 +73,7 @@ fn test_correct_parsing2(input: &str, expected_dynamics: Vec<bool>) {
     case("b[3][3 / b[2] + b[1] <- 1929;", "]"),
     case("a<<3>><<b<<2>> + a[1] <- 34.32;", ">>"),
     case("a[b[0] + c[0]<<3 + 1>> <- 3948;", "]"),
+    case("a<<[0]] <- 101;", ">>"),
 )]
 fn test_incorrect_parsing1(input: &str, closing_symbol: &str) {
     let input: String = define_program_boilerplate!(
@@ -127,5 +128,69 @@ fn test_incorrect_parsing2(input: &str, array_type: &str) {
             if array_type == "dynamic" {"<<"} else {"["},
             array_type,
         )
+    );
+}
+
+#[rstest(
+    input,
+    case("a <- "),
+    case("a[0] <- "),
+    case("a<<b[0]>> <- "),
+    case("a<<0>>[1 + 1] <- "),
+    case("b[0]<<2>>[5] <- 934"),
+    case("b[0]<<2>>[5] <- a[0] + a[1] + a[2]"),
+    case("b2 <- 2 <- 2"),
+    case("b[0]<<1>> <- b[0] <- b[1]<<2>>"),
+    case("<- b[0]")
+)]
+fn test_incorrect_parsing3(input: &str) {
+    let input: String = define_program_boilerplate!(
+        Vec::<String>::new(),
+        vec![ input ]
+    );
+    let ast: Result<AbstractSyntaxTree, MascalError> = run_parsing!(input.as_str());
+    assert!(
+        matches!(ast.as_ref().unwrap_err(),
+                MascalError {
+                    error_type,
+                    source,
+                    ..
+                } if *error_type == MascalErrorType::ParserError
+                && source == "Unexpected characters found inside implementation block, perhaps forgot a semicolon?"
+            ),
+        "got {:?}, expected MascalError {{ error_type: {:?}, message: {:?}, ... }}",
+        &ast, MascalErrorType::ParserError, "Unexpected characters found inside implementation block, perhaps forgot a semicolon?"
+    );
+}
+
+#[rstest(
+    input, message,
+    case("a <- ;", "Expected an expression to parse but got nothing"),
+    case("a[0] <- ;", "Expected an expression to parse but got nothing"),
+    case("a<<b[0]>> <- ;", "Expected an expression to parse but got nothing"),
+    case("a<<0>>[1 + 1] <- ;", "Expected an expression to parse but got nothing"),
+    case("<- 934;", "Expected an expression to parse but got nothing"),
+    case("b[0]<<2>>[5] a[0] + a[1] + a[2];", "Unexpected character sequences found in a supposed expression"),
+    case("b2 <- 2 <- 2;", "Cannot use more than one variable initializer per statement"),
+    case("b[0]<<1>> <- b[0] <- b[1]<<2>>;", "Cannot use more than one variable initializer per statement"),
+    case("<- b[0];", "Expected an expression to parse but got nothing")
+)]
+fn test_incorrect_parsing4(input: &str, message: &str) {
+    let input: String = define_program_boilerplate!(
+        Vec::<String>::new(),
+        vec![ input ]
+    );
+    let ast: Result<AbstractSyntaxTree, MascalError> = run_parsing!(input.as_str());
+    assert!(
+        matches!(ast.as_ref().unwrap_err(),
+                MascalError {
+                    error_type,
+                    source,
+                    ..
+                } if *error_type == MascalErrorType::ParserError
+                && source == message
+            ),
+        "got {:?}, expected MascalError {{ error_type: {:?}, message: {:?}, ... }}",
+        &ast, MascalErrorType::ParserError, message
     );
 }
