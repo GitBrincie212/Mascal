@@ -156,12 +156,5 @@ pub fn execute_expression(
             arguments,
             function,
         } => execute_function_call(*function, arguments, exec_data),
-
-        MascalExpression::Blank => Err(MascalError {
-            error_type: MascalErrorType::ValueError,
-            line: 0,
-            character: 0,
-            source: String::from("Detected an unknown blank expression"),
-        }),
     }
 }

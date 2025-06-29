@@ -10,7 +10,6 @@ pub enum MascalExpression {
     DynamicArray(Box<[MascalExpression]>),
     StaticArray(Box<[MascalExpression]>),
     Type(Box<MascalUnprocessedType>),
-    Blank,
 
     // === Complex Expressions ===
     Unary {

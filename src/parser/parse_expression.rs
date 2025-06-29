@@ -21,9 +21,6 @@ pub fn parse_expression_internal(
     pos: &mut usize,
     min_bp: BindingPower,
 ) -> Result<MascalExpression, MascalError> {
-    if tokens.is_empty() {
-        return Ok(MascalExpression::Blank);
-    }
     let mut lhs: MascalExpression = parse_prefix(tokens, pos)?;
 
     loop {
@@ -68,6 +65,14 @@ pub fn parse_prefix(tokens: &[Token], pos: &mut usize) -> Result<MascalExpressio
 }
 
 pub fn parse_expression(token_sequence: &Vec<Token>) -> Result<MascalExpression, MascalError> {
+    if token_sequence.is_empty() {
+        return Err(MascalError {
+            error_type: MascalErrorType::ParserError,
+            line: 0,
+            character: 0,
+            source: String::from("Expected an expression to parse but got nothing")
+        })
+    }
     let mut pos: usize = 0;
     let parsed_expression: MascalExpression = parse_expression_internal(
         token_sequence,
