@@ -2,7 +2,7 @@ use crate::defs::errors::MascalError;
 use crate::defs::token::TokenType;
 use crate::runtime::values::MascalValue;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MascalUnprocessedType {
     Integer,
     Float,

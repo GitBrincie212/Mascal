@@ -2,7 +2,7 @@ use crate::defs::literal::MascalLiteral;
 use crate::defs::operators::{MascalBinaryOperators, MascalUnaryOperators};
 use crate::defs::types::MascalUnprocessedType;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum MascalExpression {
     // === Simple Expressions ===
     Literal(MascalLiteral),
