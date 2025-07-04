@@ -21,13 +21,7 @@ pub fn extract_braced_block<'a>(
     let mut depth: usize = 0;
     let mut found_required: HashSet<TokenType> = HashSet::new();
 
-    for (i, token) in token_sequence.tokens.iter().enumerate() {
-        if !SCOPABLE_TOKEN_TYPES.contains(&token.token_type)
-            && token.token_type != TokenType::CloseBrace
-            && token.token_type != TokenType::OpenBrace
-        {
-            continue;
-        }
+    for (index, token) in token_sequence.tokens.iter().enumerate() {
         match token.token_type {
             TokenType::OpenBrace => depth += 1,
             TokenType::CloseBrace => {
@@ -47,12 +41,12 @@ pub fn extract_braced_block<'a>(
                             source: format!("Missing required block(s): {}", missing.join(", ")),
                         });
                     }
-                    return Ok(token_sequence.subsection_range(1..i));
+                    return Ok(token_sequence.subsection_range(1..index));
                 }
             }
 
-            ref tt => {
-                if token_sequence.tokens[i + 1].token_type != TokenType::OpenBrace {
+            ref tt if SCOPABLE_TOKEN_TYPES.contains(&tt) => {
+                if token_sequence.tokens[index + 1].token_type != TokenType::OpenBrace {
                     continue;
                 }
                 let is_required = require_inside.contains(tt);
@@ -79,6 +73,8 @@ pub fn extract_braced_block<'a>(
                     });
                 }
             }
+
+            _ => {}
         }
     }
 
