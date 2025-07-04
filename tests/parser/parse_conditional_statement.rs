@@ -60,10 +60,57 @@ fn test_correct_parsing(input: &str, condition_part: Vec<Option<&str>>) {
     case("IF TRUE c <- 0;", "Unexpected character sequences found in a supposed expression"),
     case("IF TRUE {c <- 0;", "DEFINE_PROGRAM block not properly closed"),
     case("IF TRUE c <- 0;}", "Unexpected character sequences found in a supposed expression"),
+    case("IF TRUE a + b;}", "Unexpected character sequences found in a supposed expression"),
     case("IF TRUE {{c <- 0;}", "DEFINE_PROGRAM block not properly closed"),
     case("IF TRUE {{c <- 0;}", "DEFINE_PROGRAM block not properly closed"),
+    case("IF FALSE {} ELIF {c <- 0;}", "Expected an expression to parse but got nothing"),
+    case("IF FALSE {} ELIF ; {c <- 0;}", "Unexpected characters in primary expression: \";\""),
+    case("IF FALSE {} ELIF TRUE c <- 0;", "Unexpected character sequences found in a supposed expression"),
+    case("IF FALSE {} ELIF TRUE {c <- 0;", "DEFINE_PROGRAM block not properly closed"),
+    case("IF FALSE {} ELIF TRUE c <- 0;}", "Unexpected character sequences found in a supposed expression"),
+    case("IF FALSE {} ELIF TRUE a + b;}", "Unexpected character sequences found in a supposed expression"),
+    case("IF FALSE {} ELIF TRUE {{c <- 0;}", "DEFINE_PROGRAM block not properly closed"),
+    case("IF FALSE {} ELIF TRUE {{c <- 0;}", "DEFINE_PROGRAM block not properly closed"),
+    case("IF FALSE {} ELIF FALSE {} ELIF {c <- 0;}", "Expected an expression to parse but got nothing"),
+    case("IF FALSE {} ELIF FALSE {} ELIF ; {c <- 0;}", "Unexpected characters in primary expression: \";\""),
+    case("IF FALSE {} ELIF FALSE {} ELIF TRUE c <- 0;", "Unexpected character sequences found in a supposed expression"),
+    case("IF FALSE {} ELIF FALSE {} ELIF TRUE {c <- 0;", "DEFINE_PROGRAM block not properly closed"),
+    case("IF FALSE {} ELIF FALSE {} ELIF TRUE c <- 0;}", "Unexpected character sequences found in a supposed expression"),
+    case("IF FALSE {} ELIF FALSE {} ELIF TRUE a + b;}", "Unexpected character sequences found in a supposed expression"),
+    case("IF FALSE {} ELIF FALSE {} ELIF TRUE {{c <- 0;}", "DEFINE_PROGRAM block not properly closed"),
+    case("IF FALSE {} ELIF FALSE {} ELIF TRUE {{c <- 0;}", "DEFINE_PROGRAM block not properly closed"),
+    case("IF FALSE {} ELIF FALSE {} ELSE {{c <- 0;}", "DEFINE_PROGRAM block not properly closed"),
+    case("IF FALSE {} ELIF FALSE {} ELSE TRUE c <- 0;", "Expected a opening brace for a conditional branch"),
+    case("IF FALSE {} ELIF FALSE {} ELSE {c <- 0;", "DEFINE_PROGRAM block not properly closed"),
+    case("IF FALSE {} ELIF FALSE {} ELSE c <- 0;}", "Expected a opening brace for a conditional branch"),
 )]
 fn test_incorrect_parsing(input: &str, message: &str) {
+    let input: String = define_program_boilerplate!(
+        Vec::<String>::new(),
+        vec![ input ]
+    );
+    let ast: Result<AbstractSyntaxTree, MascalError> = run_parsing!(input.as_str());
+    assert!(
+        matches!(ast.as_ref().unwrap_err(),
+                MascalError {
+                    error_type,
+                    source,
+                    ..
+                } if *error_type == MascalErrorType::ParserError
+                && source == message
+            ),
+        "got {:?}, expected MascalError {{ error_type: {:?}, message: {:?}, ... }}",
+        &ast, MascalErrorType::ParserError, message
+    );
+}
+
+#[rstest(
+    input, message,
+    case("IF a = b {c <- 0;} ELSE {} ELIF TRUE {}", "Cannot supply an ELIF condition after an ELSE condition without opening a new IF condition"),
+    case("ELSE {c <- 0;}", "Expected an IF condition before this ELSE condition"),
+    case("ELIF a = b {c <- 0;}", "Expected an IF condition before this ELIF condition"),
+)]
+fn test_incorrect_parsing2(input: &str, message: &str) {
     let input: String = define_program_boilerplate!(
         Vec::<String>::new(),
         vec![ input ]
