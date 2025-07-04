@@ -71,6 +71,7 @@ fn parse_branch(
 }
 
 fn parse_conditional_statement(token_sequence: &[Token]) -> Result<MascalStatement, MascalError> {
+    let mut has_entered_else: bool = false;
     let mut branches: Vec<MascalConditionalBranch> = Vec::new();
     for (index, token) in token_sequence.iter().enumerate() {
         match token.token_type {
@@ -79,11 +80,20 @@ fn parse_conditional_statement(token_sequence: &[Token]) -> Result<MascalStateme
             }
 
             TokenType::ElseIf => {
+                if has_entered_else {
+                    return Err(MascalError {
+                        error_type: MascalErrorType::ParserError,
+                        character: token.start,
+                        line: token.line,
+                        source: String::from("Cannot supply an ELIF condition after an ELSE condition without opening a new IF condition"),
+                    })
+                }
                 branches.push(parse_branch(&token_sequence[index + 1..], false)?);
             }
 
             TokenType::Else => {
                 branches.push(parse_branch(&token_sequence[index + 1..], true)?);
+                has_entered_else = true;
             }
 
             _ => {}
@@ -371,7 +381,7 @@ pub fn parse_statement(token_sequence: &Vec<Token>) -> Result<MascalStatement, M
             error_type: MascalErrorType::ParserError,
             character: first_token.start,
             line: first_token.line,
-            source: String::from("Expected an IF statement before this ELSE condition"),
+            source: String::from("Expected an IF condition before this ELSE condition"),
         }),
 
         TokenType::Break => {
