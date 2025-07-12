@@ -114,7 +114,7 @@ pub fn parse_function(token_sequence: TokenSequence) -> Result<ScopedBlocks, Mas
                     error_type: MascalErrorType::ParserError,
                     line: curr_token.line,
                     character: curr_token.start,
-                    source: String::from("Expected a specific type to be returned and got nothing"),
+                    source: String::from("Expected a specific type to be returned and got something else"),
                 });
             }
         });
