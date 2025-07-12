@@ -2,6 +2,8 @@ mod parse_throw_statement;
 mod parse_declare_statement;
 mod parse_conditional_statement;
 mod parse_while_statements;
+mod parse_for_statements;
+mod parse_function;
 
 #[macro_export]
 macro_rules! run_parsing {
@@ -24,6 +26,20 @@ macro_rules! expect_error {
         let ast: Result<AbstractSyntaxTree, MascalError> = run_parsing!(input.as_str());
         assert_eq!(ast.is_err(), true);
         ast
+    }};
+}
+
+#[macro_export]
+macro_rules! unwrap_to_expression {
+    ($expr_str: expr) => {{
+        let input_expect: String = define_program_boilerplate!(
+            Vec::<String>::new(),
+            vec![ format!("{};", $expr_str) ]
+        );
+        let Ok(ast) = run_parsing!(input_expect.as_str()) else {unreachable!()};
+        let ScopedBlocks::Program(exec) = ast.blocks[0].clone() else {unreachable!()};
+        let MascalStatement::ExpressionStatement(expr) = exec.body[0].clone() else {unreachable!()};
+        expr
     }};
 }
 
