@@ -2,8 +2,9 @@ use rstest::rstest;
 use mascal::ast::AbstractSyntaxTree;
 use mascal::defs::blocks::ScopedBlocks;
 use mascal::defs::errors::{MascalError, MascalErrorType};
+use mascal::defs::expressions::MascalExpression;
 use mascal::defs::statements::MascalStatement;
-use crate::{define_program_boilerplate, run_parsing};
+use crate::{define_program_boilerplate, run_parsing, unwrap_to_expression};
 
 #[rstest(
     input, condition_part,
@@ -35,14 +36,7 @@ fn test_correct_parsing(input: &str, condition_part: Vec<Option<&str>>) {
             for (branch, expected) in branches.iter().zip(condition_part.iter()) {
                 assert_eq!(branch.statements.len(), 1);
                 if let Some(unwrapped_expected) = *expected {
-                    let input_expect: String = define_program_boilerplate!(
-                        Vec::<String>::new(),
-                        vec![ format!("{unwrapped_expected};") ]
-                    );
-                    
-                    let ast: AbstractSyntaxTree = run_parsing!(input_expect.as_str()).unwrap();
-                    let ScopedBlocks::Program(exec) = &ast.blocks[0] else {unreachable!()};
-                    let MascalStatement::ExpressionStatement(expr) = &exec.body[0] else {unreachable!()};
+                    let expr: &MascalExpression = &unwrap_to_expression!(unwrapped_expected);
                     assert_eq!(branch.condition.as_ref().unwrap(), expr);
                     continue;
                 }
